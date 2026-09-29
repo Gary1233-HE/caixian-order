@@ -243,6 +243,7 @@ select.in{appearance:auto}
   <div class="inv-line"><span class="src" id="invSrc">讀取點貨資料…</span><span id="sentFlag"></span><span class="cnt" id="ordCnt">0 項</span></div>
 </header>
 
+<div id="status" class="hide" style="padding:0 12px;max-width:760px;margin:0 auto"></div>
 <div id="vOrd"><div class="tabs" id="tabs"></div><main id="list"></main></div>
 <main id="vSum" class="hide"></main>
 <main id="vHist" class="hide"></main>
@@ -465,9 +466,9 @@ if (F) {
   const db = F.getFirestore(A.initializeApp(INV_CONFIG, "inventory"));
   inv = {
     mode: "fb",
-    watchCfg: cb => F.onSnapshot(F.doc(db, "config", "inventory"), x => cb(x.exists() ? x.data() : null), err),
+    watchCfg: cb => F.onSnapshot(F.doc(db, "config", "inventory"), x => { ST.inv = ""; showStatus(); cb(x.exists() ? x.data() : null) }, e => { fail("inv")(e); cb(null) }),
     /* 最新一筆 <= 叫貨日 的點貨紀錄（即時） */
-    watchDay: (d, cb) => F.onSnapshot(F.query(F.collection(db, "inventory"), F.where("date", "<=", d), F.orderBy("date", "desc"), F.limit(1)), x => cb(x.empty ? null : x.docs[0].data()), err)
+    watchDay: (d, cb) => F.onSnapshot(F.query(F.collection(db, "inventory"), F.where("date", "<=", d), F.orderBy("date", "desc"), F.limit(1)), x => cb(x.empty ? null : x.docs[0].data()), fail("inv"))
   };
 } else {
   const K = { ic: "cxo-demo-invcfg", id: "cxo-demo-invdays" };
@@ -487,8 +488,8 @@ if (ORDER_FB && F) {
   const merge = (d, s, o) => F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), ...o }, { merge: true }).catch(err);
   store = {
     mode: "fb",
-    watchOrdCfg: cb => F.onSnapshot(F.doc(db, "config", "order"), x => cb(x.exists() ? x.data() : null), err),
-    saveOrdCfg: c => F.setDoc(F.doc(db, "config", "order"), c),
+    watchOrdCfg: cb => F.onSnapshot(F.doc(db, "config", "order"), { includeMetadataChanges: true }, x => { if (!x.exists() && x.metadata.fromCache) return; /* 離線時不當成空的，免得蓋掉雲端設定 */ ST.ord = ""; showStatus(); cb(x.exists() ? x.data() : null) }, fail("ord")),
+    saveOrdCfg: c => F.setDoc(F.doc(db, "config", "order"), c).catch(e => { fail("ord")(e); throw e }),
     watchOrder: (d, s, cb) => F.onSnapshot(oref(d, s), x => cb(x.exists() ? x.data() : null), err),
     setLine: (d, s, id, e) => merge(d, s, { lines: { [id]: e === null ? F.deleteField() : e } }),
     setLines: (d, s, obj) => merge(d, s, { lines: obj }),
@@ -533,7 +534,18 @@ const today = () => new Date().toLocaleDateString("sv-SE");
 const fmt = v => (Math.round(v * 100) / 100).toString();
 const hm = t => new Date(t).toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", hour12: false });
 const norm = s => String(s || "").normalize("NFKC").toLowerCase().replace(/\s+/g, "");
-function err(e) { console.error(e); toast("錯誤：" + (e.code || e.message || e)) }
+function err(e) { console.error(e); toast("錯誤：" + (e.code || e.message || e), 5000) }
+/* 連線狀態：錯誤一直顯示在畫面上，不會一閃而過 */
+const ST = { inv: "", ord: "" };
+function fail(which) { return e => { console.error(which, e); ST[which] = ((e && e.code) || "") + " " + ((e && e.message) || e); showStatus() } }
+function showStatus() {
+  const box = document.getElementById("status"); if (!box) return;
+  const tips = [];
+  if (ST.ord) tips.push(`<b>叫貨資料庫（caixian-order）連不上</b><br><code>${esc(ST.ord)}</code><br>請到 Firebase → caixian-order → Firestore Database，確認已按「建立資料庫」，並在「規則」發布 <code>allow read, write: if true;</code>`);
+  if (ST.inv) tips.push(`<b>點貨資料庫（caixian-inventory）讀不到</b><br><code>${esc(ST.inv)}</code><br>叫貨一樣可以用，只是不會顯示庫存`);
+  box.innerHTML = tips.map(t => `<div class="panel alert" style="font-size:14px;line-height:1.6;word-break:break-all">${t}</div>`).join("");
+  box.classList.toggle("hide", !tips.length);
+}
 let tt; function toast(m, ms = 2000) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), ms) }
 function dateLabel(d) { const [, m, dd] = d.split("-"); return `${+m}/${+dd}（${"日一二三四五六"[new Date(d + "T00:00").getDay()]}）` }
 
@@ -623,9 +635,24 @@ $("#sync").title = store.mode === "fb" ? "叫貨資料即時同步" : "本機模
 $("#date").value = S.date;
 
 let seeded = false, askedMe = false;
-inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); render() });
+setTimeout(() => {
+  if (!S.ocfgLoaded && !ST.ord) { ST.ord = "等了 12 秒還沒有回應（資料庫可能還沒建立，或網路不通）"; showStatus() }
+  if (!S.inv && !ST.inv && inv.mode === "fb") { ST.inv = "等了 12 秒還沒有回應"; showStatus() }
+}, 12000);
+inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); render() });
+$("#invSrc").textContent = "連線中…";
+/* 建立品項時讀不到點貨 → 讀到後自動補上連動 */
+function relink() {
+  if (!S.ocfg || !S.ocfg.needLink || !invItems().length) return;
+  const byName = {}; invItems().forEach(i => (byName[i.n] ||= []).push(i));
+  const resolve = key => { const [n, c] = key.split("@"); const l = byName[n] || []; return (c ? l.find(i => i.c === c) : null) || (c ? null : l[0]) };
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)); delete cfg.needLink;
+  const x = cfg.sups.find(q => q.id === "xiluo");
+  if (x) x.items.forEach(it => { if ((it.inv || []).length) return; const r = SEED_XILUO.find(r => r[1] === it.n && r[0] === it.c); if (r) it.inv = r[4].map(resolve).filter(Boolean).map(i => i.id) });
+  store.saveOrdCfg(cfg).catch(err);
+}
 store.watchOrdCfg(c => {
-  S.ocfg = c; S.ocfgLoaded = true; ensureSeed();
+  S.ocfg = c; S.ocfgLoaded = true; ensureSeed(); relink();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 3)) { migrate(); return }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length) {
@@ -644,14 +671,15 @@ function migrate() {
   store.saveOrdCfg(cfg).catch(err);
 }
 function ensureSeed() {
-  if (seeded || !S.inv || !S.ocfgLoaded) return;
+  if (seeded || !S.ocfgLoaded || (!invItems().length && !ST.inv)) return;
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length) return;
   seeded = true;
   const byName = {}; invItems().forEach(i => (byName[i.n] ||= []).push(i));
   const resolve = key => { const [n, c] = key.split("@"); const l = byName[n] || []; return (c ? l.find(i => i.c === c) : null) || (c ? null : l[0]) };
   const items = SEED_XILUO.map((r, k) => ({ id: "o" + String(k + 1).padStart(3, "0"), c: r[0], n: r[1], o: r[2], u: r[3], inv: r[4].map(resolve).filter(Boolean).map(i => i.id) }));
   const cfg = { ver: 3, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, items }] };
-  store.saveOrdCfg(cfg).catch(err);
+  if (!invItems().length) cfg.needLink = true;
+  store.saveOrdCfg(cfg).catch(e => { seeded = false; err(e) });
 }
 function openOrder() {
   S.unsub.forEach(f => typeof f === "function" && f()); S.unsub = [];
@@ -672,7 +700,7 @@ $("#supSel").onchange = e => { S.sup = e.target.value; try { localStorage.setIte
 
 /* ================= render ================= */
 function render() {
-  if (!S.inv || !S.ocfg || !sup()) return;
+  if (!S.ocfg || !sup()) return;
   if (!S.cat || !catsOf().includes(S.cat)) S.cat = catsOf()[0];
   renderTop();
   if (S.view === "Ord") renderOrd();
@@ -697,7 +725,9 @@ function renderTop() {
     const old = d.date !== S.date;
     src = old
       ? `${S.date === today() ? "今天" : "這天"}沒點貨，庫存看 <b>${dateLabel(d.date)}</b> 僅供參考`
-      : `點貨 <b>${dateLabel(d.date)}</b>　${d.done ? `<span class="ok">✓ ${esc(d.done.by)} 完成</span>` : `點了 ${n}/${tot}`}`;
+      : d.done ? `${S.date === today() ? "今天" : dateLabel(S.date)}點貨 <span class="ok">✓ ${esc(d.done.by)} 已完成</span>`
+      : n === 0 ? `${S.date === today() ? "今天" : dateLabel(S.date)}點貨還沒開始`
+      : `${S.date === today() ? "今天" : dateLabel(S.date)}點貨進行中，已點 <b>${n}</b> / ${tot} 項`;
   }
   $("#invSrc").innerHTML = src;
   $("#ordCnt").textContent = `叫 ${st.ordered.length} 項`;
