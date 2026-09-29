@@ -521,48 +521,60 @@ if (F) {
 }
 
 /* ---- 叫貨（自己的專案） ---- */
+/* Firestore 不接受空字串當欄位名稱：沒有規格的品項，數量存成 vs["_"]，讀回來再轉成 vs[""] */
+const BL = "_";
+const mapKeys = (o, f) => { if (!o || typeof o !== "object") return o; const r = {}; Object.entries(o).forEach(([k, v]) => { r[f(k)] = v }); return r };
+const encLine = e => (!e || typeof e !== "object" || !("vs" in e || "sg" in e)) ? e : { ...e, ...(e.vs ? { vs: mapKeys(e.vs, k => k === "" ? BL : k) } : {}), ...(e.sg ? { sg: mapKeys(e.sg, k => k === "" ? BL : k) } : {}) };
+const decLine = e => (!e || typeof e !== "object") ? e : { ...e, ...(e.vs ? { vs: mapKeys(e.vs, k => k === BL ? "" : k) } : {}), ...(e.sg ? { sg: mapKeys(e.sg, k => k === BL ? "" : k) } : {}) };
+const decDoc = x => { if (!x || !x.lines) return x; const l = {}; Object.entries(x.lines).forEach(([k, v]) => { l[k] = decLine(v) }); return { ...x, lines: l } };
+const encLines = o => { const r = {}; Object.entries(o).forEach(([k, v]) => { r[k] = encLine(v) }); return r };
+/* 同步丟出的錯誤（例如資料格式不對）也要接住，不能讓按鈕卡住 */
+const safe = fn => { try { const p = fn(); return p && p.catch ? p.catch(err) : p } catch (e) { err(e); return Promise.resolve() } };
 let store;
 if (ORDER_FB && F) {
   const db = F.getFirestore(A.initializeApp(ORDER_CONFIG));
   const oref = (d, s) => F.doc(db, "orders", `${d}_${s}`);
-  const merge = (d, s, o) => F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), ...o }, { merge: true }).catch(err);
+  const merge = (d, s, o) => safe(() => F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), ...o }, { merge: true }));
   store = {
     mode: "fb",
     watchOrdCfg: cb => F.onSnapshot(F.doc(db, "config", "order"), { includeMetadataChanges: true }, x => { if (!x.exists() && x.metadata.fromCache) return; /* 離線時不當成空的，免得蓋掉雲端設定 */ ST.ord = ""; showStatus(); cb(x.exists() ? x.data() : null) }, fail("ord")),
     saveOrdCfg: c => F.setDoc(F.doc(db, "config", "order"), c).catch(e => { fail("ord")(e); throw e }),
-    watchOrder: (d, s, cb) => F.onSnapshot(oref(d, s), x => cb(x.exists() ? x.data() : null), err),
+    watchOrder: (d, s, cb) => F.onSnapshot(oref(d, s), x => cb(x.exists() ? decDoc(x.data()) : null), err),
     /* 整筆取代這一項（避免舊規格數量殘留） */
     setLine: (d, s, id, e) => e === null ? merge(d, s, { lines: { [id]: F.deleteField() } })
-      : F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), lines: { [id]: e } }, { mergeFields: ["date", "sup", "updatedAt", new F.FieldPath("lines", id)] }).catch(err),
+      : safe(() => F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), lines: { [id]: encLine(e) } }, { mergeFields: ["date", "sup", "updatedAt", new F.FieldPath("lines", id)] })),
     setPrice: (d, s, id, o, v) => merge(d, s, { lines: { [id]: { p: { [o || "_"]: v == null ? F.deleteField() : v } } } }),
     watchPrices: (s, cb) => F.onSnapshot(F.doc(db, "prices", s), x => cb((x.exists() && x.data().last) || {}), err),
-    setLastPrice: (s, key, v) => F.setDoc(F.doc(db, "prices", s), { last: { [key]: v } }, { merge: true }).catch(err),
-    setLines: (d, s, obj) => merge(d, s, { lines: obj }),
+    setLastPrice: (s, key, v) => safe(() => F.setDoc(F.doc(db, "prices", s), { last: { [key]: v } }, { merge: true })),
+    setLines: (d, s, obj) => merge(d, s, { lines: encLines(obj) }),
     setNote: (d, s, note, by) => merge(d, s, { note, noteBy: by }),
     setSent: (d, s, v) => merge(d, s, { sent: v }),
-    prevOrder: async (d, s) => { const x = await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", "<", d), F.orderBy("date", "desc"), F.limit(30))); return x.docs.map(y => y.data()).find(y => y.sup === s && y.lines && Object.keys(y.lines).length) || null },
-    listOrders: async n => (await F.getDocs(F.query(F.collection(db, "orders"), F.orderBy("date", "desc"), F.limit(n)))).docs.map(x => x.data()),
-    listRange: async (a, b) => (await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", ">=", a), F.where("date", "<=", b)))).docs.map(x => x.data())
+    prevOrder: async (d, s) => { const x = await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", "<", d), F.orderBy("date", "desc"), F.limit(30))); return x.docs.map(y => decDoc(y.data())).find(y => y.sup === s && y.lines && Object.keys(y.lines).length) || null },
+    listOrders: async n => (await F.getDocs(F.query(F.collection(db, "orders"), F.orderBy("date", "desc"), F.limit(n)))).docs.map(x => decDoc(x.data())),
+    listRange: async (a, b) => (await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", ">=", a), F.where("date", "<=", b)))).docs.map(x => decDoc(x.data()))
   };
 } else {
   const P = DEMO ? "cxo-demo-" : "cxo-local-";
   const K = { oc: P + "ordcfg", od: P + "orders", pr: P + "prices" };
   const L = { oc: [], o: {} };
-  const orders = () => rd(K.od) || {};
+  const fsCheck = (v, p = "") => { if (v === undefined) throw new Error("undefined at " + p); if (Array.isArray(v)) v.forEach((x, i) => { if (Array.isArray(x)) throw new Error("nested array at " + p); fsCheck(x, p + "[" + i + "]") }); else if (v && typeof v === "object") Object.entries(v).forEach(([k, x]) => { if (k === "") throw new Error("empty field name at " + p); fsCheck(x, p + "." + k) }) };
+  const ordersRaw = () => rd(K.od) || {};
+  const orders = () => { const a = ordersRaw(), r = {}; Object.keys(a).forEach(k => { r[k] = decDoc(a[k]) }); return r };
   const emitO = key => (L.o[key] || []).forEach(f => f(orders()[key] || null));
-  const edit = (d, s, fn) => { const a = orders(), key = `${d}_${s}`; const x = a[key] ||= { date: d, sup: s, lines: {} }; x.lines ||= {}; fn(x); x.updatedAt = Date.now(); wr(K.od, a); emitO(key) };
+  const edit = (d, s, fn) => { const a = orders(), key = `${d}_${s}`; const x = a[key] ||= { date: d, sup: s, lines: {} }; x.lines ||= {}; fn(x); x.updatedAt = Date.now();
+    const raw = ordersRaw(); raw[key] = { ...x, lines: encLines(x.lines) }; fsCheck(raw[key]); wr(K.od, raw); emitO(key) };
   store = {
     mode: "local",
     watchOrdCfg: cb => { L.oc.push(cb); cb(rd(K.oc)); return () => {} },
-    saveOrdCfg: async c => { wr(K.oc, c); L.oc.forEach(f => f(c)) },
+    saveOrdCfg: async c => { fsCheck(c); wr(K.oc, c); L.oc.forEach(f => f(c)) },
     watchOrder: (d, s, cb) => { const key = `${d}_${s}`; (L.o[key] ||= []).push(cb); cb(orders()[key] || null); return () => { L.o[key] = L.o[key].filter(f => f !== cb) } },
-    setLine: async (d, s, id, e) => edit(d, s, x => { if (e === null) delete x.lines[id]; else x.lines[id] = e }),
-    setPrice: async (d, s, id, o, v) => edit(d, s, x => { const l = x.lines[id]; if (!l) return; l.p ||= {}; if (v == null) delete l.p[o || "_"]; else l.p[o || "_"] = v }),
+    setLine: async (d, s, id, e) => safe(() => edit(d, s, x => { if (e === null) delete x.lines[id]; else x.lines[id] = e })),
+    setPrice: async (d, s, id, o, v) => safe(() => edit(d, s, x => { const l = x.lines[id]; if (!l) return; l.p ||= {}; if (v == null) delete l.p[o || "_"]; else l.p[o || "_"] = v })),
     watchPrices: (s, cb) => { (L.pr ||= []).push([s, cb]); cb((rd(K.pr) || {})[s] || {}); return () => {} },
     setLastPrice: async (s, key, v) => { const a = rd(K.pr) || {}; (a[s] ||= {})[key] = v; wr(K.pr, a); (L.pr || []).forEach(([q, f]) => q === s && f(a[s])) },
-    setLines: async (d, s, obj) => edit(d, s, x => Object.assign(x.lines, obj)),
-    setNote: async (d, s, note, by) => edit(d, s, x => { x.note = note; x.noteBy = by }),
-    setSent: async (d, s, v) => edit(d, s, x => { x.sent = v }),
+    setLines: async (d, s, obj) => safe(() => edit(d, s, x => Object.assign(x.lines, obj))),
+    setNote: async (d, s, note, by) => safe(() => edit(d, s, x => { x.note = note; x.noteBy = by })),
+    setSent: async (d, s, v) => safe(() => edit(d, s, x => { x.sent = v })),
     prevOrder: async (d, s) => Object.values(orders()).filter(x => x.sup === s && x.date < d && Object.keys(x.lines || {}).length).sort((a, b) => b.date.localeCompare(a.date))[0] || null,
     listOrders: async n => Object.values(orders()).sort((a, b) => b.date.localeCompare(a.date)).slice(0, n),
     listRange: async (a, b) => Object.values(orders()).filter(x => x.date >= a && x.date <= b)
