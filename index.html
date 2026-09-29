@@ -963,6 +963,7 @@ function mkEntry(it, vs, sug) {
 function needMe() { if (!S.me) { openPeople(); return true } return false }
 function openKp(id) {
   if (needMe()) return;
+  if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
   const it = oById(id); if (!it) return;
   const e = lines()[id], ks = optKeys(it), a = analyze(it);
   const bufs = {}, fresh = {};
@@ -1041,13 +1042,27 @@ $("#kpSug").onclick = () => {
 };
 $("#kpClear").onclick = () => { const k = S.kp; store.setLine(S.date, S.sup, k.id, null); stampEdit(); k.ks.forEach(o => { k.bufs[o] = ""; k.fresh[o] = true }); k.touched = {}; renderKp() };
 $("#kpClose").onclick = () => { commitKp(); closeKp() };
+/* 實體鍵盤：開著中文輸入法（注音）時，數字鍵的 e.key 可能是 "Process"，改用 e.code 判斷 */
+function keyOf(e) {
+  const c = e.code || "";
+  let m = c.match(/^(?:Digit|Numpad)([0-9])$/); if (m) return m[1];
+  if (c === "Period" || c === "NumpadDecimal") return ".";
+  if (c === "Backspace" || c === "Enter" || c === "NumpadEnter" || c === "Escape") return c === "NumpadEnter" ? "Enter" : c;
+  return e.key;
+}
 document.addEventListener("keydown", e => {
   if (!S.kp) return;
-  if (/^[0-9.]$/.test(e.key)) document.querySelector(`#kp [data-k="${e.key}"]`)?.click();
-  else if (e.key === "Backspace") document.querySelector(`#kp [data-k="bk"]`).click();
-  else if (e.key === "Enter") $("#kpGo").click();
-  else if (e.key === "Escape") $("#kpClose").click();
-});
+  const k = keyOf(e);
+  let hit = true;
+  if (/^[0-9.]$/.test(k)) document.querySelector(`#kp [data-k="${k}"]`)?.click();
+  else if (k === "Backspace") document.querySelector(`#kp [data-k="bk"]`).click();
+  else if (k === "Enter") $("#kpGo").click();
+  else if (k === "Escape") $("#kpClose").click();
+  else hit = false;
+  if (hit) e.preventDefault();   /* 不讓按鍵同時觸發其他被選取的按鈕或欄位 */
+}, true);
+/* 用滑鼠點鍵盤按鈕時不搶焦點，避免之後按 Enter 又重複按到同一顆 */
+document.getElementById("kp").addEventListener("mousedown", e => { if (e.target.closest("button")) e.preventDefault() });
 /* 傳送後又修改的標記 */
 function stampEdit() { if (S.ord && S.ord.sent) store.setSent(S.date, S.sup, { ...S.ord.sent, edited: Date.now() }) }
 
