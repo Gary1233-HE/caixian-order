@@ -313,9 +313,9 @@ select.in{appearance:auto}
       <button id="kpClear">清除</button>
     </div>
     <div class="kp-grid">
-      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
-      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
       <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
       <button data-k=".">.</button><button data-k="0">0</button><button class="fn" data-k="bk" aria-label="刪除一位">⌫</button>
     </div>
     <div class="kp-nav"><button class="pv" id="kpPrevBtn">上一項</button><button class="go" id="kpGo">確定・下一項</button></div>
@@ -433,7 +433,7 @@ const SEED_XILUO = [
   ["瓜果類","南瓜",["A","B"],"",["南瓜"]],
   ["瓜果類","蒲仔",["A","B"],"",["蒲仔"]],
   ["瓜果類","茄子",["A","B"],"",["茄子A","茄子B"]],
-  ["瓜果類","玉米",["包","件"],"",["玉米"]],
+  ["瓜果類","玉米",["包","件"],"",["原封玉米","修清玉米","玉米"]],
   ["瓜果類","牛蕃茄",["A","B"],"",["牛蕃茄A","牛蕃茄B"]],
   ["瓜果類","青椒",["A","B"],"",["青椒A","青椒B"]],
   ["瓜果類","彩椒",["紅","黃"],"",["彩椒紅","彩椒黃"]],
@@ -443,7 +443,7 @@ const SEED_XILUO = [
   ["瓜果類","敏豆",["A","B"],"",["敏豆A","敏豆B"]],
   ["瓜果類","皇帝豆",[],"件",[]],
   ["瓜果類","綠節瓜",[],"件",["節瓜"]],
-  ["瓜果類","玉米筍",[],"件",["玉米筍"]],
+  ["瓜果類","玉米筍",[],"件",["玉米筍盒","玉米筍"]],
   ["瓜果類","結頭菜",[],"件",["結頭菜"]],
   ["瓜果類","茭白筍",["帶殼","去殼"],"",[]],
   ["其他","進口高麗",["軟","硬"],"",["進口高麗"]],
@@ -606,8 +606,10 @@ const iVal = (i, e, u) => { if (!e) return null; if (e.vs) return e.vs[u] ?? nul
 const iZero = e => !!e && (e.vs ? Object.values(e.vs).length > 0 && Object.values(e.vs).every(x => x === 0) : e.v === 0);
 const iFirst = (i, e) => iVal(i, e, iUnits(i)[0]);
 const iNeed = (i, e) => { if (!e || !iMin(i)) return 0; if (iZero(e)) return iMin(i); const v = iFirst(i, e); return v != null && v < iMin(i) ? +(iMin(i) - v).toFixed(2) : 0 };
+const iOk = e => !!e && !!e.ok;   /* 點貨標「夠用」 */
 function iQty(i, e) {
   if (!e) return null;
+  if (iOk(e)) return "夠用";
   if (iZero(e)) return "缺貨";
   const us = iUnits(i), keys = e.vs ? [...us, ...Object.keys(e.vs).filter(u => !us.includes(u))] : us;
   return keys.map(u => { const v = iVal(i, e, u); return v == null ? null : fmt(v) + u }).filter(Boolean).join(" ") || null;
@@ -710,7 +712,7 @@ function usageOf(inv) {
   const out = [];
   for (let i = 1; i < dates.length; i++) {
     const p = dates[i - 1], q = dates[i], gap = Math.round((new Date(q) - new Date(p)) / 864e5);
-    if (gap < 1 || gap > 3) continue;
+    if (gap < 1 || gap > 8) continue;   /* 隔天點、貨運前一天點：中間的用量平均分到每一天 */
     let r = 0; for (let k = 0; k < gap; k++) r += ((S.hist.rec[addDays(p, k)] || {})[inv.id] || 0);
     const u = Math.max(0, val(invD[p]) + r - val(invD[q]));
     for (let k = 1; k <= gap; k++) { const x = addDays(p, k); out.push({ d: x, wd: wdOf(x), u: u / gap }) }
@@ -726,20 +728,43 @@ function forecastDay(inv, x) {
   return null;
 }
 /* 單一點貨品項的建議（回傳點貨單位的需求與說明） */
+/* 點貨頻率（點貨 App 設定）：f="2" 隔天點、f="w25" 貨運二五前一天點 */
+const invFreqLabel = inv => { const f = String(inv.f || ""); if (f === "2") return "隔天點"; if (f[0] === "w") return "貨運" + [...f.slice(1)].map(d => "日一二三四五六"[d]).join("") + "前一天點"; return "" };
+/* 今天沒點的非每天品項：用最近一次點貨，加上之後到貨、扣掉預估用量，估計現在庫存 */
+function estimateStock(inv) {
+  if (!S.hist) return null;
+  const invD = S.hist.invD;
+  const L = Object.keys(invD).filter(d => d < S.date && invD[d][inv.id]).sort().pop();
+  if (!L || (new Date(S.date) - new Date(L)) / 864e5 > 8) return null;
+  const e = invD[L][inv.id]; if (iOk(e)) return null;
+  const last = iZero(e) ? 0 : iFirst(inv, e); if (last == null) return null;
+  let v = last;
+  for (let d = L; d < S.date; d = addDays(d, 1)) v += ((S.hist.rec[d] || {})[inv.id] || 0);
+  for (let d = addDays(L, 1); d <= S.date; d = addDays(d, 1)) { const f = forecastDay(inv, d); if (!f) return null; v -= f.v }
+  return { d: L, last, v: Math.max(0, Math.round(v * 10) / 10) };
+}
 function planFor(it, inv, e) {
   const min = iMin(inv), u = iUnits(inv)[0];
-  if (!e) return { need: 0, why: "" };
-  const stock = iZero(e) ? 0 : (iFirst(inv, e) ?? 0);
+  let est = null;
+  if (!e) {
+    if (!inv.f) return { need: 0, why: "" };
+    est = estimateStock(inv);
+    if (!est) return { need: 0, why: `${invFreqLabel(inv)}，今天沒點，也還估不出庫存` };
+  }
+  if (e && iOk(e)) return { need: 0, why: "點貨標記夠用" };
+  const stock = est ? est.v : iZero(e) ? 0 : (iFirst(inv, e) ?? 0);
+  const stockTxt = est ? `估計庫存${fmt(stock)}（${dateLabel(est.d).replace(/（.）/, "")}點${fmt(est.last)}）` : `庫存${fmt(stock)}`;
   const days = coverDays(S.date), keep = keepDays(it.c), use = days.slice(0, Math.max(1, keep));
   const fc = use.map(x => forecastDay(inv, x));
   if (S.hist && fc.every(Boolean)) {
     const dem = fc.reduce((a, f) => a + f.v, 0), need = dem + min - stock;
     const why = (use.length > 1
       ? `要撐${use.length}天：${use.map((x, i) => "日一二三四五六"[wdOf(x)] + fmt(fc[i].v)).join("＋")}＝${fmt(dem)}${u}`
-      : `${fc[0].how}平均用${fmt(fc[0].v)}${u}`) + `${min ? `＋安全${fmt(min)}` : ""}－庫存${fmt(stock)}`;
+      : `${fc[0].how}平均用${fmt(fc[0].v)}${u}`) + `${min ? `＋安全${fmt(min)}` : ""}－${stockTxt}`;
     const cut = days.length > use.length ? `（休市${days.length}天，${it.c}最多放${keep}天）` : "";
     return { need: need > 0 ? need : 0, why: why + cut, how: "fc" };
   }
+  if (est) return { need: 0, why: `${invFreqLabel(inv)}，今天沒點，用量資料還不夠估` };
   const need = iNeed(inv, e);
   return { need, why: min ? `用量資料還不夠，先用安全量${fmt(min)}－庫存${fmt(stock)}` : "用量資料還不夠，也沒設安全量", how: "safe" };
 }
@@ -763,8 +788,8 @@ function stockHtml(a) {
   const pre = a.stale ? `${dateLabel(S.invDay.date).replace(/（.）/, "")} ` : "";
   return pre + a.rows.map(r => {
     const nm = a.rows.length > 1 ? esc(r.inv.n) + " " : "庫存 ";
-    if (r.e == null) return `${nm}未點`;
-    const cls = r.zero ? "z" : r.min && (iFirst(r.inv, r.e) ?? 0) < r.min ? "lo" : "";
+    if (r.e == null) return r.inv.f ? `${nm}今天不用點` : `${nm}未點`;
+    const cls = r.zero ? "z" : !iOk(r.e) && r.min && (iFirst(r.inv, r.e) ?? 0) < r.min ? "lo" : "";
     return `${nm}<span class="${cls}">${esc(r.qty)}</span>${r.min ? `/安${fmt(r.min)}` : ""}`;
   }).join("　");
 }
@@ -784,13 +809,21 @@ inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); re
 $("#invSrc").textContent = "連線中…";
 /* 建立品項時讀不到點貨 → 讀到後自動補上連動 */
 function relink() {
-  if (!S.ocfg || !S.ocfg.needLink || !invItems().length) return;
+  if (!S.ocfg || !S.ocfg.sups || !invItems().length) return;
   const byName = {}; invItems().forEach(i => (byName[i.n] ||= []).push(i));
   const resolve = key => { const [n, c] = key.split("@"); const l = byName[n] || []; return (c ? l.find(i => i.c === c) : null) || (c ? null : l[0]) };
-  const cfg = JSON.parse(JSON.stringify(S.ocfg)); delete cfg.needLink;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)); let n = 0;
   const x = cfg.sups.find(q => q.id === "xiluo");
-  if (x) x.items.forEach(it => { if ((it.inv || []).length) return; const r = SEED_XILUO.find(r => r[1] === it.n && r[0] === it.c); if (r) it.inv = r[4].map(resolve).filter(Boolean).map(i => i.id) });
-  store.saveOrdCfg(cfg).catch(err);
+  if (x) x.items.forEach(it => {
+    if (it.manual) return;
+    const live = (it.inv || []).filter(id => invById(id));
+    if (live.length) { if (live.length !== (it.inv || []).length) { it.inv = live; n++ } return }
+    const r = SEED_XILUO.find(r => r[1] === it.n && r[0] === it.c); if (!r) return;
+    const ids = [...new Set(r[4].map(resolve).filter(Boolean).map(i => i.id))];
+    if (ids.length) { it.inv = ids; n++ }
+  });
+  if (cfg.needLink) { delete cfg.needLink; n++ }
+  if (n) store.saveOrdCfg(cfg).then(() => toast(`點貨品項有更新，已自動連動 ${n} 項`)).catch(err);
 }
 store.watchOrdCfg(c => {
   S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; ensureSeed(); relink();
@@ -966,11 +999,11 @@ function renderKp() {
   if (!a.linked) { m.className = "kp-msg nl"; m.textContent = "這項沒有連動點貨，到「設定」可以連動" }
   else if (!S.invDay) { m.className = "kp-msg nl"; m.textContent = "還沒有點貨紀錄，直接輸入數量" }
   else if (a.stale) { m.className = "kp-msg nl"; m.textContent = `沒有當天點貨，庫存是 ${dateLabel(S.invDay.date)} 的，只供參考` }
-  else if (a.rows.every(r => r.e == null)) { m.className = "kp-msg nl"; m.textContent = "今天還沒點到這項" }
+  else if (a.rows.every(r => r.e == null) && !a.rows.some(r => r.why)) { m.className = "kp-msg nl"; m.textContent = "今天還沒點到這項" }
   else {
     const w = a.rows.filter(r => r.why).map(r => (a.rows.length > 1 ? r.inv.n + "：" : "") + r.why + (r.f !== 1 ? `（1${unitLabel(it, r.o) || "單位"}=${fmt(r.f)}${iUnits(r.inv)[0]}）` : "")).join("；");
     m.className = "kp-msg " + (a.needAny ? "lo" : "ok");
-    m.textContent = a.needAny ? `${w} → 建議叫 ${sugText(it, a.sug)}` : (w ? `${w}，夠用不用叫` : "庫存夠用");
+    m.textContent = a.needAny ? `${w} → 建議叫 ${sugText(it, a.sug)}` : (w ? `${w}，不用叫` : "庫存夠用");
   }
   const sg = $("#kpSug"); sg.disabled = !a.needAny; sg.textContent = a.needAny ? `帶入建議 ${sugText(it, a.sug)}` : "沒有建議量";
 }
@@ -1356,7 +1389,7 @@ $("#lkList").onchange = e => {
   const fx = e.target.closest("[data-fx]");
   if (fx) { const v = +fx.value; it.fx = { ...(it.fx || {}) }; if (v > 0 && v !== 1) it.fx[fx.dataset.fx] = v; else delete it.fx[fx.dataset.fx]; return }
   const cb = e.target.closest("[data-inv]"); if (!cb) return;
-  const set = new Set(it.inv || []); cb.checked ? set.add(cb.dataset.inv) : set.delete(cb.dataset.inv); it.inv = [...set];
+  const set = new Set(it.inv || []); cb.checked ? set.add(cb.dataset.inv) : set.delete(cb.dataset.inv); it.inv = [...set]; it.manual = 1;
   const y = $("#lkList").scrollTop; renderLink(); $("#lkList").scrollTop = y;
 };
 $("#lkList").addEventListener("click", e => { if (e.target.closest(".fx")) e.preventDefault() });
