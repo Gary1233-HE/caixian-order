@@ -101,7 +101,9 @@ nav.bn .dot{position:absolute;top:6px;left:calc(50% + 8px);background:var(--low)
 .kp-top .nm{flex:1;min-width:0}
 .kp-top .nm b{display:block;font-size:26px;font-weight:900;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kp-top .nm span{font-size:13px;color:var(--muted)}
-.kp-body{flex:1;display:flex;flex-direction:column;padding:10px 12px calc(10px + var(--safe-b));gap:8px;min-height:0;max-width:560px;width:100%;margin:0 auto}
+.kp-body{flex:1;display:flex;flex-direction:column;padding:10px 12px calc(10px + var(--safe-b));gap:8px;min-height:0;max-width:560px;width:100%;margin:0 auto;overflow:hidden}
+.kp-body>*{flex:none}
+.kp-body>.kp-grid{flex:1 1 auto}
 .kp-info{display:grid;grid-template-columns:1.5fr 1fr;gap:6px}
 .kp-info div{border-radius:12px;background:var(--bg);padding:7px 10px;min-width:0}
 .kp-info small{display:block;font-size:12px;color:var(--muted)}
@@ -110,7 +112,7 @@ nav.bn .dot{position:absolute;top:6px;left:calc(50% + 8px);background:var(--low)
 .kp-info .pv b{font-size:15px;line-height:1.35;display:block}
 .kp-opts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 12px;margin:0 -12px}
 .kp-opts::-webkit-scrollbar{display:none}
-.kp-opts button{flex:none;min-width:64px;border:2px solid var(--line);border-radius:12px;padding:7px 14px;font-size:22px;font-weight:900;background:var(--paper);line-height:1.1}
+.kp-opts button{flex:none;min-width:64px;min-height:48px;border:2px solid var(--line);border-radius:12px;padding:7px 14px;font-size:22px;font-weight:900;background:var(--paper);line-height:1.1}
 .kp-opts button b{font-family:var(--mono);font-size:18px;margin-left:6px;color:var(--ok)}
 .kp-opts button.has{border-color:var(--ok);background:var(--okbg)}
 .kp-opts button.on{border-color:var(--ink);background:var(--ink);color:#fff}
@@ -125,7 +127,24 @@ nav.bn .dot{position:absolute;top:6px;left:calc(50% + 8px);background:var(--low)
 .kp-quick{display:grid;grid-template-columns:1.6fr .8fr 1fr;gap:6px}
 .kp-quick button{border:1px solid var(--line);border-radius:10px;padding:10px 2px;font-size:14px;font-weight:700;background:var(--paper)}
 .kp-quick .sg{color:#fff;background:var(--low);border-color:var(--low)}
-.kp-grid{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr;gap:6px;min-height:190px}
+.kp-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,minmax(0,1fr));gap:6px;min-height:0}
+/* 螢幕矮的時候自動縮小，不用捲動 */
+@media (max-height:720px){
+  .kp-top{padding-top:calc(var(--safe-t) + 4px);padding-bottom:6px}.kp-top .nm b{font-size:22px}
+  .kp-body{gap:6px;padding-top:6px}
+  .kp-info div{padding:5px 9px}.kp-info .stk b,.kp-info .pv b{font-size:14px}
+  .kp-opts button{min-height:40px;padding:4px 12px;font-size:19px}
+  .kp-disp{min-height:56px;padding:4px 16px}.kp-disp .n{font-size:40px}.kp-disp .u{font-size:24px}
+  .kp-msg{min-height:18px;font-size:13px;padding:1px 8px}
+  .kp-quick button{padding:7px 2px}
+  .kp-grid button{font-size:26px}
+  .kp-nav button{padding:12px 0}
+}
+@media (max-height:540px){
+  .kp-info{display:none}
+  .kp-disp{min-height:48px}.kp-disp .n{font-size:34px}
+}
+@media (min-height:760px) and (min-width:700px){.kp-grid{max-height:340px}}
 .kp-grid button{background:var(--bg);border-radius:14px;font-family:var(--mono);font-size:30px;font-weight:700}
 .kp-grid button:active,.kp-quick button:active{filter:brightness(.92)}
 .kp-grid .fn{font-family:var(--sans);font-size:22px}
