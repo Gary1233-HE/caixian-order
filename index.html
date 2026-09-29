@@ -222,6 +222,7 @@ select.in{appearance:auto}
 .ed-row{display:grid;grid-template-columns:1fr 92px 56px;gap:4px;align-items:center;margin-bottom:6px;padding:6px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .ed-row .ac{grid-column:1/-1;display:flex;gap:4px}
 .ed-row .ac .lk{flex:1;min-width:0}
+.ed-row .ac .cs{flex:none;width:76px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px;padding:0 2px}
 .ed-row .ac button:not(.lk){width:40px;flex:none}
 .ed-row input{border:1px solid var(--line);border-radius:8px;padding:8px 6px;background:var(--bg);min-width:0;width:100%}
 .ed-row .u{text-align:center}
@@ -366,6 +367,7 @@ const DEFAULT_PEOPLE = ["土豆", "永順"];
 const SEED_XILUO = [
   ["根莖類","紅K",["A","中"],"",["紅蘿蔔"]],
   ["根莖類","馬K",["台","進口"],"",["馬鈴薯"]],
+  ["根莖類","白K",["台","進口"],"",["白K"]],
   ["根莖類","洋蔥",["台","進口"],"",["洋蔥"]],
   ["根莖類","青蔥",[],"把",["青蔥"]],
   ["根莖類","韭菜花",[],"把",["韭菜花"]],
@@ -447,7 +449,6 @@ const SEED_XILUO = [
   ["瓜果類","結頭菜",[],"件",["結頭菜"]],
   ["瓜果類","茭白筍",["帶殼","去殼"],"",[]],
   ["其他","進口高麗",["軟","硬"],"",["進口高麗"]],
-  ["其他","白K",["台","進口"],"",["白K"]],
   ["其他","娃娃菜",[],"件",["娃娃菜"]],
   ["其他","山東大白",["韓","越"],"",["山東大白"]],
   ["其他","美生菜",["台","進口"],"",["美生菜"]],
@@ -840,7 +841,7 @@ function relink() {
 store.watchOrdCfg(c => {
   S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; ensureSeed(); relink();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
-  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 3)) { migrate(); return }
+  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 4)) { migrate(); return }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length) {
     if (!S.sup || !sups().some(s => s.id === S.sup)) { let last = ""; try { last = localStorage.getItem("cxo-sup") || "" } catch {} S.sup = sups().some(s => s.id === last) ? last : sups()[0].id; openOrder() }
     renderSupSel();
@@ -849,11 +850,14 @@ store.watchOrdCfg(c => {
 });
 /* 舊設定自動修正：台青＝台灣蘆筍，不是青江菜 */
 function migrate() {
-  const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.ver = 3;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), v = cfg.ver || 0; cfg.ver = 4;
   if (!cfg.people || !cfg.people.length) cfg.people = DEFAULT_PEOPLE.slice();
   const x = cfg.sups.find(s => s.id === "xiluo");
-  const it = x && x.items.find(i => i.n === "台青");
-  if (it) { const qj = invItems().filter(i => i.n === "青江菜").map(i => i.id); it.inv = (it.inv || []).filter(id => !qj.includes(id)); if (it.u === "捆") it.u = "" }
+  if (v < 3) { const it = x && x.items.find(i => i.n === "台青");
+    if (it) { const qj = invItems().filter(i => i.n === "青江菜").map(i => i.id); it.inv = (it.inv || []).filter(id => !qj.includes(id)); if (it.u === "捆") it.u = "" } }
+  /* v4：白K 從「其他」移到「根莖類」，排在馬K 後面 */
+  if (v < 4 && x) { const k = x.items.findIndex(i => i.n === "白K" && i.c === "其他");
+    if (k >= 0) { const [it] = x.items.splice(k, 1); it.c = "根莖類"; const m = x.items.findIndex(i => i.n === "馬K" && i.c === "根莖類"); const last = x.items.map(i => i.c).lastIndexOf("根莖類"); x.items.splice((m >= 0 ? m : last) + 1, 0, it) } }
   store.saveOrdCfg(cfg).catch(err);
 }
 function ensureSeed() {
@@ -863,7 +867,7 @@ function ensureSeed() {
   const byName = {}; invItems().forEach(i => (byName[i.n] ||= []).push(i));
   const resolve = key => { const [n, c] = key.split("@"); const l = byName[n] || []; return (c ? l.find(i => i.c === c) : null) || (c ? null : l[0]) };
   const items = SEED_XILUO.map((r, k) => ({ id: "o" + String(k + 1).padStart(3, "0"), c: r[0], n: r[1], o: r[2], u: r[3], inv: r[4].map(resolve).filter(Boolean).map(i => i.id) }));
-  const cfg = { ver: 3, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, items }] };
+  const cfg = { ver: 4, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, items }] };
   if (!invItems().length) cfg.needLink = true;
   store.saveOrdCfg(cfg).catch(e => { seeded = false; err(e) });
 }
@@ -1331,7 +1335,7 @@ function renderSet() {
     ${d ? "" : `<button class="btn pri" id="edStart" style="margin-top:10px">編輯品項</button>`}
     ${d ? `<div class="ed-head"><span>品名 ／ 下排：連動點貨</span><span>規格</span><span>單位</span></div>` : ""}
     ${byCat.map(([c, its]) => `<div class="ed-cat" style="--cc:${catColor(c)}"><span class="sw"></span>${esc(c)} <span class="muted">${its.length}</span>${d ? `<button class="btn sm" data-add="${esc(c)}">＋ 新增</button>` : ""}</div>
-      ${d ? its.map(it => `<div class="ed-row" data-rid="${it.id}"><input class="n" value="${esc(it.n)}" data-f="n"><input class="u" value="${esc((it.o || []).join("/"))}" data-f="o" placeholder="—"><input class="u" value="${esc(it.u || "")}" data-f="u" placeholder="—"><div class="ac"><button class="lk${(it.inv || []).length ? "" : " no"}" data-lk="${it.id}">🔗 ${esc(linkTxt(it))}</button><button data-mv="-1" aria-label="上移">↑</button><button data-mv="1" aria-label="下移">↓</button><button class="del" data-del="1" aria-label="刪除">✕</button></div></div>`).join("")
+      ${d ? its.map(it => `<div class="ed-row" data-rid="${it.id}"><input class="n" value="${esc(it.n)}" data-f="n"><input class="u" value="${esc((it.o || []).join("/"))}" data-f="o" placeholder="—"><input class="u" value="${esc(it.u || "")}" data-f="u" placeholder="—"><div class="ac"><select class="cs" data-f="c" aria-label="分類">${cats.concat(cats.includes(it.c) ? [] : [it.c]).map(c => `<option${c === it.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select><button class="lk${(it.inv || []).length ? "" : " no"}" data-lk="${it.id}">🔗 ${esc(linkTxt(it))}</button><button data-mv="-1" aria-label="上移">↑</button><button data-mv="1" aria-label="下移">↓</button><button class="del" data-del="1" aria-label="刪除">✕</button></div></div>`).join("")
         : `<div class="muted" style="line-height:1.8">${its.map(it => `${esc(it.n)}${(it.inv || []).length ? "" : `<span style="color:var(--low)">*</span>`}`).join("、") || "—"}</div>`}`).join("")}
     ${d ? `<div class="grid2" style="margin-top:16px;position:sticky;bottom:calc(70px + var(--safe-b))"><button class="btn" id="edCancel">取消</button><button class="btn okb" id="edSave">儲存</button></div>` : ""}
   </div>
@@ -1382,6 +1386,14 @@ $("#vSet").addEventListener("click", async e => {
   if (t.closest("[data-lk]")) { S.lkItem = id; openLink(); return }
 });
 $("#vSet").addEventListener("change", async e => {
+  const cs = e.target.closest('select[data-f="c"]');
+  if (cs && S.draft) {
+    syncDraftInputs();
+    const id = cs.closest("[data-rid]").dataset.rid, its = S.draft.items, k = its.findIndex(i => i.id === id);
+    const [it] = its.splice(k, 1); it.c = cs.value;
+    const last = its.map(i => i.c).lastIndexOf(it.c); its.splice(last >= 0 ? last + 1 : its.length, 0, it);
+    renderSet(); toast(`${it.n || "品項"} 移到 ${it.c}`); return;
+  }
   const k = e.target.closest("[data-keep]"); if (!k) return;
   const v = Math.max(1, Math.min(10, Math.round(+k.value || 1)));
   const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.keep = { ...(cfg.keep || {}), [k.dataset.keep]: v };
