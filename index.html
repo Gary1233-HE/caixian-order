@@ -437,7 +437,8 @@ const SEED_XILUO = [
   ["辛香類","薑條",[],"",[]],
   ["辛香類","薑汁",[],"",[]]
 ];
-const XILUO_COLS = [["根莖類", "其他"], ["葉菜類", "水菜類"], ["瓜果類", "辛香類"]];
+/* Firestore 不能存「陣列裡的陣列」，所以每欄包成 { c: [...] } */
+const XILUO_COLS = [{ c: ["根莖類", "其他"] }, { c: ["葉菜類", "水菜類"] }, { c: ["瓜果類", "辛香類"] }];
 const DEF_CATS = ["根莖類", "葉菜類", "水菜類", "瓜果類", "其他", "菇類", "辛香類"];
 const CAT_COLORS = { "根莖類": "#E8955A", "葉菜類": "#6FAE4E", "水菜類": "#4F95C9", "瓜果類": "#E2B33A", "其他": "#8C8C8C", "菇類": "#8E6BB8", "辛香類": "#D8604A" };
 const CAT_TINTS = { "根莖類": "#FCE4D6", "葉菜類": "#E2EFDA", "水菜類": "#DDEBF7", "瓜果類": "#FFF2CC", "其他": "#E9E9E9", "菇類": "#E7E1F0", "辛香類": "#FADBD2" };
@@ -926,7 +927,7 @@ $("#vSum").addEventListener("click", async e => {
 function sheetCols() {
   const s = sup(), cats = catsOf();
   if (s.cols && s.cols.length) {
-    const cols = s.cols.map(c => c.filter(x => cats.includes(x)));
+    const cols = s.cols.map(c => (Array.isArray(c) ? c : c.c || []).filter(x => cats.includes(x)));
     const rest = cats.filter(c => !cols.flat().includes(c));
     rest.forEach(c => { const m = cols.reduce((a, b, i) => cols[i].reduce((n, x) => n + itemsOf(x).length + 1, 0) < cols[a].reduce((n, x) => n + itemsOf(x).length + 1, 0) ? i : a, 0); cols[m].push(c) });
     return cols;
