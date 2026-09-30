@@ -300,19 +300,22 @@ select.in{appearance:auto}
   .pf-note{margin-top:2mm;border:1px solid #000;min-height:14mm;padding:2mm;font-size:12pt;white-space:pre-wrap;width:calc(100% - .6mm);box-sizing:border-box}
   /* 字級用變數：一般 / big（叫得少）/ tight（叫得多） */
   /* 表格寬度留一點空間，最右邊的框線才不會被切掉 */
-  .pf{width:calc(100% - .6mm);border-collapse:collapse;table-layout:fixed;--fn:12pt;--fq:11pt;--fc:13pt;--rh:6.4mm}
-  .pf.big{--fn:13pt;--fq:12pt;--fc:14.5pt;--rh:7.4mm}
-  .pf.tight{--fn:10.5pt;--fq:10pt;--fc:11.5pt;--rh:5.4mm}
-  .pf.xtight{--fn:9pt;--fq:8.5pt;--fc:10pt;--rh:4.6mm}
+  .pf{width:calc(100% - .6mm);border-collapse:collapse;table-layout:fixed;--fn:12pt;--fq:13pt;--fc:13pt;--rh:6.4mm}
+  .pf.big{--fn:13pt;--fq:14pt;--fc:14.5pt;--rh:7.4mm}
+  .pf.tight{--fn:10.5pt;--fq:12pt;--fc:11.5pt;--rh:5.4mm}
+  .pf.xtight{--fn:9pt;--fq:10.5pt;--fc:10pt;--rh:4.6mm}
   .pf td{border:1px solid #000;height:var(--rh);padding:0 1.2mm;font-size:var(--fn);font-weight:400;overflow:hidden;white-space:nowrap;line-height:1.05}
   .pf td.n{letter-spacing:-.02em}
   .pf td.h{font-weight:400;text-align:center;background:#eee;font-size:calc(var(--fq) * .85);color:#333;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pf td.h.hc{font-size:var(--fc);font-weight:700;color:#000;letter-spacing:.05em}
   .pf td.gap{border:0}
   .pf td.tq{text-align:left;padding:0 1mm;font-size:var(--fq)}
+  .pf td.tq.c{text-align:center;padding:0 .5mm}
   .pf td.n.sm{font-size:calc(var(--fn) * .88);letter-spacing:-.03em}
   .pf td.tq.sm{font-size:calc(var(--fq) * .9);letter-spacing:-.03em}
   .pf td.tq.xs{font-size:calc(var(--fq) * .8);letter-spacing:-.04em}
+  .pf td i{font-style:normal;color:#555;font-size:.68em;margin-right:.8mm;vertical-align:.08em}
+  .pf td i.e{color:#aaa;font-size:.72em}
   .pv-page{page-break-before:always;break-before:page}
   .pv-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
   .pv{border:1.5px solid #000;padding:2.5mm;break-inside:avoid}
@@ -1491,18 +1494,35 @@ function itemParts(it, e) {
   }
   return qtyOpts(it, e).map(k => partText(it, k, e.vs[k]));
 }
+/* 採購單格子：{ h: 灰色提示（規格／單位）, v: 叫的數量 } */
+function itemCells(it, e) {
+  const ord = hasQty(e), u = it.u || "";
+  if (vendorsOf(it).length) {
+    if (!ord) return [{ h: u }, { h: u }];
+    const per = new Map();
+    qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || ""; per.set(w, [...(per.get(w) || []), partText(it, spec, e.vs[k])]) });
+    return [...per].map(([w, ts]) => ({ h: w, v: ts.join(" ") }));
+  }
+  const bs = baseKeys(it);
+  if (bs.length === 1 && bs[0] === "") return [ord ? { v: qtyOpts(it, e).map(k => partText(it, k, e.vs[k])).join(" ") } : { h: u }, {}];
+  const cells = bs.map(b => { const q = e && e.vs ? e.vs[b] : null; return q > 0 ? (isUnitOpt(b) ? { v: fmt(q) + b } : { h: b, v: fmt(q) + u }) : { h: b } });
+  if (ord) qtyOpts(it, e).filter(k => !bs.includes(k)).forEach(k => cells.push({ v: partText(it, k, e.vs[k]) }));
+  return cells;
+}
+const cellText = c => (c.v ? (c.h ? c.h + " " : "") + c.v : c.h || "");
+/* 列印／Excel：跟紙本西螺採購單一樣，列出全部品項，有叫的填上數量
+   每個品項兩格；分廠商或規格超過兩個時往下多一列 */
 function sheetGrid() {
   const L = lines(), R = {};
   catsOf().forEach(cat => {
     const out = [];
-    itemsOf(cat).filter(it => hasQty(L[it.id])).forEach(it => { const ps = itemParts(it, L[it.id]); for (let i = 0; i < ps.length; i += 2) out.push({ n: i ? "" : it.n, q: [ps[i], ps[i + 1] || ""], cat, cont: i > 0 }) });
+    itemsOf(cat).forEach(it => { const cs = itemCells(it, L[it.id]); for (let i = 0; i < Math.max(cs.length, 1); i += 2) out.push({ n: i ? "" : it.n, q: [cs[i] || {}, cs[i + 1] || {}], cat, on: hasQty(L[it.id]), cont: i > 0 }) });
     if (out.length) R[cat] = out;
   });
   const used = catsOf().filter(c => R[c]);
   if (!used.length) return [[], [], []];
   const len = col => col.reduce((n, c) => n + R[c].length + 1, 0);
-  /* 排法跟紙本採購單一樣：每欄上面是品項多的分類，下面接品項少的分類
-     西螺：根莖＋其他｜葉菜＋水菜｜瓜果＋辛香；其他廠商：叫最多的三類各開一欄，其餘接在最短的欄下面 */
+  /* 排法跟紙本採購單一樣：每欄上面是品項多的分類，下面接品項少的分類 */
   const s = sup();
   let cols;
   if (s.cols && s.cols.length) cols = s.cols.slice(0, 3).map(c => (Array.isArray(c) ? c : c.c || []).filter(x => R[x]));
@@ -1512,25 +1532,19 @@ function sheetGrid() {
   }
   while (cols.length < 3) cols.push([]);
   used.filter(c => !cols.flat().includes(c)).forEach(c => { let m = 0; cols.forEach((col, i) => { if (len(col) < len(cols[m])) m = i }); cols[m].push(c) });
-  /* 空的欄：從最長、而且有兩類以上的欄，把下面那一類搬過來 */
-  cols.forEach((col, i) => {
-    if (col.length) return;
-    const src = cols.map((c, k) => [k, len(c)]).filter(([k]) => cols[k].length > 1).sort((a, b) => b[1] - a[1])[0];
-    if (src) col.push(cols[src[0]].pop());
-  });
   return cols.map(col => col.flatMap(c => [{ h: c, cat: c }, ...R[c]]));
 }
 function printSheet() {
   const g = sheetGrid(), rows = Math.max(0, ...g.map(c => c.length));
-  const sz = rows <= 26 ? "big" : rows <= 34 ? "" : rows <= 42 ? "tight" : "xtight";
-  let h = `<div class="pf-h"><b>採鮮農產行　${esc(sup().name)}採購單</b><span>${S.date.replace(/-/g, " / ")}　${dateLabel(S.date).slice(-3)}　共 ${ordStats().ordered.length} 項</span></div><table class="pf ${sz}"><colgroup>${g.map((_, i) => `<col style="width:12.5%"><col style="width:10%"><col style="width:10%">${i < g.length - 1 ? `<col style="width:.75%">` : ""}`).join("")}</colgroup>`;
+  const sz = rows <= 26 ? "big" : rows <= 36 ? "" : rows <= 44 ? "tight" : "xtight";
+  let h = `<div class="pf-h"><b>採鮮農產行　${esc(sup().name)}採購單</b><span>${S.date.replace(/-/g, " / ")}　${dateLabel(S.date).slice(-3)}　叫 ${ordStats().ordered.length} 項</span></div><table class="pf ${sz}"><colgroup>${g.map((_, i) => `<col style="width:12.5%"><col style="width:10%"><col style="width:10%">${i < g.length - 1 ? `<col style="width:.75%">` : ""}`).join("")}</colgroup>`;
   for (let r = 0; r < rows; r++) {
     h += "<tr>" + g.map((col, i) => {
       const x = col[r], gap = i < g.length - 1 ? `<td class="gap"></td>` : "";
       if (!x) return `<td style="border:0"></td><td style="border:0"></td><td style="border:0"></td>${gap}`;
       if (x.h) return `<td class="h hc" style="border-top:2px solid ${catColor(x.cat)}">${esc(x.h)}</td><td class="h">數量</td><td class="h">數量</td>${gap}`;
-      const qc = t => `<td class="q tq${t.length > 6 ? " xs" : t.length > 4 ? " sm" : ""}">${esc(t)}</td>`;
-      return `<td class="n${x.n.length > 4 ? " sm" : ""}">${esc(x.n)}</td>${qc(x.q[0])}${qc(x.q[1])}${gap}`;
+      const qc = c => { const w = (c.v || "").length + (c.v ? (c.h || "").length * .7 : 0); return `<td class="q tq${c.v ? " c" : ""}${w > 6.5 ? " xs" : w > 5 ? " sm" : ""}">${c.v ? `${c.h ? `<i>${esc(c.h)}</i>` : ""}${esc(c.v)}` : c.h ? `<i class="e">${esc(c.h)}</i>` : ""}</td>` };
+      return `<td class="n${x.n.length > 4 ? " sm" : ""}${x.on ? " on" : ""}">${esc(x.n)}</td>${qc(x.q[0])}${qc(x.q[1])}${gap}`;
     }).join("") + "</tr>";
   }
   h += "</table>";
@@ -1545,7 +1559,7 @@ function exportXlsx() {
   const aoa = [[`採鮮農產行 ${sup().name}採購單`, "", "", "", "", "", "", "", S.date], []];
   for (let r = 0; r < rows; r++) {
     const row = [];
-    g.forEach(col => { const x = col[r]; if (!x) row.push("", "", ""); else if (x.h) row.push(x.h, "數量", "數量"); else row.push(x.n, x.q[0], x.q[1]) });
+    g.forEach(col => { const x = col[r]; if (!x) row.push("", "", ""); else if (x.h) row.push(x.h, "數量", "數量"); else row.push(x.n, x.q[0].v ? cellText(x.q[0]) : "", x.q[1].v ? cellText(x.q[1]) : "") });
     aoa.push(row);
   }
   const note = (S.ord && S.ord.note || "").trim(); if (note) aoa.push([], ["備註：" + note]);
