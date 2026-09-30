@@ -288,6 +288,25 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 .vin.inh{color:#6B7482;background:var(--bg)}
 .cvf{font-weight:700;font-size:14px}.cvf small{font-weight:400;color:var(--muted);font-size:11px;margin-left:4px}
 .cchg{color:var(--low);font-weight:700}
+.stk-f{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-bottom:8px}.stk-f::-webkit-scrollbar{display:none}
+.stk-f button{flex:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;background:#fff}
+.stk-f button b{font-family:var(--mono);margin-left:5px;color:var(--muted)}
+.stk-f button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.stk-f button.on b{color:#FFB65C}
+.stk-q{margin-bottom:6px;padding:9px 10px}
+.stk-c{margin-top:8px}
+.stk-ch{position:sticky;top:var(--tabs-top,96px);z-index:2;background:var(--ct);border-left:4px solid var(--cc);font-weight:900;font-size:14px;padding:5px 8px;border-radius:6px}
+.stk-ch small{font-family:var(--mono);color:var(--muted);margin-left:6px}
+.stk-r{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.stk-r .sn{flex:1;min-width:0}.stk-r .sn b{display:block;font-size:15px}
+.stk-r .so{display:block;font-size:11.5px;color:#2F6FD6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stk-r .sq{text-align:right;font-family:var(--mono);font-weight:700;font-size:15px;white-space:nowrap}
+.stk-r .sq small{display:block;font-family:var(--sans);font-weight:500;font-size:11px;color:var(--muted)}
+.stk-r .sneed{width:52px;text-align:right;font-size:12px;font-weight:900;color:var(--low);flex:none}
+.stk-r .sz{color:#fff;background:var(--warn);border-radius:6px;padding:1px 6px;font-family:var(--sans);font-size:13px}
+.stk-r .su{color:var(--muted);font-family:var(--sans);font-weight:500;font-size:13px}
+.stk-r .sk{color:var(--ok);font-family:var(--sans);font-size:13px}
+.stk-r.low .sq{color:var(--low)}
+.stk-r.zero{background:#FFF6F4}
 .ck-g{border-left:4px solid var(--cc);padding-left:8px;margin:10px 0 4px}
 .ck-h{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;margin-bottom:4px}
 .ck-h small{font-family:var(--mono);color:var(--muted);font-weight:700}
@@ -1672,6 +1691,36 @@ function bookPanel(amt, canLast) {
     <tr class="tot"><td colspan="4">合計${amt.miss ? `（${amt.miss} 筆未填）` : ""}</td><td class="r">${money(amt.a)}</td></tr></table></div>
   </div>`;
 }
+/* ===== 庫存總表（手機看的）=====
+   點貨 App 的全部品項：庫存、安全量、這張單叫了多少；可篩選、搜尋 */
+const STK_F = { need: "要補貨", zero: "缺貨", un: "未點", ord: "有叫貨", all: "全部" };
+function stockRows() {
+  const c = invCounts(), L = lines(), stale = invStale(), ordBy = {};
+  oItems().forEach(it => { const e = L[it.id]; if (!hasQty(e)) return; (it.inv || []).forEach(id => { (ordBy[id] ||= []).push(`${it.n} ${lineText(it, e)}`) }) });
+  return invItems().map(i => {
+    const e = c[i.id], min = iMin(i), zero = iZero(e), ok = e && e.ok, v = e && !ok && !zero ? iFirst(i, e) : null;
+    const need = stale ? 0 : iNeed(i, e);
+    const st = !e ? "un" : zero ? "zero" : ok ? "ok" : need > 0 ? "low" : "fine";
+    return { i, e, min, st, need, qty: e ? iQty(i, e) : null, ord: ordBy[i.id] || [], v };
+  });
+}
+function stockPanel() {
+  if (!invItems().length) return "";
+  const f = S.stkF || "need", q = norm(S.stkQ || ""), all = stockRows();
+  const cnt = { need: all.filter(r => r.st === "low" || r.st === "zero").length, zero: all.filter(r => r.st === "zero").length, un: all.filter(r => r.st === "un").length, ord: all.filter(r => r.ord.length).length, all: all.length };
+  const pass = r => (f === "all" || (f === "need" && (r.st === "low" || r.st === "zero")) || (f === "zero" && r.st === "zero") || (f === "un" && r.st === "un") || (f === "ord" && r.ord.length)) && (!q || norm(r.i.n).includes(q));
+  const rows = all.filter(pass), cats = (S.inv && S.inv.cats) || DEF_CATS;
+  const src = S.invDay ? `${dateLabel(S.invDay.date)} 點貨${invStale() ? "（不是當天）" : ""}` : "還沒有點貨紀錄";
+  return `<div class="panel stk-p"><h3>庫存總表 <span class="c">${esc(src)}</span></h3>
+    <div class="stk-f">${Object.entries(STK_F).map(([k, v]) => `<button class="${k === f ? "on" : ""}" data-stkf="${k}">${v}<b>${cnt[k]}</b></button>`).join("")}</div>
+    <input class="in stk-q" id="stkQ" type="search" placeholder="搜尋品項" value="${esc(S.stkQ || "")}" autocomplete="off">
+    ${rows.length ? cats.concat([...new Set(rows.map(r => r.i.c))].filter(c => !cats.includes(c))).map(cat => { const rs = rows.filter(r => r.i.c === cat); if (!rs.length) return "";
+      return `<div class="stk-c" style="--cc:${catColor(cat)};--ct:${catTint(cat)}"><div class="stk-ch">${esc(cat)}<small>${rs.length}</small></div>
+      ${rs.map(r => `<div class="stk-r ${r.st}"><div class="sn"><b>${esc(r.i.n)}</b>${r.ord.length ? `<small class="so">叫 ${esc(r.ord.join("、"))}</small>` : ""}</div>
+        <div class="sq">${r.st === "un" ? `<span class="su">未點</span>` : r.st === "zero" ? `<span class="sz">缺貨</span>` : r.st === "ok" ? `<span class="sk">夠用</span>` : esc(r.qty)}${r.min ? `<small>安全 ${fmt(r.min)}${esc(iUnits(r.i)[0])}</small>` : ""}</div>
+        ${r.need > 0 ? `<div class="sneed">補 ${fmt(r.need)}</div>` : `<div class="sneed"></div>`}</div>`).join("")}</div>` }).join("") : `<div class="empty" style="padding:14px">${f === "need" ? "沒有需要補貨的品項" : "沒有符合的品項"}</div>`}
+  </div>`;
+}
 function renderSum() {
   if (!S.payOrders && !S.payLoading) loadPayData();
   const ae = document.activeElement, keep = ae && ae.id && $("#vSum").contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName) ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
@@ -1776,11 +1825,13 @@ $("#vSum").addEventListener("focusin", e => {
   }
 });
 $("#vSum").addEventListener("input", e => {
+  if (e.target.id === "stkQ") { S.stkQ = e.target.value; renderSum(); return }
   if (e.target.id !== "note") return;
   clearTimeout(noteTimer); const v = e.target.value;
   noteTimer = setTimeout(() => { store.setNote(S.date, S.sup, v, S.me); stampEdit() }, 600);
 });
 $("#vSum").addEventListener("click", async e => {
+  const sf = e.target.closest("[data-stkf]"); if (sf) { S.stkF = sf.dataset.stkf; renderSum(); return }
   const g = e.target.closest("[data-go]"); if (g) return goItem(g.dataset.go);
   if (e.target.closest("#fillAll")) return fillSuggest(oItems());
   const rok = e.target.closest("[data-rvok]");
