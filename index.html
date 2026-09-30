@@ -202,6 +202,28 @@ table.pt .pin::placeholder{color:#B5BCC6;font-weight:400}
 table.pt tr.np .pin{border-color:#F2C58E;background:#FFFAF3}
 table.pt tr.tot td{font-weight:900;border-bottom:0;padding-top:10px}
 table.pt tr.tot .r{font-size:18px}
+table.rt td{vertical-align:middle;padding:5px 3px}
+table.rt td small{font-size:11px;color:var(--muted);margin-left:1px}
+table.rt .spec{display:inline-block;font-size:12px;font-weight:700;background:var(--bg);border-radius:5px;padding:0 5px;margin-left:4px}
+table.rt .rin{width:64px;border:1px solid var(--line);border-radius:8px;padding:7px 6px;text-align:right;font-family:var(--mono);font-weight:700;font-size:15px;background:#fff}
+table.rt .rin::placeholder{color:#C5CBD3;font-weight:400}
+.rv-btn{width:38px;height:34px;border-radius:8px;border:2px solid var(--ok);color:var(--ok);font-weight:900;background:#fff}
+.rv-t{font-size:12px;font-weight:900;border-radius:6px;padding:2px 6px;white-space:nowrap}
+.rv-t.ok{background:var(--okbg);color:var(--ok)}.rv-t.bad{background:var(--warnbg);color:var(--warn)}.rv-t.over{background:var(--lowbg);color:var(--low)}
+tr.rv-short td,tr.rv-over td{background:#FFF6F4}
+.c.bad{background:var(--warnbg);color:var(--warn)}
+.pc-i{border-top:1px solid var(--line);padding:10px 0}.pc-i:first-of-type{border-top:0;padding-top:0}
+.pc-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}.pc-h b{font-size:16px}
+table.pc-t td small{font-size:11px;color:var(--muted);margin-left:3px}
+table.pc-t td b{font-family:var(--mono);font-size:17px}
+.pc-ex{margin:6px 0 0;font-size:12px;color:var(--low);font-weight:700}
+.pc-e{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:#fff}
+.pc-eh{display:flex;align-items:center;gap:6px;margin-bottom:8px}.pc-eh b{font-size:16px;margin-right:auto}
+.pc-eh input{width:70px;padding:6px;text-align:center}
+.pc-row{display:grid;grid-template-columns:1.6fr .9fr .8fr .9fr .9fr 34px;gap:4px;margin-bottom:4px;align-items:center}
+.pc-row input{padding:7px 4px;min-width:0;font-size:14px;text-align:center}.pc-row input[data-f="n"]{text-align:left}
+.pc-row input:disabled{opacity:.4}
+.pc-lab{font-size:11px;color:var(--muted)}
 .ck-g{border-left:4px solid var(--cc);padding-left:8px;margin:10px 0 4px}
 .ck-h{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;margin-bottom:4px}
 .ck-h small{font-family:var(--mono);color:var(--muted);font-weight:700}
@@ -268,24 +290,26 @@ select.in{appearance:auto}
 /* print sheet */
 #print{display:none}
 @media print{
-  @page{size:A4 portrait;margin:8mm}
+  @page{size:A4 portrait;margin:15mm 10mm 10mm 10mm}
   body{background:#fff!important}
   body>*:not(#print){display:none!important}
   #print{display:block;color:#000;font-family:var(--sans)}
   .pf-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3mm}
   .pf-h b{font-size:18pt;font-weight:900}
   .pf-h span{font-size:12pt}
-  .pf-note{margin-top:2mm;border:1px solid #000;min-height:14mm;padding:2mm;font-size:11pt;white-space:pre-wrap}
+  .pf-note{margin-top:2mm;border:1px solid #000;min-height:14mm;padding:2mm;font-size:12pt;white-space:pre-wrap;width:calc(100% - .6mm);box-sizing:border-box}
   /* 字級用變數：一般 / big（叫得少）/ tight（叫得多） */
-  .pf{width:100%;border-collapse:collapse;table-layout:fixed;--fn:10.5pt;--fq:9.5pt;--rh:5.9mm}
-  .pf.big{--fn:11.5pt;--fq:10.5pt;--rh:7.2mm}
-  .pf.tight{--fn:9pt;--fq:8.5pt;--rh:5.2mm}
-  .pf.xtight{--fn:8pt;--fq:7.5pt;--rh:4.5mm}
-  .pf td{border:1px solid #000;height:var(--rh);padding:0 1.2mm;font-size:var(--fn);overflow:hidden;white-space:nowrap;line-height:1.05}
-  .pf td.n{font-weight:700;letter-spacing:-.02em}
-  .pf td.h{font-weight:900;text-align:center;background:#eee;font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* 表格寬度留一點空間，最右邊的框線才不會被切掉 */
+  .pf{width:calc(100% - .6mm);border-collapse:collapse;table-layout:fixed;--fn:12pt;--fq:11pt;--fc:13pt;--rh:6.4mm}
+  .pf.big{--fn:13pt;--fq:12pt;--fc:14.5pt;--rh:7.4mm}
+  .pf.tight{--fn:10.5pt;--fq:10pt;--fc:11.5pt;--rh:5.4mm}
+  .pf.xtight{--fn:9pt;--fq:8.5pt;--fc:10pt;--rh:4.6mm}
+  .pf td{border:1px solid #000;height:var(--rh);padding:0 1.2mm;font-size:var(--fn);font-weight:400;overflow:hidden;white-space:nowrap;line-height:1.05}
+  .pf td.n{letter-spacing:-.02em}
+  .pf td.h{font-weight:400;text-align:center;background:#eee;font-size:calc(var(--fq) * .85);color:#333;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pf td.h.hc{font-size:var(--fc);font-weight:700;color:#000;letter-spacing:.05em}
   .pf td.gap{border:0}
-  .pf td.tq{text-align:left;padding:0 1mm;font-weight:700;font-size:var(--fq)}
+  .pf td.tq{text-align:left;padding:0 1mm;font-size:var(--fq)}
   .pf td.n.sm{font-size:calc(var(--fn) * .88);letter-spacing:-.03em}
   .pf td.tq.sm{font-size:calc(var(--fq) * .9);letter-spacing:-.03em}
   .pf td.tq.xs{font-size:calc(var(--fq) * .8);letter-spacing:-.04em}
@@ -575,6 +599,7 @@ if (ORDER_FB && F) {
     setLine: (d, s, id, e) => e === null ? merge(d, s, { lines: { [id]: F.deleteField() } })
       : safe(() => F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), lines: { [id]: encLine(e) } }, { mergeFields: ["date", "sup", "updatedAt", new F.FieldPath("lines", id)] })),
     setPrice: (d, s, id, o, v) => merge(d, s, { lines: { [id]: { p: { [o || "_"]: v == null ? F.deleteField() : v } } } }),
+    setRv: (d, s, id, o, v) => merge(d, s, { lines: { [id]: { rv: { [o || "_"]: v == null ? F.deleteField() : v } } } }),
     watchPrices: (s, cb) => F.onSnapshot(F.doc(db, "prices", s), x => cb((x.exists() && x.data().last) || {}), err),
     setLastPrice: (s, key, v) => safe(() => F.setDoc(F.doc(db, "prices", s), { last: { [key]: v } }, { merge: true })),
     setLines: (d, s, obj) => merge(d, s, { lines: encLines(obj) }),
@@ -602,6 +627,7 @@ if (ORDER_FB && F) {
     watchOrder: (d, s, cb) => { const key = `${d}_${s}`; (L.o[key] ||= []).push(cb); cb(orders()[key] || null); return () => { L.o[key] = L.o[key].filter(f => f !== cb) } },
     setLine: async (d, s, id, e) => safe(() => edit(d, s, x => { if (e === null) delete x.lines[id]; else x.lines[id] = e })),
     setPrice: async (d, s, id, o, v) => safe(() => edit(d, s, x => { const l = x.lines[id]; if (!l) return; l.p ||= {}; if (v == null) delete l.p[o || "_"]; else l.p[o || "_"] = v })),
+    setRv: async (d, s, id, o, v) => safe(() => edit(d, s, x => { const l = x.lines[id]; if (!l) return; l.rv ||= {}; if (v == null) delete l.rv[o || "_"]; else l.rv[o || "_"] = v })),
     watchPrices: (s, cb) => { (L.pr ||= []).push([s, cb]); cb((rd(K.pr) || {})[s] || {}); return () => {} },
     setLastPrice: async (s, key, v) => { const a = rd(K.pr) || {}; (a[s] ||= {})[key] = v; wr(K.pr, a); (L.pr || []).forEach(([q, f]) => q === s && f(a[s])) },
     setLines: async (d, s, obj) => safe(() => edit(d, s, x => Object.assign(x.lines, obj))),
@@ -665,6 +691,8 @@ const isUnitOpt = o => UNIT_WORDS.has(o);
 /* ===== 分廠商叫貨（例如葉菜類：阿凱、大北園、惠鮮、其他）=====
    該分類的品項，每個廠商各填一個數量；有規格的品項用「規格·廠商」 */
 const DEF_VEND = { "葉菜類": ["阿凱", "大北園", "惠鮮", "其他"] };
+/* 加工成本預設：硬種 1件＝30KG，可做修清高麗或分裝 20KG 高麗籃裝（出成率是範例，秤過後請改） */
+const DEF_PC = { w: 30, ex: 1, outs: [{ n: "修清高麗", y: 83, u: "KG", uw: 0, add: 1 }, { n: "高麗籃裝", y: 97, u: "籃", uw: 20, add: 10 }] };
 const DEF_NOVEND = ["初秋", "硬種", "包心白菜", "廣東A", "格藍芽"];   /* 西螺葉菜類裡先不分廠商的品項 */
 let vendCache = new WeakMap();
 function vendorsOf(it) {
@@ -703,7 +731,10 @@ const hasQty = e => !!e && !!e.vs && Object.values(e.vs).some(v => v > 0);
 const pk = o => o || "_";
 const priceOf = (e, o) => (e && e.p && e.p[pk(o)] != null ? e.p[pk(o)] : null);
 const qtyOpts = (it, e) => optKeys(it).concat(Object.keys((e && e.vs) || {}).filter(k => !optKeys(it).includes(k))).filter(k => e && e.vs && e.vs[k] > 0);
-function lineAmt(it, e) { let a = 0, miss = 0; qtyOpts(it, e).forEach(o => { const p = priceOf(e, o); if (p == null) miss++; else a += p * e.vs[o] }); return { a: Math.round(a * 100) / 100, miss } }
+/* 到貨：rv[規格] = 實收數量（沒填＝還沒核對，當作跟叫的一樣） */
+const rvOf = (e, o) => (e && e.rv && e.rv[pk(o)] != null ? e.rv[pk(o)] : null);
+const gotQty = (e, o) => { const r = rvOf(e, o); return r != null ? r : e.vs[o] };
+function lineAmt(it, e) { let a = 0, miss = 0; qtyOpts(it, e).forEach(o => { const p = priceOf(e, o); if (p == null) miss++; else a += p * gotQty(e, o) }); return { a: Math.round(a * 100) / 100, miss } }
 function orderAmt(ls, find) { let a = 0, miss = 0, n = 0; Object.entries(ls || {}).forEach(([id, e]) => { if (!hasQty(e)) return; const it = find(id) || { o: Object.keys(e.vs), u: "" }; const r = lineAmt(it, e); a += r.a; miss += r.miss; n++ }); return { a: Math.round(a), miss, n } }
 const money = v => "$" + Math.round(v).toLocaleString("en-US");
 const unitLabel = (it, o) => (o && isUnitOpt(o) ? o : it.u || "");
@@ -766,8 +797,9 @@ function loadHist() {
       Object.entries(o.lines).forEach(([id, e]) => {
         const it = sp.items.find(i => i.id === id); if (!it || !hasQty(e) || !(it.inv || []).length) return;
         const ivs = it.inv.map(invById).filter(Boolean); if (!ivs.length) return;
-        Object.entries(e.vs).forEach(([o2, q]) => {
-          if (!(q > 0)) return;
+        Object.entries(e.vs).forEach(([o2, q0]) => {
+          if (!(q0 > 0)) return;
+          const q = gotQty(e, o2);   /* 有核對過就用實收數量算用量 */
           const t = ivs.length === 1 ? ivs[0] : (ivs.find(v => specFor(it, v) === splitKey(it, o2).spec) || ivs[0]);
           const r = (rec[o.date] ||= {}); r[t.id] = (r[t.id] || 0) + q * factorOf(it, t.id);
         });
@@ -907,7 +939,7 @@ function relink() {
 store.watchOrdCfg(c => {
   S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
-  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 6)) { migrate(); return }
+  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 7)) { migrate(); return }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length) {
     if (!S.sup || !sups().some(s => s.id === S.sup)) { let last = ""; try { last = localStorage.getItem("cxo-sup") || "" } catch {} S.sup = sups().some(s => s.id === last) ? last : sups()[0].id; openOrder() }
     renderSupSel();
@@ -916,12 +948,14 @@ store.watchOrdCfg(c => {
 });
 /* 舊設定自動修正：台青＝台灣蘆筍，不是青江菜 */
 function migrate() {
-  const cfg = JSON.parse(JSON.stringify(S.ocfg)), v = cfg.ver || 0; cfg.ver = 6;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), v = cfg.ver || 0; cfg.ver = 7;
   if (!cfg.people || !cfg.people.length) cfg.people = DEFAULT_PEOPLE.slice();
   const x = cfg.sups.find(s => s.id === "xiluo");
   if (v < 3) { const it = x && x.items.find(i => i.n === "台青");
     if (it) { const qj = invItems().filter(i => i.n === "青江菜").map(i => i.id); it.inv = (it.inv || []).filter(id => !qj.includes(id)); if (it.u === "捆") it.u = "" } }
   /* v6：初秋、硬種、包心白菜、廣東A、格藍芽 先不分廠商 */
+  /* v7：硬種加工成本預設 */
+  if (v < 7 && x) x.items.forEach(i => { if (i.c === "葉菜類" && i.n === "硬種" && !i.pc) i.pc = JSON.parse(JSON.stringify(DEF_PC)) });
   if (v < 6 && x) x.items.forEach(i => { if (i.c === "葉菜類" && DEF_NOVEND.includes(i.n)) i.nv = 1 });
   /* v5：西螺葉菜類分廠商叫貨 */
   if (v < 5 && x && !x.vend) x.vend = JSON.parse(JSON.stringify(DEF_VEND));
@@ -938,7 +972,8 @@ function ensureSeed() {
   const resolve = key => { const [n, c] = key.split("@"); const l = byName[n] || []; return (c ? l.find(i => i.c === c) : null) || (c ? null : l[0]) };
   const items = SEED_XILUO.map((r, k) => ({ id: "o" + String(k + 1).padStart(3, "0"), c: r[0], n: r[1], o: r[2], u: r[3], inv: r[4].map(resolve).filter(Boolean).map(i => i.id) }));
   items.forEach(i => { if (i.c === "葉菜類" && DEF_NOVEND.includes(i.n)) i.nv = 1 });
-  const cfg = { ver: 6, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, vend: JSON.parse(JSON.stringify(DEF_VEND)), items }] };
+  items.forEach(i => { if (i.c === "葉菜類" && i.n === "硬種") i.pc = JSON.parse(JSON.stringify(DEF_PC)) });
+  const cfg = { ver: 7, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, vend: JSON.parse(JSON.stringify(DEF_VEND)), items }] };
   if (!invItems().length) cfg.needLink = true;
   store.saveOrdCfg(cfg).catch(e => { seeded = false; err(e) });
 }
@@ -1043,10 +1078,11 @@ function fillSuggest(its) {
   toast(`已帶入 ${n} 項建議，數量可以再點進去改`);
 }
 function mkEntry(it, vs, sug) {
-  const old = lines()[it.id], p = {};
+  const old = lines()[it.id], p = {}, rv = {};
   if (old && old.p) Object.keys(vs).forEach(o => { if (old.p[pk(o)] != null) p[pk(o)] = old.p[pk(o)] });
+  if (old && old.rv) Object.keys(vs).forEach(o => { if (old.rv[pk(o)] != null) rv[pk(o)] = old.rv[pk(o)] });
   const a = analyze(it);
-  return { vs, by: S.me, t: Date.now(), n: it.n, c: it.c, ...(Object.keys(p).length ? { p } : {}), ...(a.needAny ? { sg: a.sug } : {}), ...(sug ? { sug: true } : {}) };
+  return { vs, by: S.me, t: Date.now(), n: it.n, c: it.c, ...(Object.keys(p).length ? { p } : {}), ...(Object.keys(rv).length ? { rv } : {}), ...(a.needAny ? { sg: a.sug } : {}), ...(sug ? { sug: true } : {}) };
 }
 /* ================= keypad ================= */
 function needMe() { if (!S.me) { openPeople(); return true } return false }
@@ -1245,6 +1281,82 @@ function ckPanel() {
 function setCkRows(rows, on) {
   rows.forEach(r => { if (on && r.st !== "ok") store.setCk(S.date, S.sup, r.key, { by: S.me, t: Date.now(), q: r.t }); if (!on && r.ck) store.setCk(S.date, S.sup, r.key, null) });
 }
+/* ===== 到貨核對：每個規格／廠商一列，填實收數量 ===== */
+function rvRows() {
+  const L = lines(), out = [];
+  catsOf().forEach(cat => itemsOf(cat).filter(it => hasQty(L[it.id])).forEach(it => {
+    const e = L[it.id];
+    qtyOpts(it, e).forEach((o, k) => {
+      const q = e.vs[o], r = rvOf(e, o), u = unitLabel(it, splitKey(it, o).spec || o);
+      out.push({ it, id: it.id, o, cat, n: it.n, first: k === 0, lab: o && !isUnitOpt(o) ? o : "", q, r, u, st: r == null ? "no" : r === q ? "ok" : r < q ? "short" : "over" });
+    });
+  }));
+  return out;
+}
+function rvPanel() {
+  const rs = rvRows(); if (!rs.length) return "";
+  const done = rs.filter(r => r.st !== "no").length, bad = rs.filter(r => r.st === "short" || r.st === "over");
+  let cat = "";
+  return `<div class="panel rv-p${done === rs.length && !bad.length ? " fin" : ""}"><h3>到貨核對 <span class="c ${done === rs.length ? "ok" : "o"}">${done} / ${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}${done < rs.length ? `<button class="btn sm r" id="rvAll">其餘都到齊</button>` : ""}</h3>
+    <p class="muted" style="margin:0 0 8px">貨到了點 ✓＝到齊；數量不對就在「實收」填實際到的數量。金額和預估用量會用實收計算。</p>
+    <table class="t rt"><tr><th>品項</th><th class="r">叫</th><th class="r">實收</th><th></th></tr>
+    ${rs.map(r => { const h = r.cat !== cat ? `<tr class="ch" style="--cc:${catColor(r.cat)};--ct:${catTint(r.cat)}"><td colspan="4">${esc(r.cat)}</td></tr>` : ""; cat = r.cat;
+      return h + `<tr class="rv-${r.st}"><td>${r.first ? esc(r.n) : ""}${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}</td><td class="r">${fmt(r.q)}<small>${esc(r.u)}</small></td>
+      <td class="r"><input class="rin" id="r_${r.id}_${esc(pk(r.o))}" data-rid="${r.id}" data-ro="${esc(r.o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${r.r == null ? "" : fmt(r.r)}" placeholder="${fmt(r.q)}" aria-label="${esc(r.n + (r.lab ? " " + r.lab : ""))} 實收"></td>
+      <td class="r">${r.st === "no" ? `<button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(r.o)}" aria-label="到齊">✓</button>` : r.st === "ok" ? `<span class="rv-t ok">到齊</span>` : r.st === "short" ? `<span class="rv-t bad">少${fmt(r.q - r.r)}</span>` : `<span class="rv-t over">多${fmt(r.r - r.q)}</span>`}</td></tr>` }).join("")}
+    </table>
+    ${bad.length ? `<button class="btn" id="rvMsg" style="margin-top:10px">複製到貨不符通知（傳給廠商）</button>` : ""}
+  </div>`;
+}
+function rvText() {
+  const bad = rvRows().filter(r => r.st === "short" || r.st === "over");
+  const lines2 = [`採鮮農產行 ${dateLabel(S.date)} ${sup().name} 到貨不符`, ""];
+  bad.forEach(r => lines2.push(`${r.n}${r.lab ? " " + r.lab : ""}：叫 ${fmt(r.q)}${r.u}，到 ${fmt(r.r)}${r.u}（${r.st === "short" ? "少" : "多"}${fmt(Math.abs(r.q - r.r))}${r.u}）`));
+  lines2.push("", "麻煩確認，謝謝！");
+  return lines2.join("\n");
+}
+function saveRv(inp) {
+  const id = inp.dataset.rid, o = inp.dataset.ro, e = lines()[id]; if (!e) return;
+  const raw = inp.value.trim().replace(/[,，]/g, "");
+  const v = raw === "" ? null : +raw;
+  if (raw !== "" && (isNaN(v) || v < 0)) { toast("數量格式不對"); inp.value = rvOf(e, o) == null ? "" : fmt(rvOf(e, o)); return }
+  if (v === rvOf(e, o)) return;
+  store.setRv(S.date, S.sup, id, o, v);
+}
+/* ===== 加工成本 =====
+   原料每KG ＝ 叫貨單價 ÷ 每單位重量(w)
+   成品（KG）＝ 原料每KG ÷ 出成率 ＋ 包材人工/KG
+   成品（籃等）＝ 原料每KG × 每單位KG ÷ 出成率 ＋ 包材人工/單位 */
+function unitPriceOf(it) {
+  const e = lines()[it.id];
+  if (e && hasQty(e)) { let a = 0, q = 0; qtyOpts(it, e).forEach(o => { const p = priceOf(e, o); if (p != null) { a += p * e.vs[o]; q += e.vs[o] } }); if (q) return { p: a / q, src: "today" } }
+  const last = S.last || {}; let best = null;
+  Object.entries(last).forEach(([k, v]) => { if (k.startsWith(it.id + "|") && v && v.p != null && (!best || v.d > best.d)) best = v });
+  return best ? { p: best.p, src: "last", d: best.d } : null;
+}
+function procCost(it, price) {
+  const pc = it.pc; if (!pc || !(pc.w > 0) || price == null) return null;
+  const kg = price / pc.w;
+  return { kg, outs: (pc.outs || []).filter(o => o.n && o.y > 0).map(o => {
+    const isKg = !o.u || /^(kg|公斤)$/i.test(o.u);
+    const c = isKg ? kg / (o.y / 100) + (+o.add || 0) : kg * (+o.uw || 0) / (o.y / 100) + (+o.add || 0);
+    return { n: o.n, u: isKg ? "KG" : o.u, c, perKg: isKg ? c : (o.uw > 0 ? c / o.uw : null) };
+  }) };
+}
+function procPanel() {
+  const its = oItems().filter(i => i.pc && i.pc.w > 0);
+  if (!its.length) return "";
+  const rows = its.map(it => {
+    const up = unitPriceOf(it), pr = up && procCost(it, up.p);
+    const unit = it.u || "單位";
+    if (!pr) return `<div class="pc-i"><div class="pc-h"><b>${esc(it.n)}</b><span class="muted">1${esc(unit)}＝${fmt(it.pc.w)}KG</span></div><p class="muted" style="margin:4px 0 0">還沒有價格。在上面「單價」填${esc(it.n)}的價格就會自動算</p></div>`;
+    return `<div class="pc-i"><div class="pc-h"><b>${esc(it.n)}</b><span class="muted">${money(up.p)}/${esc(unit)}${up.src === "last" ? `（${dateLabel(up.d).replace(/（.）/, "")} 的價格）` : ""}　÷ ${fmt(it.pc.w)}KG ＝ <b>${fmt(Math.round(pr.kg * 10) / 10)} 元/KG</b></span></div>
+      <table class="t pc-t"><tr><th>成品</th><th class="r">出成率</th><th class="r">成本</th></tr>
+      ${pr.outs.map((o, k) => { const src = it.pc.outs.filter(x => x.n && x.y > 0)[k]; return `<tr><td>${esc(o.n)}${src.u && !/^(kg|公斤)$/i.test(src.u) ? `<small>${fmt(src.uw)}KG/${esc(src.u)}</small>` : ""}</td><td class="r">${fmt(src.y)}%</td><td class="r"><b>${fmt(Math.round(o.c * 10) / 10)}</b><small>元/${esc(o.u)}</small>${o.u !== "KG" && o.perKg ? `<small style="display:block">＝${fmt(Math.round(o.perKg * 10) / 10)} 元/KG</small>` : ""}</td></tr>` }).join("")}
+      </table>${it.pc.ex ? `<p class="pc-ex">⚠ 出成率和包材是範例數字，請到「設定 → 加工成本」改成你們實際秤的</p>` : ""}</div>`;
+  });
+  return `<div class="panel"><h3>加工成本</h3>${rows.join("")}</div>`;
+}
 function renderSum() {
   const ae = document.activeElement, keep = ae && ae.id && $("#vSum").contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName) ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
   const last = S.last || {};
@@ -1259,6 +1371,7 @@ function renderSum() {
   ${st.miss.length ? `<div class="panel alert"><h3>建議要叫還沒叫 <span class="c o">${st.miss.length}</span><button class="btn sg sm r" id="fillAll">全部帶入建議</button></h3>
     <div class="chips">${st.miss.map(i => `<button class="chip o" data-go="${i.id}">${esc(i.n)} ${esc(sugText(i, analyze(i).sug))}</button>`).join("")}</div></div>` : ""}
   ${ckPanel()}
+  ${rvPanel()}
   <div class="panel ${sent && !edited ? "fin" : ""}"><h3>${esc(sup().name)} ${dateLabel(S.date)} <span class="c">${st.ordered.length} 項</span></h3>
     ${st.ordered.length ? `
     <div class="amt"><div><small>叫貨金額</small><b>${money(amt.a)}</b></div>${amt.miss ? `<span class="c o">${amt.miss} 筆未填價格</span>` : `<span class="c ok">價格都填好了</span>`}${canLast ? `<button class="btn sm" id="fillLast">帶入上次價格</button>` : ""}</div>
@@ -1266,6 +1379,7 @@ function renderSum() {
     <tr class="tot"><td colspan="3">合計${amt.miss ? `（${amt.miss} 筆未填）` : ""}</td><td class="r">${money(amt.a)}</td></tr></table>`
       : `<div class="empty" style="padding:16px">還沒有叫貨品項。到「叫貨」點品項輸入數量${st.miss.length ? "，或按上面的「全部帶入建議」" : ""}</div>`}
   </div>
+  ${procPanel()}
   <div class="panel"><h3>備註</h3>
     <textarea class="note" id="note" placeholder="清單上沒有的品項、到貨時間、其他交代">${esc((S.ord && S.ord.note) || "")}</textarea>
     ${S.ord && S.ord.noteBy ? `<p class="muted" style="margin:6px 0 0">最後編輯：${esc(S.ord.noteBy)}</p>` : ""}
@@ -1291,7 +1405,7 @@ function priceRows(it, e, last) {
       <td data-go="${it.id}">${k === 0 ? esc(it.n) : ""}${spec}${k === 0 && e.sug ? ` <span class="bdg lo">建議</span>` : ""}</td>
       <td class="r">${fmt(q)}<small>${esc(u)}</small></td>
       <td class="r"><input class="pin" id="p_${it.id}_${esc(pk(o))}" data-pid="${it.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="${lp ? fmt(lp.p) : "單價"}" aria-label="${esc(it.n + (o ? " " + o : ""))} 單價">${u ? `<small>/${esc(u)}</small>` : ""}</td>
-      <td class="r">${p == null ? `<span class="muted">—</span>` : money(p * q)}</td></tr>`;
+      <td class="r">${p == null ? `<span class="muted">—</span>` : money(p * gotQty(e, o))}${rvOf(e, o) != null && rvOf(e, o) !== q ? `<small style="display:block;color:var(--warn)">實收${fmt(rvOf(e, o))}</small>` : ""}</td></tr>`;
   }).join("");
 }
 function savePrice(inp) {
@@ -1304,17 +1418,18 @@ function savePrice(inp) {
   if (v != null) store.setLastPrice(S.sup, `${id}|${pk(o)}`, { p: v, d: S.date });
 }
 let noteTimer;
-$("#vSum").addEventListener("change", e => { if (e.target.classList.contains("pin")) savePrice(e.target) });
+$("#vSum").addEventListener("change", e => { if (e.target.classList.contains("pin")) savePrice(e.target); if (e.target.classList.contains("rin")) saveRv(e.target) });
 $("#vSum").addEventListener("keydown", e => {
-  if (e.key !== "Enter" || !e.target.classList.contains("pin")) return;
+  const isP = e.target.classList.contains("pin"), isR = e.target.classList.contains("rin");
+  if (e.key !== "Enter" || !(isP || isR)) return;
   e.preventDefault();
-  const all = [...document.querySelectorAll("#vSum .pin")], i = all.indexOf(e.target);
+  const all = [...document.querySelectorAll(isP ? "#vSum .pin" : "#vSum .rin")], i = all.indexOf(e.target);
   const nx = all.slice(i + 1).find(x => x.value === "") || all[i + 1], nxId = nx && nx.id;
   const cur = e.target; cur.blur(); /* 先離開，重畫時才不會把焦點還給這格 */
-  savePrice(cur);
+  if (isP) savePrice(cur); else saveRv(cur);
   setTimeout(() => { const t = nxId && document.getElementById(nxId); if (t) t.focus() }, 0);
 });
-$("#vSum").addEventListener("focusin", e => { if (e.target.classList.contains("pin")) setTimeout(() => e.target.select(), 0) });
+$("#vSum").addEventListener("focusin", e => { if (e.target.classList.contains("pin") || e.target.classList.contains("rin")) setTimeout(() => e.target.select(), 0) });
 $("#vSum").addEventListener("input", e => {
   if (e.target.id !== "note") return;
   clearTimeout(noteTimer); const v = e.target.value;
@@ -1323,6 +1438,10 @@ $("#vSum").addEventListener("input", e => {
 $("#vSum").addEventListener("click", async e => {
   const g = e.target.closest("[data-go]"); if (g) return goItem(g.dataset.go);
   if (e.target.closest("#fillAll")) return fillSuggest(oItems());
+  const rok = e.target.closest("[data-rvok]");
+  if (rok) { const l = lines()[rok.dataset.rvok]; if (l) store.setRv(S.date, S.sup, rok.dataset.rvok, rok.dataset.ro, l.vs[rok.dataset.ro]); return }
+  if (e.target.closest("#rvAll")) { const rs = rvRows().filter(r => r.st === "no"); rs.forEach(r => store.setRv(S.date, S.sup, r.id, r.o, r.q)); return toast(`${rs.length} 項標記到齊`) }
+  if (e.target.closest("#rvMsg")) { const t = rvText(); try { await navigator.clipboard.writeText(t) } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() } return toast("已複製，貼到 LINE 傳給廠商") }
   const ckb = e.target.closest("[data-ck]");
   if (ckb) { if (needMe()) return; const r = ckRows().flatMap(g => g.rows).find(x => x.key === ckb.dataset.ck); if (r) setCkRows([r], r.st !== "ok"); return }
   const ckg = e.target.closest("[data-ckg]");
@@ -1400,13 +1519,13 @@ function sheetGrid() {
 }
 function printSheet() {
   const g = sheetGrid(), rows = Math.max(0, ...g.map(c => c.length));
-  const sz = rows <= 26 ? "big" : rows <= 36 ? "" : rows <= 44 ? "tight" : "xtight";
+  const sz = rows <= 26 ? "big" : rows <= 34 ? "" : rows <= 42 ? "tight" : "xtight";
   let h = `<div class="pf-h"><b>採鮮農產行　${esc(sup().name)}採購單</b><span>${S.date.replace(/-/g, " / ")}　${dateLabel(S.date).slice(-3)}　共 ${ordStats().ordered.length} 項</span></div><table class="pf ${sz}"><colgroup>${g.map((_, i) => `<col style="width:12.5%"><col style="width:10%"><col style="width:10%">${i < g.length - 1 ? `<col style="width:.75%">` : ""}`).join("")}</colgroup>`;
   for (let r = 0; r < rows; r++) {
     h += "<tr>" + g.map((col, i) => {
       const x = col[r], gap = i < g.length - 1 ? `<td class="gap"></td>` : "";
       if (!x) return `<td style="border:0"></td><td style="border:0"></td><td style="border:0"></td>${gap}`;
-      if (x.h) return `<td class="h" style="border-top:2px solid ${catColor(x.cat)}">${esc(x.h)}</td><td class="h">數量</td><td class="h">數量</td>${gap}`;
+      if (x.h) return `<td class="h hc" style="border-top:2px solid ${catColor(x.cat)}">${esc(x.h)}</td><td class="h">數量</td><td class="h">數量</td>${gap}`;
       const qc = t => `<td class="q tq${t.length > 6 ? " xs" : t.length > 4 ? " sm" : ""}">${esc(t)}</td>`;
       return `<td class="n${x.n.length > 4 ? " sm" : ""}">${esc(x.n)}</td>${qc(x.q[0])}${qc(x.q[1])}${gap}`;
     }).join("") + "</tr>";
@@ -1430,14 +1549,18 @@ function exportXlsx() {
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws["!cols"] = g.flatMap(() => [{ wch: 12 }, { wch: 11 }, { wch: 11 }]);
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, sup().name);
-  const L = lines(), pr = [["分類", "品名", "規格", "數量", "單位", "單價", "小計"]];
+  const L = lines(), pr = [["分類", "品名", "規格", "叫貨數量", "實收", "單位", "單價", "小計（依實收）"]];
   catsOf().forEach(cat => itemsOf(cat).filter(i => hasQty(L[i.id])).forEach(i => qtyOpts(i, L[i.id]).forEach(o => {
-    const q = L[i.id].vs[o], p = priceOf(L[i.id], o);
-    pr.push([cat, i.n, o && !isUnitOpt(o) ? o : "", q, unitLabel(i, o), p ?? "", p == null ? "" : Math.round(p * q * 100) / 100]);
+    const q = L[i.id].vs[o], r = rvOf(L[i.id], o), p = priceOf(L[i.id], o);
+    pr.push([cat, i.n, o && !isUnitOpt(o) ? o : "", q, r ?? "", unitLabel(i, o), p ?? "", p == null ? "" : Math.round(p * gotQty(L[i.id], o) * 100) / 100]);
   })));
-  pr.push([], ["", "", "", "", "", "合計", orderAmt(L, oById).a]);
-  const ws2 = XLSX.utils.aoa_to_sheet(pr); ws2["!cols"] = [{ wch: 8 }, { wch: 12 }, { wch: 8 }, { wch: 7 }, { wch: 6 }, { wch: 8 }, { wch: 10 }];
+  pr.push([], ["", "", "", "", "", "", "合計", orderAmt(L, oById).a]);
+  const ws2 = XLSX.utils.aoa_to_sheet(pr); ws2["!cols"] = [{ wch: 8 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, { wch: 12 }];
   XLSX.utils.book_append_sheet(wb, ws2, "價格明細");
+  const pcs = [["原料", "單價", "每單位KG", "原料每KG", "成品", "出成率%", "單位", "成本", "每KG成本"]];
+  oItems().filter(i => i.pc).forEach(it => { const up = unitPriceOf(it), pr = up && procCost(it, up.p); if (!pr) return; const src = it.pc.outs.filter(x => x.n && x.y > 0);
+    pr.outs.forEach((o, k) => pcs.push([k ? "" : it.n, k ? "" : Math.round(up.p), k ? "" : it.pc.w, k ? "" : Math.round(pr.kg * 10) / 10, o.n, src[k].y, o.u, Math.round(o.c * 10) / 10, o.perKg == null ? "" : Math.round(o.perKg * 10) / 10])) });
+  if (pcs.length > 1) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pcs), "加工成本");
   const vrows = [["分類", "廠商", "品名", "數量"]];
   catsOf().filter(c => (sup().vend && sup().vend[c] || []).length).forEach(c => byVendor(c, L).filter(b => b.vend).forEach(b => b.rows.forEach(r => vrows.push([c, b.vend, r.n, r.t]))));
   if (vrows.length > 1) { const ws3 = XLSX.utils.aoa_to_sheet(vrows); ws3["!cols"] = [{ wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 14 }]; XLSX.utils.book_append_sheet(wb, ws3, "分廠商"); }
@@ -1454,7 +1577,8 @@ async function renderHist() {
   $("#vHist").innerHTML = rows.length ? `<div class="panel" style="padding:4px 12px">${rows.map(x => {
     const n = Object.values(x.lines).filter(hasQty).length, who = [...new Set(Object.values(x.lines).map(l => l.by).filter(Boolean))].join("、");
     const sp = sups().find(q => q.id === x.sup), am = orderAmt(x.lines, id => sp && sp.items.find(i => i.id === id));
-    return `<button class="hist" data-d="${x.date}" data-s="${esc(x.sup)}"><span class="d">${dateLabel(x.date)}</span><span class="s">${esc(name(x.sup))}</span><span class="w">${esc(who)}</span><span class="n">${n}項${am.a ? `<br><b>${money(am.a)}</b>` : ""}${am.miss && am.a ? `<small style="color:var(--low)"> 缺${am.miss}</small>` : ""}</span>${x.sent ? `<span class="ck">✓</span>` : ""}</button>`;
+    const bad = Object.values(x.lines).filter(l => l.rv && Object.entries(l.vs || {}).some(([k, q]) => q > 0 && l.rv[k || "_"] != null && l.rv[k || "_"] !== q)).length;
+    return `<button class="hist" data-d="${x.date}" data-s="${esc(x.sup)}"><span class="d">${dateLabel(x.date)}</span><span class="s">${esc(name(x.sup))}</span><span class="w">${esc(who)}${bad ? `<br><b style="color:var(--warn)">到貨不符 ${bad} 項</b>` : ""}</span><span class="n">${n}項${am.a ? `<br><b>${money(am.a)}</b>` : ""}${am.miss && am.a ? `<small style="color:var(--low)"> 缺${am.miss}</small>` : ""}</span>${x.sent ? `<span class="ck">✓</span>` : ""}</button>`;
   }).join("")}</div>` : `<div class="empty">還沒有叫貨紀錄</div>`;
 }
 $("#vHist").addEventListener("click", e => {
@@ -1474,6 +1598,16 @@ function renderSet() {
   $("#vSet").innerHTML = `
   <div class="panel"><h3>人員</h3>
     <div class="chips">${people().map(p => `<span class="chip">${esc(p)}${people().length > 1 ? ` <button data-delp="${esc(p)}" aria-label="移除${esc(p)}" style="color:var(--warn);font-weight:900;padding:0 2px">×</button>` : ""}</span>`).join("")}<button class="chip" data-addp="1">＋ 新增</button></div>
+  </div>
+  <div class="panel"><h3>加工成本 <span class="c">${esc(sup().name)}</span></h3>
+    <p class="muted" style="margin:0 0 8px">原料叫回來會再加工或分裝的品項，填一次就好；總覽填當天單價後自動算成品成本。出成率＝做完的重量 ÷ 原料重量。</p>
+    ${oItems().filter(i => i.pc).map(it => `<div class="pc-e" data-pcid="${it.id}">
+      <div class="pc-eh"><b>${esc(it.n)}</b><span>1${esc(it.u || "單位")}＝</span><input class="in" type="number" inputmode="decimal" step="0.1" data-pcw value="${fmt(it.pc.w || 0)}"><span>KG</span><button class="btn sm warn" data-pcdel>移除</button></div>
+      <div class="pc-row pc-lab"><span>成品名稱</span><span>出成率%</span><span>單位</span><span>每單位KG</span><span>包材人工</span><span></span></div>
+      ${(it.pc.outs || []).map((o, k) => `<div class="pc-row" data-k="${k}"><input class="in" data-f="n" value="${esc(o.n)}" placeholder="例：修清高麗"><input class="in" type="number" inputmode="decimal" data-f="y" value="${o.y ?? ""}" placeholder="83"><input class="in" data-f="u" value="${esc(o.u || "KG")}" placeholder="KG"><input class="in" type="number" inputmode="decimal" data-f="uw" value="${/^(kg|公斤)$/i.test(o.u || "KG") ? "" : (o.uw ?? "")}" placeholder="—"${/^(kg|公斤)$/i.test(o.u || "KG") ? " disabled" : ""}><input class="in" type="number" inputmode="decimal" data-f="add" value="${o.add ?? ""}" placeholder="0"><button class="btn sm" data-pcrm aria-label="刪除這個成品">✕</button></div>`).join("")}
+      <button class="btn sm" data-pcadd style="margin-top:6px">＋ 新增成品</button>
+    </div>`).join("") || `<p class="muted">還沒有設定</p>`}
+    <div style="display:flex;gap:8px;margin-top:10px"><select class="in" id="pcNew" style="flex:1"><option value="">選一個品項加入…</option>${catsOf().map(c => `<optgroup label="${esc(c)}">${itemsOf(c).filter(i => !i.pc).map(i => `<option value="${i.id}">${esc(i.n)}</option>`).join("")}</optgroup>`).join("")}</select><button class="btn sm" id="pcAddItem" style="padding:10px 14px">加入</button></div>
   </div>
   <div class="panel"><h3>分廠商叫貨 <span class="c">${esc(sup().name)}</span></h3>
     <p class="muted" style="margin:0 0 8px">填了廠商的分類，輸入數量時要選廠商，LINE 文字和列印會分廠商列出。廠商用「、」分開，空白＝不分廠商。</p>
@@ -1526,6 +1660,14 @@ $("#vSet").addEventListener("click", async e => {
   if (t.closest("#supDel")) { if (!confirm(`刪除「${sup().name}」和它的叫貨品項？（過去的叫貨紀錄會保留）`)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.sups = cfg.sups.filter(x => x.id !== S.sup); S.draft = null; S.sup = cfg.sups[0].id; await store.saveOrdCfg(cfg).catch(err); renderSupSel(); openOrder(); return }
   if (t.closest("#addClosed")) { const v = $("#closedIn").value; if (!v) return toast("先選日期"); if (closedList().includes(v)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.closed = [...closedList(), v].sort(); await store.saveOrdCfg(cfg).catch(err); return }
   const dc = t.closest("[data-delc]"); if (dc) { const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.closed = closedList().filter(x => x !== dc.dataset.delc); await store.saveOrdCfg(cfg).catch(err); return }
+  const pbox = t.closest("[data-pcid]");
+  if (pbox) {
+    const id = pbox.dataset.pcid;
+    if (t.closest("[data-pcadd]")) return savePc(x => { const it = x.items.find(i => i.id === id); it.pc.outs = [...(it.pc.outs || []), { n: "", y: 0, u: "KG", uw: 0, add: 0 }] });
+    const rm = t.closest("[data-pcrm]"); if (rm) { const k = +rm.closest("[data-k]").dataset.k; return savePc(x => { const it = x.items.find(i => i.id === id); it.pc.outs.splice(k, 1) }) }
+    if (t.closest("[data-pcdel]")) { if (!confirm("移除這個品項的加工成本設定？")) return; return savePc(x => { const it = x.items.find(i => i.id === id); delete it.pc }) }
+  }
+  if (t.closest("#pcAddItem")) { const id = $("#pcNew").value; if (!id) return toast("先選一個品項"); return savePc(x => { const it = x.items.find(i => i.id === id); it.pc = { w: 0, outs: [{ n: "", y: 0, u: "KG", uw: 0, add: 0 }] } }, "已加入，填原料重量和成品") }
   if (t.closest("[data-addp]")) { const n = (prompt("人員名字") || "").trim(); if (!n || people().includes(n)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.people = [...people(), n]; await store.saveOrdCfg(cfg).catch(err); return }
   const dp = t.closest("[data-delp]"); if (dp) { const n = dp.dataset.delp; if (!confirm(`移除 ${n}？`)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.people = people().filter(x => x !== n); await store.saveOrdCfg(cfg).catch(err); if (S.me === n) { S.me = ""; try { localStorage.removeItem("caixian-order-me") } catch {} renderWho() } return }
   if (t.closest("#edStart")) { S.draft = JSON.parse(JSON.stringify(sup())); renderSet(); return }
@@ -1548,7 +1690,27 @@ $("#vSet").addEventListener("click", async e => {
   if (mv) { const dir = +mv.dataset.mv; let j = i + dir; while (its[j] && its[j].c !== its[i].c) j += dir; if (!its[j]) return; [its[i], its[j]] = [its[j], its[i]]; renderSet(); return }
   if (t.closest("[data-lk]")) { S.lkItem = id; openLink(); return }
 });
+/* 加工成本設定：改了就直接存（不用按儲存） */
+async function savePc(fn, msg) {
+  if (S.draft) return toast("先儲存或取消上面的品項編輯");
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup);
+  fn(x); await store.saveOrdCfg(cfg).then(() => msg && toast(msg)).catch(err);
+}
 $("#vSet").addEventListener("change", async e => {
+  const box = e.target.closest("[data-pcid]");
+  if (box && e.target.matches("input")) {
+    const id = box.dataset.pcid, row = e.target.closest("[data-k]");
+    return savePc(x => {
+      const it = x.items.find(i => i.id === id); if (!it || !it.pc) return;
+      delete it.pc.ex;   /* 改過就不是範例了 */
+      if (e.target.hasAttribute("data-pcw")) { it.pc.w = Math.max(0, +e.target.value || 0); return }
+      if (!row) return;
+      const o = it.pc.outs[+row.dataset.k]; if (!o) return;
+      const f = e.target.dataset.f, v = e.target.value.trim();
+      if (f === "n" || f === "u") o[f] = v; else o[f] = v === "" ? 0 : Math.max(0, +v || 0);
+      if (f === "u" && /^(kg|公斤)$/i.test(v || "KG")) o.uw = 0;
+    });
+  }
   const cs = e.target.closest('select[data-f="c"]');
   if (cs && S.draft) {
     syncDraftInputs();
