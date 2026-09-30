@@ -208,7 +208,7 @@ table.rt .spec{display:inline-block;font-size:12px;font-weight:700;background:va
 table.rt .rin{width:64px;border:1px solid var(--line);border-radius:8px;padding:7px 6px;text-align:right;font-family:var(--mono);font-weight:700;font-size:15px;background:#fff}
 table.rt .rin::placeholder{color:#C5CBD3;font-weight:400}
 .rv-btn{width:38px;height:34px;border-radius:8px;border:2px solid var(--ok);color:var(--ok);font-weight:900;background:#fff}
-.rv-t{font-size:12px;font-weight:900;border-radius:6px;padding:2px 6px;white-space:nowrap}
+.rv-t{font-size:12px;font-weight:900;border-radius:6px;padding:5px 7px;white-space:nowrap;border:0}
 .rv-t.ok{background:var(--okbg);color:var(--ok)}.rv-t.bad{background:var(--warnbg);color:var(--warn)}.rv-t.over{background:var(--lowbg);color:var(--low)}
 tr.rv-short td,tr.rv-over td{background:#FFF6F4}
 .c.bad{background:var(--warnbg);color:var(--warn)}
@@ -1297,13 +1297,13 @@ function rvPanel() {
   const rs = rvRows(); if (!rs.length) return "";
   const done = rs.filter(r => r.st !== "no").length, bad = rs.filter(r => r.st === "short" || r.st === "over");
   let cat = "";
-  return `<div class="panel rv-p${done === rs.length && !bad.length ? " fin" : ""}"><h3>到貨核對 <span class="c ${done === rs.length ? "ok" : "o"}">${done} / ${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}${done < rs.length ? `<button class="btn sm r" id="rvAll">其餘都到齊</button>` : ""}</h3>
-    <p class="muted" style="margin:0 0 8px">貨到了點 ✓＝到齊；數量不對就在「實收」填實際到的數量。金額和預估用量會用實收計算。</p>
+  return `<div class="panel rv-p${done === rs.length && !bad.length ? " fin" : ""}"><h3>到貨核對 <span class="c ${done === rs.length ? "ok" : "o"}">${done} / ${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}${done < rs.length ? `<button class="btn sm r" id="rvAll">其餘都到齊</button>` : `<button class="btn sm r" id="rvNone">全部取消</button>`}</h3>
+    <p class="muted" style="margin:0 0 8px">貨到了點 ✓＝到齊；數量不對就在「實收」填實際到的數量。點「到齊 ✕」可以取消。金額和預估用量會用實收計算。</p>
     <table class="t rt"><tr><th>品項</th><th class="r">叫</th><th class="r">實收</th><th></th></tr>
     ${rs.map(r => { const h = r.cat !== cat ? `<tr class="ch" style="--cc:${catColor(r.cat)};--ct:${catTint(r.cat)}"><td colspan="4">${esc(r.cat)}</td></tr>` : ""; cat = r.cat;
       return h + `<tr class="rv-${r.st}"><td>${r.first ? esc(r.n) : ""}${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}</td><td class="r">${fmt(r.q)}<small>${esc(r.u)}</small></td>
       <td class="r"><input class="rin" id="r_${r.id}_${esc(pk(r.o))}" data-rid="${r.id}" data-ro="${esc(r.o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${r.r == null ? "" : fmt(r.r)}" placeholder="${fmt(r.q)}" aria-label="${esc(r.n + (r.lab ? " " + r.lab : ""))} 實收"></td>
-      <td class="r">${r.st === "no" ? `<button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(r.o)}" aria-label="到齊">✓</button>` : r.st === "ok" ? `<span class="rv-t ok">到齊</span>` : r.st === "short" ? `<span class="rv-t bad">少${fmt(r.q - r.r)}</span>` : `<span class="rv-t over">多${fmt(r.r - r.q)}</span>`}</td></tr>` }).join("")}
+      <td class="r">${r.st === "no" ? `<button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(r.o)}" aria-label="到齊">✓</button>` : `<button class="rv-t ${r.st === "ok" ? "ok" : r.st === "short" ? "bad" : "over"}" data-rvx="${r.id}" data-ro="${esc(r.o)}" title="點一下取消">${r.st === "ok" ? "到齊" : r.st === "short" ? `少${fmt(r.q - r.r)}` : `多${fmt(r.r - r.q)}`} ✕</button>`}</td></tr>` }).join("")}
     </table>
     ${bad.length ? `<button class="btn" id="rvMsg" style="margin-top:10px">複製到貨不符通知（傳給廠商）</button>` : ""}
   </div>`;
@@ -1440,6 +1440,9 @@ $("#vSum").addEventListener("click", async e => {
   if (e.target.closest("#fillAll")) return fillSuggest(oItems());
   const rok = e.target.closest("[data-rvok]");
   if (rok) { const l = lines()[rok.dataset.rvok]; if (l) store.setRv(S.date, S.sup, rok.dataset.rvok, rok.dataset.ro, l.vs[rok.dataset.ro]); return }
+  const rvx = e.target.closest("[data-rvx]");
+  if (rvx) { store.setRv(S.date, S.sup, rvx.dataset.rvx, rvx.dataset.ro, null); return }
+  if (e.target.closest("#rvNone")) { if (!confirm("取消全部的到貨核對？")) return; rvRows().filter(r => r.st !== "no").forEach(r => store.setRv(S.date, S.sup, r.id, r.o, null)); return toast("已取消到貨核對") }
   if (e.target.closest("#rvAll")) { const rs = rvRows().filter(r => r.st === "no"); rs.forEach(r => store.setRv(S.date, S.sup, r.id, r.o, r.q)); return toast(`${rs.length} 項標記到齊`) }
   if (e.target.closest("#rvMsg")) { const t = rvText(); try { await navigator.clipboard.writeText(t) } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() } return toast("已複製，貼到 LINE 傳給廠商") }
   const ckb = e.target.closest("[data-ck]");
