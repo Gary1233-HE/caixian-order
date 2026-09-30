@@ -268,6 +268,12 @@ select.in{appearance:auto}
 .viewer .vi img.stk-img{background:#fff}
 .viewer .vi img.stk-img.z{width:420%}
 .viewer .vi:has(img.z){align-items:flex-start;justify-content:flex-start}
+/* 點貨頁左邊：備註＋拍照 */
+.lfab{position:fixed;z-index:35;display:flex;align-items:center;gap:6px;background:var(--ink);color:#fff;border-radius:16px;font-weight:900;box-shadow:0 6px 18px rgba(20,30,25,.25)}
+.lfab svg{width:20px;height:20px;flex:none}
+.lfab b{position:absolute;top:-8px;right:-8px;background:var(--low);color:#fff;font-size:11px;border-radius:9px;padding:1px 6px;line-height:16px}
+@media (min-width:1000px){.lfab{left:max(16px, calc((100vw - 760px) / 2 - 170px));top:50%;transform:translateY(-50%);flex-direction:column;padding:16px 18px;font-size:15px}}
+@media (max-width:999px){.lfab{left:12px;bottom:calc(72px + var(--safe-b));padding:12px 14px;font-size:14px}}
 .fab{position:fixed;z-index:35;display:flex;gap:8px}
 .fab button{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;color:#fff;font-weight:900;font-size:15px;box-shadow:0 6px 18px rgba(20,30,25,.22)}
 .fab svg{width:20px;height:20px;flex:none}
@@ -351,6 +357,11 @@ select.in{appearance:auto}
   <div class="pick" id="ppList"></div>
 </section>
 
+<section class="sheet" id="noteSheet" aria-label="備註">
+  <div class="sh-head"><div><b id="noteTitle">備註</b><span>缺貨、異常、要補的貨；手寫單可以拍照上傳</span></div><button class="sh-x" id="noteClose" aria-label="關閉">×</button></div>
+  <div id="noteBody" style="overflow:auto"></div>
+</section>
+<button class="lfab hide" id="noteFab" aria-label="備註和拍照"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>備註</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><b id="noteBadge" class="hide"></b></button>
 <input type="file" id="phIn" accept="image/*" multiple class="hide">
 <input type="file" id="xlIn" accept=".xlsx,.xls,.csv" class="hide">
 <div class="viewer hide" id="viewer"><div class="vb"><span class="i" id="vInfo"></span><button class="hide" id="vShare">分享</button><button class="hide" id="vDl">下載</button><button class="del" id="vDel">刪除</button><button id="vX">關閉</button></div><div class="vi" id="vImg"></div></div>
@@ -541,6 +552,7 @@ function render() {
   if (S.view === "Hist") renderHist();
   if (S.view === "Set" && !S.editing) renderSet();
   if (S.kp) renderKp();
+  $("#noteFab").classList.toggle("hide", S.view !== "Count"); renderNoteFab(); renderNoteSheet();
 }
 function stats() {
   const c = counts(), all = items();
@@ -760,7 +772,7 @@ function openPeople() {
   $("#pp").classList.add("show"); $("#scrim").classList.add("show");
 }
 function closePeople() { $("#pp").classList.remove("show"); $("#scrim").classList.remove("show") }
-$("#who").onclick = openPeople; $("#ppClose").onclick = closePeople; $("#scrim").onclick = closePeople;
+$("#who").onclick = openPeople; $("#ppClose").onclick = closePeople; $("#scrim").onclick = () => { closePeople(); closeNote() };
 $("#ppList").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; S.me = b.dataset.p; try { localStorage.setItem("caixian-inv-me", S.me) } catch {} renderWho(); closePeople(); toast(S.me + " 開始點貨") };
 
 /* ================= views ================= */
@@ -770,6 +782,7 @@ function setView(v) {
   if (v !== "Count") document.documentElement.style.removeProperty("--catbg");
   ["Count", "Sum", "Hist", "Set"].forEach(x => $("#v" + x).classList.toggle("hide", x !== v));
   $("#fab").classList.toggle("hide", v !== "Sum"); document.body.classList.toggle("fab-on", v === "Sum");
+  $("#noteFab").classList.toggle("hide", v !== "Count");
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
   window.scrollTo(0, 0); render();
 }
@@ -888,11 +901,6 @@ function renderSumInner() {
   const byCat = S.cfg.cats.map(cat => { const its = itemsOf(cat).filter(isActive); return { cat, d: its.filter(i => c[i.id] != null).length, n: its.length } });
   const skipN = all.filter(i => !isActive(i)).length;
   $("#vSum").innerHTML = `
-  <div class="panel"><h3>備註</h3>
-    <textarea class="note" id="note" placeholder="缺貨、異常、要補的貨">${esc((S.day && S.day.note) || "")}</textarea>
-    ${S.day && S.day.noteBy ? `<p class="muted" style="margin:6px 0 0">最後編輯：${esc(S.day.noteBy)}</p>` : ""}
-    <div class="phs">${photoList().map(([id, m]) => `<button class="ph" data-ph="${id}"><img src="${m.th}" alt="備註照片"><span>${esc(m.by || "")} ${hm(m.t)}</span></button>`).join("")}${S.uploading ? `<div class="ph up">上傳中 ${S.uploading}…</div>` : ""}</div>
-    <button class="btn" id="phAdd" style="margin-top:10px">📷 拍照 / 上傳手寫單</button></div>
   <div class="panel ${dn ? "fin" : ""}"><h3>${dateLabel(S.date)} 進度 <span class="c">${s.done}/${s.total}</span></h3>
     ${byCat.map(x => `<div class="pcat" style="--cc:${catColor(x.cat)}"><span class="nm">${esc(x.cat)}</span><span class="tr"><i style="width:${x.n ? x.d / x.n * 100 : 0}%"></i></span><span class="n">${x.d}/${x.n}</span></div>`).join("")}
     ${skipN ? `<p class="muted" style="margin:10px 0 0">另有 ${skipN} 項今天不用點（隔天點或貨運前一天點）</p>` : ""}
@@ -918,10 +926,7 @@ function renderSumInner() {
 `;
   $("#vSum").querySelectorAll("[data-go]").forEach(b => b.onclick = () => goItem(b.dataset.go));
 
-  $("#vSum").querySelectorAll("[data-ph]").forEach(b => b.onclick = () => openViewer(b.dataset.ph));
-  let nt; $("#note").oninput = e => { clearTimeout(nt); const v = e.target.value; nt = setTimeout(() => store.setNote(S.date, v, S.me || ""), 700) };
   if ($("#bPrintR")) $("#bPrintR").onclick = printResult;
-  $("#phAdd").onclick = () => { if (needMe()) return; $("#phIn").value = ""; $("#phIn").click() };
   if ($("#bDone")) $("#bDone").onclick = finish;
   if ($("#bUndo")) $("#bUndo").onclick = () => store.setDone(S.date, null);
 }
@@ -1093,6 +1098,28 @@ function paperXls() {
   saveWb([["每日庫存表", ws]], `每日庫存表_${today()}.xlsx`);
 }
 
+/* ---------- 備註＋拍照（點貨頁左邊的按鈕） ---------- */
+function renderNoteFab() {
+  const n = photoList().length, has = !!((S.day && S.day.note) || "").trim(), b = $("#noteBadge");
+  b.textContent = n ? `${n}張` : has ? "有" : ""; b.classList.toggle("hide", !n && !has);
+}
+function renderNoteSheet() {
+  if (!$("#noteSheet").classList.contains("show")) return;
+  const ae = document.activeElement, keep = ae && ae.id === "note" ? { v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
+  $("#noteTitle").textContent = `備註　${dateLabel(S.date)}`;
+  $("#noteBody").innerHTML = `<textarea class="note" id="note" placeholder="缺貨、異常、要補的貨">${esc((S.day && S.day.note) || "")}</textarea>
+    ${S.day && S.day.noteBy ? `<p class="muted" style="margin:6px 0 0">最後編輯：${esc(S.day.noteBy)}</p>` : ""}
+    <div class="phs">${photoList().map(([id, m]) => `<button class="ph" data-ph="${id}"><img src="${m.th}" alt="備註照片"><span>${esc(m.by || "")} ${hm(m.t)}</span></button>`).join("")}${S.uploading ? `<div class="ph up">上傳中 ${S.uploading}…</div>` : ""}</div>
+    <button class="btn pri" id="phAdd" style="margin-top:10px">📷 拍照 / 上傳手寫單</button>`;
+  let nt; $("#note").oninput = e => { clearTimeout(nt); const v = e.target.value; nt = setTimeout(() => store.setNote(S.date, v, S.me || ""), 700) };
+  $("#phAdd").onclick = () => { if (needMe()) return; $("#phIn").value = ""; $("#phIn").click() };
+  $("#noteBody").querySelectorAll("[data-ph]").forEach(b => b.onclick = () => openViewer(b.dataset.ph));
+  if (keep) { const t = $("#note"); t.value = keep.v; t.focus(); t.setSelectionRange(keep.a, keep.b) }
+}
+$("#noteFab").onclick = () => { $("#noteSheet").classList.add("show"); $("#scrim").classList.add("show"); renderNoteSheet() };
+function closeNote() { $("#noteSheet").classList.remove("show"); $("#scrim").classList.remove("show") }
+$("#noteClose").onclick = closeNote;
+
 /* ---------- photos ---------- */
 function photoList() { return Object.entries((S.day && S.day.photos) || {}).sort((a, b) => a[1].t - b[1].t) }
 function loadImg(file) { return new Promise((ok, no) => { const u = URL.createObjectURL(file), im = new Image(); im.onload = () => { ok(im); setTimeout(() => URL.revokeObjectURL(u), 1000) }; im.onerror = () => no(new Error("讀不到這張圖片")); im.src = u }) }
@@ -1101,7 +1128,7 @@ function shrink(im, max, q) { const k = Math.min(1, max / Math.max(im.naturalWid
 async function addPhotos(files) {
   const d = S.date;
   for (let n = 0; n < files.length; n++) {
-    S.uploading = `${n + 1}/${files.length}`; if (S.view === "Sum") renderSum();
+    S.uploading = `${n + 1}/${files.length}`; renderNoteSheet();
     try {
       const im = await loadImg(files[n]);
       let max = 1800, q = .75, full = shrink(im, max, q);
@@ -1109,7 +1136,7 @@ async function addPhotos(files) {
       await store.addPhoto(d, "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), full, { by: S.me, t: Date.now(), th: shrink(im, 240, .6) });
     } catch (e) { err(e) }
   }
-  S.uploading = null; if (S.view === "Sum") renderSum(); toast("照片已上傳");
+  S.uploading = null; renderNoteSheet(); renderNoteFab(); toast("照片已上傳");
 }
 $("#phIn").onchange = e => { const f = [...e.target.files]; if (f.length) addPhotos(f) };
 let vCur = null;
