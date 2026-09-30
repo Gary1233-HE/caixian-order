@@ -287,6 +287,23 @@ select.in{appearance:auto}
 .sbar input{flex:1;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:9px 12px;font-size:17px;background:#fff}
 @media (min-width:700px){main,.tabs{max-width:760px;margin:0 auto}.rows{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}}
 
+/* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
+.fab{position:fixed;z-index:35;display:flex;gap:8px}
+.fab button{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;color:#fff;font-weight:900;font-size:15px;box-shadow:0 6px 18px rgba(20,30,45,.22)}
+.fab svg{width:20px;height:20px;flex:none}
+.fab .f-line{background:#06C755}
+.fab .f-print{background:#2F6FD6}
+.fab .f-xlsx{background:#E07B00}
+.fab button:active{filter:brightness(.92)}
+@media (min-width:1000px){
+  .fab{right:max(16px, calc((100vw - 760px) / 2 - 230px));top:50%;transform:translateY(-50%);flex-direction:column;width:200px}
+  .fab button{padding:16px 12px;justify-content:flex-start}
+}
+@media (max-width:999px){
+  .fab{left:10px;right:10px;bottom:calc(64px + var(--safe-b))}
+  .fab button{flex:1;padding:12px 4px;font-size:13px;flex-direction:column;gap:3px}
+  body.fab-on #vSum{padding-bottom:calc(150px + var(--safe-b))}
+}
 /* print sheet */
 #print{display:none}
 @media print{
@@ -392,6 +409,11 @@ select.in{appearance:auto}
   <button class="btn pri" id="lkOk" style="margin-top:10px">完成</button>
 </section>
 
+<div class="fab hide" id="fab" aria-label="傳送與列印">
+  <button class="f-line" data-fab="line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg><span>複製 LINE 文字</span></button>
+  <button class="f-print" data-fab="print"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg><span>列印採購單</span></button>
+  <button class="f-xlsx" data-fab="xlsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13l6 6M15 13l-6 6"/></svg><span>匯出 Excel</span></button>
+</div>
 <div id="print"></div>
 <div class="toast" id="toast"></div>
 
@@ -1216,6 +1238,7 @@ function setView(v) {
   S.view = v;
   if (v !== "Ord") document.documentElement.style.removeProperty("--catbg");
   ["Ord", "Sum", "Hist", "Set"].forEach(x => $("#v" + x).classList.toggle("hide", x !== v));
+  $("#fab").classList.toggle("hide", v !== "Sum"); document.body.classList.toggle("fab-on", v === "Sum");
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
   window.scrollTo(0, 0); render();
 }
@@ -1389,8 +1412,6 @@ function renderSum() {
   </div>
   <div class="panel ${sent && !edited ? "fin" : ""}"><h3>傳給廠商${sent ? `<span class="c" style="margin-left:auto">${edited ? "傳送後有修改，要再傳一次" : `✓ ${esc(sent.by)} ${hm(sent.t)} 已複製`}</span>` : ""}</h3>
     <pre class="lt">${esc(orderText())}</pre>
-    <button class="btn okb" id="bCopy" ${st.ordered.length ? "" : "disabled"}>複製 LINE 文字</button>
-    <div class="grid2" style="margin-top:8px"><button class="btn" id="bPrint" ${st.ordered.length ? "" : "disabled"}>列印採購單</button><button class="btn" id="bXlsx" ${st.ordered.length ? "" : "disabled"}>匯出 Excel</button></div>
   </div>
   ${other.length ? `<div class="panel"><h3>其他低於安全量 <span class="c">${other.length}</span></h3>
     <p class="muted" style="margin:0 0 8px">這些點貨品項沒有連動到「${esc(sup().name)}」，可能要跟別家叫</p>
@@ -1459,16 +1480,22 @@ $("#vSum").addEventListener("click", async e => {
     ordStats().ordered.forEach(i => { const l = lines()[i.id]; qtyOpts(i, l).forEach(o => { const lp = last[`${i.id}|${pk(o)}`]; if (priceOf(l, o) == null && lp) { store.setPrice(S.date, S.sup, i.id, o, lp.p); n++ } }) });
     return toast(`已帶入 ${n} 筆上次價格，有變動再改`);
   }
-  if (e.target.closest("#bCopy")) {
-    if (needMe()) return;
-    const t = orderText();
-    try { await navigator.clipboard.writeText(t) } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() }
-    store.setSent(S.date, S.sup, { by: S.me, t: Date.now() });
-    toast("已複製，貼到 LINE 傳給" + sup().name);
-    return;
-  }
-  if (e.target.closest("#bPrint")) return printSheet();
-  if (e.target.closest("#bXlsx")) return exportXlsx();
+});
+/* 右側浮動按鈕（電腦在右邊、手機在底部），跟著畫面捲動 */
+async function copyLine() {
+  if (!ordStats().ordered.length) return toast("還沒有叫貨品項");
+  if (needMe()) return;
+  const t = orderText();
+  try { await navigator.clipboard.writeText(t) } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() }
+  store.setSent(S.date, S.sup, { by: S.me, t: Date.now() });
+  toast("已複製，貼到 LINE 傳給" + sup().name);
+}
+$("#fab").addEventListener("click", e => {
+  const b = e.target.closest("[data-fab]"); if (!b) return;
+  if (b.dataset.fab === "line") return copyLine();
+  if (!ordStats().ordered.length && !confirm("還沒有叫貨，要印空白採購單嗎？")) return;
+  if (b.dataset.fab === "print") return printSheet();
+  if (b.dataset.fab === "xlsx") return exportXlsx();
 });
 
 /* ---------- 紙本採購單（仿西螺採購單版面） ---------- */
@@ -1541,7 +1568,7 @@ function printSheet() {
   for (let r = 0; r < rows; r++) {
     h += "<tr>" + g.map((col, i) => {
       const x = col[r], gap = i < g.length - 1 ? `<td class="gap"></td>` : "";
-      if (!x) return `<td style="border:0"></td><td style="border:0"></td><td style="border:0"></td>${gap}`;
+      if (!x) return `<td class="n"></td><td class="q tq"></td><td class="q tq"></td>${gap}`;   /* 空欄補滿，方便手寫 */
       if (x.h) return `<td class="h hc" style="border-top:2px solid ${catColor(x.cat)}">${esc(x.h)}</td><td class="h">數量</td><td class="h">數量</td>${gap}`;
       const qc = c => { const w = (c.v || "").length + (c.v ? (c.h || "").length * .7 : 0); return `<td class="q tq${c.v ? " c" : ""}${w > 6.5 ? " xs" : w > 5 ? " sm" : ""}">${c.v ? `${c.h ? `<i>${esc(c.h)}</i>` : ""}${esc(c.v)}` : c.h ? `<i class="e">${esc(c.h)}</i>` : ""}</td>` };
       return `<td class="n${x.n.length > 4 ? " sm" : ""}${x.on ? " on" : ""}">${esc(x.n)}</td>${qc(x.q[0])}${qc(x.q[1])}${gap}`;
