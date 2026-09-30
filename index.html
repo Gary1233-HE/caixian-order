@@ -287,6 +287,26 @@ select.in{appearance:auto}
 .sbar input{flex:1;min-width:0;border:2px solid var(--ink);border-radius:12px;padding:9px 12px;font-size:17px;background:#fff}
 @media (min-width:700px){main,.tabs{max-width:760px;margin:0 auto}.rows{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}}
 
+.pay-top{display:flex;align-items:center;gap:8px}.pay-top div{margin-right:auto}.pay-top small{display:block;font-size:12px;color:var(--muted)}.pay-top b{font-family:var(--mono);font-size:28px}
+.pay-h{display:flex;align-items:flex-start;gap:10px}.pay-h>div:first-child{flex:1}.pay-h b{font-size:19px}
+.pm{display:inline-block;font-size:12px;font-weight:700;border-radius:6px;padding:1px 7px;margin-left:8px;vertical-align:2px}
+.pm-daily{background:#E6F7EC;color:#1E8A4C}.pm-weekly{background:#E8EFFC;color:#2F6FD6}.pm-bank{background:#FDF0E0;color:#B7630A}
+.pay-l{text-align:right}.pay-l small{display:block;font-size:11px;color:var(--muted)}.pay-l b{font-family:var(--mono);font-size:22px}.pay-l b.neg{color:var(--warn)}
+.pay-s{font-size:13px;color:var(--muted);margin:4px 0 8px}
+.pay-d{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}.pay-d .chip{font-size:12px;padding:3px 7px}
+.pay-b{display:grid;grid-template-columns:2fr 1fr;gap:6px}.pay-b .btn:only-child{grid-column:1/-1}
+.pay-hist{margin-top:10px;border-top:1px solid var(--line)}
+.py-r{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.py-r .d{font-family:var(--mono);width:44px;flex:none}.py-r .m{font-weight:700;width:30px;flex:none}.py-r .w{flex:1;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.py-r b{font-family:var(--mono)}.py-r .x{color:var(--warn);padding:2px 6px}
+.pmset{display:flex;align-items:center;gap:8px;margin-bottom:6px}.pmset>span{width:92px;flex:none;font-weight:700}.pmset .seg button{padding:6px 10px;font-size:13px}
+.pt-r{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.pt-n{flex:1}.pt-n b{display:block}.pt-n small{font-size:11px;color:var(--muted)}
+.pt-a{font-family:var(--mono);font-weight:700}
+.py-f{display:flex;flex-direction:column;gap:8px;margin-top:12px;overflow:auto}
+.py-f label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--muted)}
+.py-f .py-amt{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--ink)}
+.py-f label.py-adj{flex-direction:row;align-items:center;gap:8px;color:var(--low)}.py-adj input{width:20px;height:20px}
+.py-l{font-size:13px;font-weight:700;color:var(--muted)}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
 .fab{position:fixed;z-index:35;display:flex;gap:8px}
 .fab button{display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;color:#fff;font-weight:900;font-size:15px;box-shadow:0 6px 18px rgba(20,30,45,.22)}
@@ -359,12 +379,14 @@ select.in{appearance:auto}
 <div id="status" class="hide" style="padding:0 12px;max-width:760px;margin:0 auto"></div>
 <div id="vOrd"><div class="tabs" id="tabs"></div><main id="list"></main></div>
 <main id="vSum" class="hide"></main>
+<main id="vPay" class="hide"></main>
 <main id="vHist" class="hide"></main>
 <main id="vSet" class="hide"></main>
 
 <nav class="bn" id="nav">
   <button data-v="Ord" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h2l2.2 10.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20 8H6.2"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>叫貨</button>
   <button data-v="Sum"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>總覽<span class="dot hide" id="navDot"></span></button>
+  <button data-v="Pay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="13" rx="2"/><circle cx="12" cy="12.5" r="2.5"/><path d="M6 10v5M18 10v5"/></svg>付款<span class="dot hide" id="payDot"></span></button>
   <button data-v="Hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>紀錄</button>
   <button data-v="Set"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>設定</button>
 </nav>
@@ -401,6 +423,18 @@ select.in{appearance:auto}
 <section class="sheet" id="pp" aria-label="選擇人員">
   <div class="sh-head"><div><b>誰在叫貨？</b><span>這台手機會記住，之後不用再選</span></div><button class="sh-x" data-close aria-label="關閉">×</button></div>
   <div class="pick" id="ppList"></div>
+</section>
+<section class="sheet" id="pySheet" aria-label="記錄付款">
+  <div class="sh-head"><div><b id="pyTitle">付款</b><span id="pySub"></span></div><button class="sh-x" data-close aria-label="關閉">×</button></div>
+  <div class="py-f">
+    <label>金額<input class="in py-amt" id="pyAmt" inputmode="decimal" autocomplete="off"></label>
+    <label class="py-adj hide" id="pyAdjW"><input type="checkbox" id="pyAdj"> <span id="pyAdjT">抹零</span></label>
+    <div class="py-l">方式</div><div class="seg" id="pyM"><button data-m="cash" class="on">現金</button><button data-m="bank">匯款</button></div>
+    <div class="py-l">付款人</div><div class="seg" id="pyBy"></div>
+    <label>日期<input class="in" type="date" id="pyDate"></label>
+    <label>備註<input class="in" id="pyNote" placeholder="例：週帳 9/22–9/28、匯款後五碼"></label>
+  </div>
+  <button class="btn okb" id="pyOk" style="margin-top:12px">記錄付款</button>
 </section>
 <section class="sheet" id="lk" aria-label="連動點貨品項">
   <div class="sh-head"><div><b id="lkTitle">連動點貨品項</b><span>勾選後，叫貨時會顯示這些品項的庫存和建議量</span></div><button class="sh-x" data-close aria-label="關閉">×</button></div>
@@ -633,11 +667,15 @@ if (ORDER_FB && F) {
     setCk: (d, s, key, v) => merge(d, s, { ck: { [key]: v == null ? F.deleteField() : v } }),
     prevOrder: async (d, s) => { const x = await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", "<", d), F.orderBy("date", "desc"), F.limit(30))); return x.docs.map(y => decDoc(y.data())).find(y => y.sup === s && y.lines && Object.keys(y.lines).length) || null },
     listOrders: async n => (await F.getDocs(F.query(F.collection(db, "orders"), F.orderBy("date", "desc"), F.limit(n)))).docs.map(x => decDoc(x.data())),
-    listRange: async (a, b) => (await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", ">=", a), F.where("date", "<=", b)))).docs.map(x => decDoc(x.data()))
+    listRange: async (a, b) => (await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", ">=", a), F.where("date", "<=", b)))).docs.map(x => decDoc(x.data())),
+    /* 付款紀錄 pays/{id} */
+    watchPays: cb => F.onSnapshot(F.collection(db, "pays"), x => cb(x.docs.map(d => ({ id: d.id, ...d.data() }))), err),
+    addPay: p => safe(() => F.setDoc(F.doc(db, "pays", p.id), p)),
+    delPay: id => safe(() => F.deleteDoc(F.doc(db, "pays", id)))
   };
 } else {
   const P = DEMO ? "cxo-demo-" : "cxo-local-";
-  const K = { oc: P + "ordcfg", od: P + "orders", pr: P + "prices" };
+  const K = { oc: P + "ordcfg", od: P + "orders", pr: P + "prices", py: P + "pays" };
   const L = { oc: [], o: {} };
   const fsCheck = (v, p = "") => { if (v === undefined) throw new Error("undefined at " + p); if (Array.isArray(v)) v.forEach((x, i) => { if (Array.isArray(x)) throw new Error("nested array at " + p); fsCheck(x, p + "[" + i + "]") }); else if (v && typeof v === "object") Object.entries(v).forEach(([k, x]) => { if (k === "") throw new Error("empty field name at " + p); fsCheck(x, p + "." + k) }) };
   const ordersRaw = () => rd(K.od) || {};
@@ -661,7 +699,10 @@ if (ORDER_FB && F) {
     setCk: async (d, s, key, v) => safe(() => edit(d, s, x => { x.ck ||= {}; if (v == null) delete x.ck[key]; else x.ck[key] = v })),
     prevOrder: async (d, s) => Object.values(orders()).filter(x => x.sup === s && x.date < d && Object.keys(x.lines || {}).length).sort((a, b) => b.date.localeCompare(a.date))[0] || null,
     listOrders: async n => Object.values(orders()).sort((a, b) => b.date.localeCompare(a.date)).slice(0, n),
-    listRange: async (a, b) => Object.values(orders()).filter(x => x.date >= a && x.date <= b)
+    listRange: async (a, b) => Object.values(orders()).filter(x => x.date >= a && x.date <= b),
+    watchPays: cb => { (L.py ||= []).push(cb); cb(Object.values(rd(K.py) || {})); return () => {} },
+    addPay: async p => { fsCheck(p); const a = rd(K.py) || {}; a[p.id] = p; wr(K.py, a); (L.py || []).forEach(f => f(Object.values(a))) },
+    delPay: async id => { const a = rd(K.py) || {}; delete a[id]; wr(K.py, a); (L.py || []).forEach(f => f(Object.values(a))) }
   };
 }
 function seedDemo(K) {
@@ -1029,6 +1070,7 @@ function render() {
   if (S.view === "Ord") renderOrd();
   if (S.view === "Sum") renderSum();
   if (S.view === "Hist") renderHist();
+  if (S.view === "Pay") renderPay();
   if (S.view === "Set" && !S.draft) renderSet();
   if (S.kp) renderKp();
   renderWho();
@@ -1237,12 +1279,12 @@ function setView(v) {
   if (S.view === "Set" && v !== "Set" && S.draft) { if (!confirm("品項設定還沒儲存，要放棄修改嗎？")) return; S.draft = null }
   S.view = v;
   if (v !== "Ord") document.documentElement.style.removeProperty("--catbg");
-  ["Ord", "Sum", "Hist", "Set"].forEach(x => $("#v" + x).classList.toggle("hide", x !== v));
+  ["Ord", "Sum", "Pay", "Hist", "Set"].forEach(x => $("#v" + x).classList.toggle("hide", x !== v));
   $("#fab").classList.toggle("hide", v !== "Sum"); document.body.classList.toggle("fab-on", v === "Sum");
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
   window.scrollTo(0, 0); render();
 }
-$("#nav").onclick = e => { const b = e.target.closest("[data-v]"); if (b) setView(b.dataset.v) };
+$("#nav").onclick = e => { const b = e.target.closest("[data-v]"); if (!b) return; if (b.dataset.v === "Pay") S.payOrders = null; setView(b.dataset.v) };
 function goItem(id) { const it = oById(id); if (!it) return; S.cat = it.c; setView("Ord"); openKp(id) }
 
 /* ---------- 總覽（明細、價格、傳給廠商） ---------- */
@@ -1384,6 +1426,7 @@ function procPanel() {
   return `<div class="panel"><h3>加工成本</h3>${rows.join("")}</div>`;
 }
 function renderSum() {
+  if (!S.payOrders && !S.payLoading) loadPayData();
   const ae = document.activeElement, keep = ae && ae.id && $("#vSum").contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName) ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
   const last = S.last || {};
   const amt = orderAmt(L0(), oById);
@@ -1405,13 +1448,11 @@ function renderSum() {
     <tr class="tot"><td colspan="3">合計${amt.miss ? `（${amt.miss} 筆未填）` : ""}</td><td class="r">${money(amt.a)}</td></tr></table>`
       : `<div class="empty" style="padding:16px">還沒有叫貨品項。到「叫貨」點品項輸入數量${st.miss.length ? "，或按上面的「全部帶入建議」" : ""}</div>`}
   </div>
+  ${payTodayPanel()}
   ${procPanel()}
   <div class="panel"><h3>備註</h3>
     <textarea class="note" id="note" placeholder="清單上沒有的品項、到貨時間、其他交代">${esc((S.ord && S.ord.note) || "")}</textarea>
     ${S.ord && S.ord.noteBy ? `<p class="muted" style="margin:6px 0 0">最後編輯：${esc(S.ord.noteBy)}</p>` : ""}
-  </div>
-  <div class="panel ${sent && !edited ? "fin" : ""}"><h3>傳給廠商${sent ? `<span class="c" style="margin-left:auto">${edited ? "傳送後有修改，要再傳一次" : `✓ ${esc(sent.by)} ${hm(sent.t)} 已複製`}</span>` : ""}</h3>
-    <pre class="lt">${esc(orderText())}</pre>
   </div>
   ${other.length ? `<div class="panel"><h3>其他低於安全量 <span class="c">${other.length}</span></h3>
     <p class="muted" style="margin:0 0 8px">這些點貨品項沒有連動到「${esc(sup().name)}」，可能要跟別家叫</p>
@@ -1609,6 +1650,151 @@ function exportXlsx() {
   catsOf().filter(c => (sup().vend && sup().vend[c] || []).length).forEach(c => byVendor(c, L).filter(b => b.vend).forEach(b => b.rows.forEach(r => vrows.push([c, b.vend, r.n, r.t]))));
   if (vrows.length > 1) { const ws3 = XLSX.utils.aoa_to_sheet(vrows); ws3["!cols"] = [{ wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 14 }]; XLSX.utils.book_append_sheet(wb, ws3, "分廠商"); }
   XLSX.writeFile(wb, `${sup().name}採購單${S.date.replace(/-/g, "")}.xlsx`);
+}
+
+/* ================= 付款 =================
+   應付：每張叫貨單「單價 × 實收（沒核對就用叫的數量）」，依付款對象分開
+   付款對象：一般品項＝廠商（西螺）；分廠商的品項＝那一家（阿凱、大北園…）
+   已付：付款紀錄；從最早的欠款開始沖（先進先出），可以分次付、抹零
+   付款方式：每天現金（司機當場付）／週結（每週一次付）／匯款 */
+const PAY_M = { daily: "每天現金", weekly: "週結", bank: "匯款" };
+function payeeOf(sp, vend) { return vend ? (vend === "其他" ? `${sp.name}其他廠商` : vend) : sp.name }
+function payeeCfg(n) { return ((S.ocfg && S.ocfg.payees) || {})[n] || {} }
+function payeeMode(n) { return payeeCfg(n).m || "daily" }
+/* 一張叫貨單 → { 付款對象: { a 金額, miss 沒單價筆數 } } */
+function orderDues(o) {
+  const sp = sups().find(q => q.id === o.sup), out = {};
+  if (!sp || !o.lines) return out;
+  Object.entries(o.lines).forEach(([id, e]) => {
+    const it = sp.items.find(i => i.id === id); if (!it || !hasQty(e)) return;
+    qtyOpts(it, e).forEach(k => {
+      const w = vendorsOf(it).length ? splitKey(it, k).vend : "", pe = payeeOf(sp, w), p = priceOf(e, k);
+      const d = (out[pe] ||= { a: 0, miss: 0 });
+      if (p == null) d.miss++; else d.a += p * gotQty(e, k);
+    });
+  });
+  Object.values(out).forEach(d => { d.a = Math.round(d.a) });
+  return out;
+}
+function loadPayData() {
+  S.payLoading = true;
+  store.listRange("2000-01-01", "2999-12-31").then(os => { S.payOrders = os; S.payLoading = false; if (S.view === "Pay" || S.view === "Sum") render() }).catch(e => { S.payLoading = false; err(e) });
+}
+store.watchPays(x => { S.pays = x || []; if (S.view === "Pay" || S.view === "Sum") render() });
+/* 帳本：每個付款對象的每一天應付、已沖銷、未付 */
+function ledger() {
+  const os = (S.payOrders || []).filter(o => !(o.date === S.date && o.sup === S.sup));
+  if (S.ord) os.push({ ...S.ord, date: S.date, sup: S.sup });
+  const L = {};
+  os.forEach(o => Object.entries(orderDues(o)).forEach(([pe, d]) => { const x = (L[pe] ||= { days: [], paid: 0, pays: [] }); x.days.push({ date: o.date, a: d.a, miss: d.miss }) }));
+  (S.pays || []).forEach(p => { const x = (L[p.pe] ||= { days: [], paid: 0, pays: [] }); x.paid += (+p.amt || 0) + (+p.adj || 0); x.pays.push(p) });
+  Object.entries(L).forEach(([pe, x]) => {
+    x.days.sort((a, b) => a.date.localeCompare(b.date));
+    x.days.forEach(d => { d.paid = 0 });
+    /* 指定日期的付款（例如司機當天付現）先沖那一天，剩下的再從最早的欠款開始沖 */
+    let pool = 0;
+    x.pays.forEach(p => {
+      let v = (+p.amt || 0) + (+p.adj || 0);
+      const d = p.for && x.days.find(q => q.date === p.for);
+      if (d) { const c = Math.min(d.a - d.paid, v); d.paid += c; v -= c }
+      pool += v;
+    });
+    x.days.forEach(d => { const c = Math.min(d.a - d.paid, Math.max(0, pool)); d.paid += c; d.left = d.a - d.paid; pool -= c });
+    x.due = x.days.reduce((n, d) => n + d.a, 0);
+    x.left = x.days.reduce((n, d) => n + d.left, 0);
+    x.credit = Math.max(0, pool);   /* 多付 */
+    x.miss = x.days.reduce((n, d) => n + d.miss, 0);
+    x.pe = pe; x.m = payeeMode(pe);
+  });
+  return L;
+}
+/* ---- 總覽：今天的付款 ---- */
+function payTodayPanel() {
+  if (!S.payOrders) return S.payLoading ? "" : "";
+  const L = ledger(), today = S.ord ? orderDues(S.ord) : {};
+  const pes = Object.keys(today); if (!pes.length) return "";
+  return `<div class="panel"><h3>這張單的付款</h3>
+    ${pes.map(pe => { const d = today[pe], x = L[pe], day = x && x.days.find(q => q.date === S.date) || { left: d.a, paid: 0 };
+      const st = d.miss ? `<span class="rv-t over">金額未定 ${d.miss} 筆</span>` : day.left <= 0 ? `<span class="rv-t ok">已付</span>` : day.paid > 0 ? `<span class="rv-t over">還欠 ${money(day.left)}</span>` : `<span class="rv-t bad">未付</span>`;
+      return `<div class="pt-r"><div class="pt-n"><b>${esc(pe)}</b><small>${PAY_M[payeeMode(pe)]}</small></div><div class="pt-a">${money(d.a)}</div>${st}${day.left > 0 && !d.miss ? `<button class="btn sm ${payeeMode(pe) === "daily" ? "okb" : ""}" data-pay="${esc(pe)}" data-amt="${day.left}" data-for="${S.date}">${payeeMode(pe) === "bank" ? "記匯款" : "付現金"}</button>` : ""}</div>` }).join("")}
+    <p class="muted" style="margin:8px 0 0">週結、匯款的廠商也可以到「付款」頁一次付多天</p></div>`;
+}
+/* ---- 付款頁 ---- */
+function renderPay() {
+  if (!S.payOrders) { if (!S.payLoading) loadPayData(); $("#vPay").innerHTML = `<div class="empty">讀取帳款中…</div>`; return }
+  const L = ledger(), list = Object.values(L).sort((a, b) => (b.left > 0) - (a.left > 0) || b.left - a.left);
+  const tot = list.reduce((n, x) => n + x.left, 0);
+  const pays = (S.pays || []).slice().sort((a, b) => (b.date + (b.t || 0)).localeCompare(a.date + (a.t || 0)));
+  const open = S.payOpen || "";
+  $("#vPay").innerHTML = `
+  <div class="panel pay-top"><div><small>全部未付</small><b>${money(tot)}</b></div><button class="btn sm" id="payXlsx">匯出付款紀錄</button><button class="btn sm" id="payReload">重新整理</button></div>
+  ${list.length ? list.map(x => { const un = x.days.filter(d => d.left > 0 || d.miss);
+    return `<div class="panel pay-c${x.left <= 0 && !x.miss ? " fin" : ""}">
+      <div class="pay-h"><div><b>${esc(x.pe)}</b><span class="pm pm-${x.m}">${PAY_M[x.m]}</span></div>
+        <div class="pay-l"><small>未付</small><b class="${x.left > 0 ? "neg" : ""}">${money(x.left)}</b></div></div>
+      <div class="pay-s">應付 ${money(x.due)}　已付 ${money(x.paid)}${x.credit ? `　<b style="color:var(--ok)">多付 ${money(x.credit)}</b>` : ""}${x.miss ? `　<b style="color:var(--low)">${x.miss} 筆沒單價</b>` : ""}</div>
+      ${un.length ? `<div class="pay-d">${un.slice(0, open === x.pe ? 999 : 6).map(d => `<span class="chip${d.miss ? " o" : ""}">${dateLabel(d.date).replace(/（.）/, "")} ${d.miss ? "金額未定" : money(d.left)}${d.paid > 0 && d.left > 0 ? "（部分）" : ""}</span>`).join("")}${un.length > 6 && open !== x.pe ? `<button class="chip" data-open="${esc(x.pe)}">還有 ${un.length - 6} 天</button>` : ""}</div>` : ""}
+      <div class="pay-b">${x.left > 0 ? `<button class="btn ${x.m === "bank" ? "pri" : "okb"}" data-pay="${esc(x.pe)}" data-amt="${x.left}">${x.m === "bank" ? "記錄匯款" : x.m === "weekly" ? "付週帳" : "付現金"} ${money(x.left)}</button>` : ""}<button class="btn" data-pay="${esc(x.pe)}" data-amt="">其他金額</button></div>
+      ${x.pays.length ? `<div class="pay-hist">${x.pays.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, open === x.pe ? 999 : 3).map(p => payRow(p)).join("")}</div>` : ""}
+    </div>` }).join("") : `<div class="empty">還沒有帳款。叫貨單填了單價後，這裡會自動算出要付每家多少錢。</div>`}
+  <div class="panel"><h3>付款方式設定</h3><p class="muted" style="margin:0 0 8px">每家預設用哪種方式付，會決定按鈕的文字和提醒</p>
+    ${list.map(x => `<div class="pmset"><span>${esc(x.pe)}</span><div class="seg">${Object.entries(PAY_M).map(([k, v]) => `<button class="${x.m === k ? "on" : ""}" data-pm="${esc(x.pe)}" data-mv="${k}">${v}</button>`).join("")}</div></div>`).join("") || `<p class="muted">有帳款後才會出現</p>`}
+  </div>`;
+}
+function payRow(p) { return `<div class="py-r"><span class="d">${dateLabel(p.date).replace(/（.）/, "")}</span><span class="m">${p.m === "bank" ? "匯款" : "現金"}</span><span class="w">${esc(p.by || "")}${p.note ? `・${esc(p.note)}` : ""}${p.adj ? `・抹零${money(p.adj)}` : ""}</span><b>${money(p.amt)}</b><button class="x" data-delpay="${p.id}" aria-label="刪除這筆付款">✕</button></div>` }
+/* ---- 付款表單 ---- */
+function openPay(pe, amt, forDate) {
+  if (needMe()) return;
+  S.py = { pe, due: +amt || 0, forDate: forDate || "", m: payeeMode(pe) === "bank" ? "bank" : "cash", by: S.me };
+  $("#pyTitle").textContent = `付給 ${pe}`;
+  $("#pySub").textContent = amt ? `${forDate ? dateLabel(forDate) + " " : ""}未付 ${money(amt)}` : "輸入這次付的金額";
+  $("#pyAmt").value = amt ? String(amt) : "";
+  $("#pyDate").value = today(); $("#pyNote").value = forDate ? `${dateLabel(forDate).replace(/（.）/, "")} 貨款` : "";
+  $("#pyAdj").checked = false;
+  renderPySheet(); openSheet("pySheet"); setTimeout(() => $("#pyAmt").focus(), 250);
+}
+function renderPySheet() {
+  const p = S.py; if (!p) return;
+  document.querySelectorAll("#pyM [data-m]").forEach(b => b.classList.toggle("on", b.dataset.m === p.m));
+  const ppl = [...people(), ...(people().includes("司機") ? [] : ["司機"])];
+  $("#pyBy").innerHTML = ppl.map(n => `<button data-by="${esc(n)}" class="${n === p.by ? "on" : ""}">${esc(n)}</button>`).join("");
+  const v = +$("#pyAmt").value || 0, diff = p.due - v;
+  $("#pyAdjW").classList.toggle("hide", !(p.due && diff > 0 && diff < 1000));
+  $("#pyAdjT").textContent = `抹零 ${money(diff)}（少付的不再算欠款）`;
+}
+$("#pyAmt").addEventListener("input", renderPySheet);
+$("#pyM").onclick = e => { const b = e.target.closest("[data-m]"); if (b) { S.py.m = b.dataset.m; renderPySheet() } };
+$("#pyBy").onclick = e => { const b = e.target.closest("[data-by]"); if (b) { S.py.by = b.dataset.by; renderPySheet() } };
+$("#pyOk").onclick = () => {
+  const p = S.py, v = Math.round(+$("#pyAmt").value.replace(/[,$，]/g, "") * 100) / 100;
+  if (!(v > 0)) return toast("請輸入金額");
+  const adj = $("#pyAdj").checked && !$("#pyAdjW").classList.contains("hide") ? Math.round((p.due - v) * 100) / 100 : 0;
+  const rec = { id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), pe: p.pe, amt: v, m: p.m, by: p.by || S.me, date: $("#pyDate").value || today(), t: Date.now(), note: $("#pyNote").value.trim(), ...(adj ? { adj } : {}), ...(p.forDate ? { for: p.forDate } : {}) };
+  store.addPay(rec); closeSheets(); S.py = null;
+  toast(`已記錄：付 ${p.pe} ${money(v)}${adj ? `（抹零 ${money(adj)}）` : ""}`);
+};
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-pay]"); if (b && (b.closest("#vPay") || b.closest("#vSum"))) return openPay(b.dataset.pay, b.dataset.amt, b.dataset.for);
+  const d = e.target.closest("[data-delpay]"); if (d) { const p = (S.pays || []).find(x => x.id === d.dataset.delpay); if (p && confirm(`刪除這筆付款？\n${p.pe} ${money(p.amt)}（${p.date}）`)) store.delPay(p.id); return }
+  const o = e.target.closest("[data-open]"); if (o) { S.payOpen = o.dataset.open; renderPay(); return }
+  const pm = e.target.closest("[data-pm]");
+  if (pm) { const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.payees = { ...(cfg.payees || {}) }; cfg.payees[pm.dataset.pm] = { ...(cfg.payees[pm.dataset.pm] || {}), m: pm.dataset.mv }; await store.saveOrdCfg(cfg).catch(err); return }
+  if (e.target.closest("#payReload")) { S.payOrders = null; renderPay(); return }
+  if (e.target.closest("#payXlsx")) return exportPays();
+});
+function exportPays() {
+  if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
+  const L = ledger(), sum = [["付款對象", "付款方式", "應付", "已付（含抹零）", "未付", "沒單價筆數"]];
+  Object.values(L).forEach(x => sum.push([x.pe, PAY_M[x.m], x.due, x.paid, x.left, x.miss]));
+  const rows = [["日期", "付款對象", "金額", "方式", "付款人", "抹零", "備註"]];
+  (S.pays || []).slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(p => rows.push([p.date, p.pe, p.amt, p.m === "bank" ? "匯款" : "現金", p.by || "", p.adj || "", p.note || ""]));
+  const due = [["日期", "付款對象", "應付", "已沖銷", "未付"]];
+  Object.values(L).forEach(x => x.days.forEach(d => due.push([d.date, x.pe, d.miss ? "金額未定" : d.a, d.paid, d.left])));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), "各家餘額");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "付款紀錄");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(due), "每日應付");
+  XLSX.writeFile(wb, `付款紀錄_${today().replace(/-/g, "")}.xlsx`);
 }
 
 /* ---------- 紀錄 ---------- */
