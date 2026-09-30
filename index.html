@@ -199,6 +199,11 @@ table.pt .spec{display:inline-block;font-size:12px;font-weight:700;background:va
 table.pt td[data-go]{cursor:pointer}
 table.pt .pin{width:74px;border:1px solid var(--line);border-radius:8px;padding:7px 6px;text-align:right;font-family:var(--mono);font-weight:700;font-size:15px;background:#fff}
 table.pt .pin::placeholder{color:#B5BCC6;font-weight:400}
+table.pt .wrow{display:flex;align-items:center;justify-content:flex-end;gap:2px;margin-top:4px}
+table.pt .win{width:52px;border:1px solid var(--line);border-radius:7px;padding:4px 5px;text-align:right;font-family:var(--mono);font-size:13px;background:#fff}
+table.pt .win.inh{color:#8A93A0;background:var(--bg)}
+table.pt .win::placeholder{color:#C5CBD3}
+table.pt .pkg{display:block;font-size:11px;color:var(--ink);margin-top:2px}
 table.pt tr.np .pin{border-color:#F2C58E;background:#FFFAF3}
 table.pt tr.tot td{font-weight:900;border-bottom:0;padding-top:10px}
 table.pt tr.tot .r{font-size:18px}
@@ -659,6 +664,7 @@ if (ORDER_FB && F) {
       : safe(() => F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), lines: { [id]: encLine(e) } }, { mergeFields: ["date", "sup", "updatedAt", new F.FieldPath("lines", id)] })),
     setPrice: (d, s, id, o, v) => merge(d, s, { lines: { [id]: { p: { [o || "_"]: v == null ? F.deleteField() : v } } } }),
     setRv: (d, s, id, o, v) => merge(d, s, { lines: { [id]: { rv: { [o || "_"]: v == null ? F.deleteField() : v } } } }),
+    setWt: (d, s, id, o, v) => merge(d, s, { lines: { [id]: { wt: { [o || "_"]: v == null ? F.deleteField() : v } } } }),
     watchPrices: (s, cb) => F.onSnapshot(F.doc(db, "prices", s), x => cb((x.exists() && x.data().last) || {}), err),
     setLastPrice: (s, key, v) => safe(() => F.setDoc(F.doc(db, "prices", s), { last: { [key]: v } }, { merge: true })),
     setLines: (d, s, obj) => merge(d, s, { lines: encLines(obj) }),
@@ -690,9 +696,10 @@ if (ORDER_FB && F) {
     watchOrder: (d, s, cb) => { const key = `${d}_${s}`; (L.o[key] ||= []).push(cb); cb(orders()[key] || null); return () => { L.o[key] = L.o[key].filter(f => f !== cb) } },
     setLine: async (d, s, id, e) => safe(() => edit(d, s, x => { if (e === null) delete x.lines[id]; else x.lines[id] = e })),
     setPrice: async (d, s, id, o, v) => safe(() => edit(d, s, x => { const l = x.lines[id]; if (!l) return; l.p ||= {}; if (v == null) delete l.p[o || "_"]; else l.p[o || "_"] = v })),
+    setWt: async (d, s, id, o, v) => safe(() => edit(d, s, x => { const l = x.lines[id]; if (!l) return; l.wt ||= {}; if (v == null) delete l.wt[o || "_"]; else l.wt[o || "_"] = v })),
     setRv: async (d, s, id, o, v) => safe(() => edit(d, s, x => { const l = x.lines[id]; if (!l) return; l.rv ||= {}; if (v == null) delete l.rv[o || "_"]; else l.rv[o || "_"] = v })),
     watchPrices: (s, cb) => { (L.pr ||= []).push([s, cb]); cb((rd(K.pr) || {})[s] || {}); return () => {} },
-    setLastPrice: async (s, key, v) => { const a = rd(K.pr) || {}; (a[s] ||= {})[key] = v; wr(K.pr, a); (L.pr || []).forEach(([q, f]) => q === s && f(a[s])) },
+    setLastPrice: async (s, key, v) => { const a = rd(K.pr) || {}; (a[s] ||= {})[key] = { ...((a[s] || {})[key] || {}), ...v }; wr(K.pr, a); (L.pr || []).forEach(([q, f]) => q === s && f(a[s])) },
     setLines: async (d, s, obj) => safe(() => edit(d, s, x => Object.assign(x.lines, obj))),
     setNote: async (d, s, note, by) => safe(() => edit(d, s, x => { x.note = note; x.noteBy = by })),
     setSent: async (d, s, v) => safe(() => edit(d, s, x => { x.sent = v })),
@@ -1148,8 +1155,9 @@ function mkEntry(it, vs, sug) {
   const old = lines()[it.id], p = {}, rv = {};
   if (old && old.p) Object.keys(vs).forEach(o => { if (old.p[pk(o)] != null) p[pk(o)] = old.p[pk(o)] });
   if (old && old.rv) Object.keys(vs).forEach(o => { if (old.rv[pk(o)] != null) rv[pk(o)] = old.rv[pk(o)] });
+  const wt = {}; if (old && old.wt) Object.keys(vs).forEach(o => { if (old.wt[pk(o)] != null) wt[pk(o)] = old.wt[pk(o)] });
   const a = analyze(it);
-  return { vs, by: S.me, t: Date.now(), n: it.n, c: it.c, ...(Object.keys(p).length ? { p } : {}), ...(Object.keys(rv).length ? { rv } : {}), ...(a.needAny ? { sg: a.sug } : {}), ...(sug ? { sug: true } : {}) };
+  return { vs, by: S.me, t: Date.now(), n: it.n, c: it.c, ...(Object.keys(p).length ? { p } : {}), ...(Object.keys(rv).length ? { rv } : {}), ...(Object.keys(wt).length ? { wt } : {}), ...(a.needAny ? { sg: a.sug } : {}), ...(sug ? { sug: true } : {}) };
 }
 /* ================= keypad ================= */
 function needMe() { if (!S.me) { openPeople(); return true } return false }
@@ -1402,9 +1410,9 @@ function unitPriceOf(it) {
   Object.entries(last).forEach(([k, v]) => { if (k.startsWith(it.id + "|") && v && v.p != null && (!best || v.d > best.d)) best = v });
   return best ? { p: best.p, src: "last", d: best.d } : null;
 }
-function procCost(it, price) {
-  const pc = it.pc; if (!pc || !(pc.w > 0) || price == null) return null;
-  const kg = price / pc.w;
+function procCost(it, price, wt) {
+  const pc = it.pc, W = wt > 0 ? wt : pc && pc.w; if (!pc || !(W > 0) || price == null) return null;
+  const kg = price / W;
   return { kg, outs: (pc.outs || []).filter(o => o.n && o.y > 0).map(o => {
     const isKg = !o.u || /^(kg|公斤)$/i.test(o.u);
     const c = isKg ? kg / (o.y / 100) + (+o.add || 0) : kg * (+o.uw || 0) / (o.y / 100) + (+o.add || 0);
@@ -1415,10 +1423,11 @@ function procPanel() {
   const its = oItems().filter(i => i.pc && i.pc.w > 0);
   if (!its.length) return "";
   const rows = its.map(it => {
-    const up = unitPriceOf(it), pr = up && procCost(it, up.p);
+    const up = unitPriceOf(it), e0 = lines()[it.id], ow = e0 && hasQty(e0) ? effWt(it, e0, qtyOpts(it, e0)[0]) : effWt(it, null, baseKeys(it)[0]);
+    const W = ow ? ow.w : it.pc.w, pr = up && procCost(it, up.p, W);
     const unit = it.u || "單位";
     if (!pr) return `<div class="pc-i"><div class="pc-h"><b>${esc(it.n)}</b><span class="muted">1${esc(unit)}＝${fmt(it.pc.w)}KG</span></div><p class="muted" style="margin:4px 0 0">還沒有價格。在上面「單價」填${esc(it.n)}的價格就會自動算</p></div>`;
-    return `<div class="pc-i"><div class="pc-h"><b>${esc(it.n)}</b><span class="muted">${money(up.p)}/${esc(unit)}${up.src === "last" ? `（${dateLabel(up.d).replace(/（.）/, "")} 的價格）` : ""}　÷ ${fmt(it.pc.w)}KG ＝ <b>${fmt(Math.round(pr.kg * 10) / 10)} 元/KG</b></span></div>
+    return `<div class="pc-i"><div class="pc-h"><b>${esc(it.n)}</b><span class="muted">${money(up.p)}/${esc(unit)}${up.src === "last" ? `（${dateLabel(up.d).replace(/（.）/, "")} 的價格）` : ""}　÷ ${fmt(W)}KG${ow ? "" : "（預設）"} ＝ <b>${fmt(Math.round(pr.kg * 10) / 10)} 元/KG</b></span></div>
       <table class="t pc-t"><tr><th>成品</th><th class="r">出成率</th><th class="r">成本</th></tr>
       ${pr.outs.map((o, k) => { const src = it.pc.outs.filter(x => x.n && x.y > 0)[k]; return `<tr><td>${esc(o.n)}${src.u && !/^(kg|公斤)$/i.test(src.u) ? `<small>${fmt(src.uw)}KG/${esc(src.u)}</small>` : ""}</td><td class="r">${fmt(src.y)}%</td><td class="r"><b>${fmt(Math.round(o.c * 10) / 10)}</b><small>元/${esc(o.u)}</small>${o.u !== "KG" && o.perKg ? `<small style="display:block">＝${fmt(Math.round(o.perKg * 10) / 10)} 元/KG</small>` : ""}</td></tr>` }).join("")}
       </table>${it.pc.ex ? `<p class="pc-ex">⚠ 出成率和包材是範例數字，請到「設定 → 加工成本」改成你們實際秤的</p>` : ""}</div>`;
@@ -1457,20 +1466,24 @@ function renderSum() {
   ${other.length ? `<div class="panel"><h3>其他低於安全量 <span class="c">${other.length}</span></h3>
     <p class="muted" style="margin:0 0 8px">這些點貨品項沒有連動到「${esc(sup().name)}」，可能要跟別家叫</p>
     <div class="chips">${other.map(i => `<span class="chip">${esc(i.n)} 補${fmt(iNeed(i, c[i.id]))}${esc(iUnits(i)[0])}</span>`).join("")}</div></div>` : ""}`;
-  if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; t.focus(); try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
+  if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; S.refocus = true; t.focus(); S.refocus = false; try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
 }
 const L0 = () => lines();
 const st0 = () => ordStats();
+/* 單件重量（KG）：這張單有填就用；沒填就延用上次填的 */
+const wtOf = (e, o) => (e && e.wt && e.wt[pk(o)] != null ? e.wt[pk(o)] : null);
+function effWt(it, e, o) { const w = wtOf(e, o); if (w != null) return { w, src: "today" }; const l = (S.last || {})[`${it.id}|${pk(o)}`]; return l && l.w > 0 ? { w: l.w, src: "last", d: l.wd } : null }
 function priceRows(it, e, last) {
   const os = qtyOpts(it, e);
   return os.map((o, k) => {
-    const p = priceOf(e, o), lp = last[`${it.id}|${pk(o)}`], q = e.vs[o], u = unitLabel(it, o);
+    const p = priceOf(e, o), lp = last[`${it.id}|${pk(o)}`], q = e.vs[o], u = unitLabel(it, o), w = effWt(it, e, o);
     const spec = o && !isUnitOpt(o) ? `<span class="spec">${esc(o)}</span>` : "";
     return `<tr class="${p == null ? "np" : ""}">
       <td data-go="${it.id}">${k === 0 ? esc(it.n) : ""}${spec}${k === 0 && e.sug ? ` <span class="bdg lo">建議</span>` : ""}</td>
       <td class="r">${fmt(q)}<small>${esc(u)}</small></td>
-      <td class="r"><input class="pin" id="p_${it.id}_${esc(pk(o))}" data-pid="${it.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="${lp ? fmt(lp.p) : "單價"}" aria-label="${esc(it.n + (o ? " " + o : ""))} 單價">${u ? `<small>/${esc(u)}</small>` : ""}</td>
-      <td class="r">${p == null ? `<span class="muted">—</span>` : money(p * gotQty(e, o))}${rvOf(e, o) != null && rvOf(e, o) !== q ? `<small style="display:block;color:var(--warn)">實收${fmt(rvOf(e, o))}</small>` : ""}</td></tr>`;
+      <td class="r"><input class="pin" id="p_${it.id}_${esc(pk(o))}" data-pid="${it.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="${lp ? fmt(lp.p) : "單價"}" aria-label="${esc(it.n + (o ? " " + o : ""))} 單價">${u ? `<small>/${esc(u)}</small>` : ""}
+        <div class="wrow"><input class="win${w && w.src === "last" ? " inh" : ""}" id="w_${it.id}_${esc(pk(o))}" data-pid="${it.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${w ? fmt(w.w) : ""}" placeholder="重量" aria-label="${esc(it.n + (o ? " " + o : ""))} 單件重量"><small>KG/${esc(u || "件")}</small></div></td>
+      <td class="r">${p == null ? `<span class="muted">—</span>` : money(p * gotQty(e, o))}${rvOf(e, o) != null && rvOf(e, o) !== q ? `<small style="display:block;color:var(--warn)">實收${fmt(rvOf(e, o))}</small>` : ""}${p != null && w ? `<small class="pkg">${fmt(Math.round(p / w.w * 10) / 10)}元/KG</small>` : ""}${w && w.src === "last" ? `<small class="pkg" style="color:var(--muted)">延用上次重量</small>` : ""}</td></tr>`;
   }).join("");
 }
 function savePrice(inp) {
@@ -1481,20 +1494,33 @@ function savePrice(inp) {
   if (v === priceOf(e, o)) return;
   store.setPrice(S.date, S.sup, id, o, v);
   if (v != null) store.setLastPrice(S.sup, `${id}|${pk(o)}`, { p: v, d: S.date });
+  /* 沒改重量＝延用上次，存進這張單 */
+  const w = effWt(it, e, o); if (v != null && w && w.src === "last") store.setWt(S.date, S.sup, id, o, w.w);
+}
+function saveWt(inp) {
+  const id = inp.dataset.pid, o = inp.dataset.po, e = lines()[id]; if (!e) return;
+  const raw = inp.value.trim().replace(/[,，]/g, "").replace(/kg$/i, "");
+  const v = raw === "" ? null : +raw;
+  if (raw !== "" && (isNaN(v) || v <= 0)) { toast("重量格式不對"); return }
+  if (v === wtOf(e, o)) return;
+  store.setWt(S.date, S.sup, id, o, v);
+  if (v != null) store.setLastPrice(S.sup, `${id}|${pk(o)}`, { w: v, wd: S.date });
 }
 let noteTimer;
-$("#vSum").addEventListener("change", e => { if (e.target.classList.contains("pin")) savePrice(e.target); if (e.target.classList.contains("rin")) saveRv(e.target) });
+$("#vSum").addEventListener("change", e => { if (e.target.classList.contains("pin")) savePrice(e.target); if (e.target.classList.contains("win")) saveWt(e.target); if (e.target.classList.contains("rin")) saveRv(e.target) });
 $("#vSum").addEventListener("keydown", e => {
-  const isP = e.target.classList.contains("pin"), isR = e.target.classList.contains("rin");
-  if (e.key !== "Enter" || !(isP || isR)) return;
+  const isP = e.target.classList.contains("pin"), isW = e.target.classList.contains("win"), isR = e.target.classList.contains("rin");
+  if (e.key !== "Enter" || !(isP || isW || isR)) return;
   e.preventDefault();
-  const all = [...document.querySelectorAll(isP ? "#vSum .pin" : "#vSum .rin")], i = all.indexOf(e.target);
-  const nx = all.slice(i + 1).find(x => x.value === "") || all[i + 1], nxId = nx && nx.id;
+  /* 價格 → 重量 → 下一項價格 … 依畫面順序跳 */
+  const all = [...document.querySelectorAll(isR ? "#vSum .rin" : "#vSum .pin, #vSum .win")], i = all.indexOf(e.target);
+  const nx = (isR ? all.slice(i + 1).find(x => x.value === "") : null) || all[i + 1], nxId = nx && nx.id;
   const cur = e.target; cur.blur(); /* 先離開，重畫時才不會把焦點還給這格 */
-  if (isP) savePrice(cur); else saveRv(cur);
+  if (isP) savePrice(cur); else if (isW) saveWt(cur); else saveRv(cur);
   setTimeout(() => { const t = nxId && document.getElementById(nxId); if (t) t.focus() }, 0);
 });
-$("#vSum").addEventListener("focusin", e => { if (e.target.classList.contains("pin") || e.target.classList.contains("rin")) setTimeout(() => e.target.select(), 0) });
+/* 點進價格／實收格時全選；畫面重畫後自動還原焦點時不要全選，免得打到一半被蓋掉 */
+$("#vSum").addEventListener("focusin", e => { if (S.refocus) return; if (e.target.matches(".pin,.win,.rin")) setTimeout(() => e.target.select(), 0) });
 $("#vSum").addEventListener("input", e => {
   if (e.target.id !== "note") return;
   clearTimeout(noteTimer); const v = e.target.value;
@@ -1634,10 +1660,11 @@ function exportXlsx() {
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws["!cols"] = g.flatMap(() => [{ wch: 12 }, { wch: 11 }, { wch: 11 }]);
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, sup().name);
-  const L = lines(), pr = [["分類", "品名", "規格", "叫貨數量", "實收", "單位", "單價", "小計（依實收）"]];
+  const L = lines(), pr = [["分類", "品名", "規格", "叫貨數量", "實收", "單位", "單價", "小計（依實收）", "單件重量KG", "每KG單價"]];
   catsOf().forEach(cat => itemsOf(cat).filter(i => hasQty(L[i.id])).forEach(i => qtyOpts(i, L[i.id]).forEach(o => {
     const q = L[i.id].vs[o], r = rvOf(L[i.id], o), p = priceOf(L[i.id], o);
-    pr.push([cat, i.n, o && !isUnitOpt(o) ? o : "", q, r ?? "", unitLabel(i, o), p ?? "", p == null ? "" : Math.round(p * gotQty(L[i.id], o) * 100) / 100]);
+    const w = effWt(i, L[i.id], o);
+    pr.push([cat, i.n, o && !isUnitOpt(o) ? o : "", q, r ?? "", unitLabel(i, o), p ?? "", p == null ? "" : Math.round(p * gotQty(L[i.id], o) * 100) / 100, w ? w.w : "", p != null && w ? Math.round(p / w.w * 10) / 10 : ""]);
   })));
   pr.push([], ["", "", "", "", "", "", "合計", orderAmt(L, oById).a]);
   const ws2 = XLSX.utils.aoa_to_sheet(pr); ws2["!cols"] = [{ wch: 8 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, { wch: 12 }];
@@ -1658,6 +1685,9 @@ function exportXlsx() {
    已付：付款紀錄；從最早的欠款開始沖（先進先出），可以分次付、抹零
    付款方式：每天現金（司機當場付）／週結（每週一次付）／匯款 */
 const PAY_M = { daily: "每天現金", weekly: "週結", bank: "匯款" };
+/* 帳款從這天開始算，之前的叫貨不列入（可在付款頁改） */
+const DEF_PAY_START = "2026-10-01";
+const payStart = () => (S.ocfg && S.ocfg.payStart) || DEF_PAY_START;
 function payeeOf(sp, vend) { return vend ? (vend === "其他" ? `${sp.name}其他廠商` : vend) : sp.name }
 function payeeCfg(n) { return ((S.ocfg && S.ocfg.payees) || {})[n] || {} }
 function payeeMode(n) { return payeeCfg(n).m || "daily" }
@@ -1678,16 +1708,17 @@ function orderDues(o) {
 }
 function loadPayData() {
   S.payLoading = true;
-  store.listRange("2000-01-01", "2999-12-31").then(os => { S.payOrders = os; S.payLoading = false; if (S.view === "Pay" || S.view === "Sum") render() }).catch(e => { S.payLoading = false; err(e) });
+  store.listRange(payStart(), "2999-12-31").then(os => { S.payOrders = os; S.payLoading = false; if (S.view === "Pay" || S.view === "Sum") render() }).catch(e => { S.payLoading = false; err(e) });
 }
 store.watchPays(x => { S.pays = x || []; if (S.view === "Pay" || S.view === "Sum") render() });
 /* 帳本：每個付款對象的每一天應付、已沖銷、未付 */
 function ledger() {
-  const os = (S.payOrders || []).filter(o => !(o.date === S.date && o.sup === S.sup));
-  if (S.ord) os.push({ ...S.ord, date: S.date, sup: S.sup });
+  const st = payStart();
+  const os = (S.payOrders || []).filter(o => o.date >= st && !(o.date === S.date && o.sup === S.sup));
+  if (S.ord && S.date >= st) os.push({ ...S.ord, date: S.date, sup: S.sup });
   const L = {};
   os.forEach(o => Object.entries(orderDues(o)).forEach(([pe, d]) => { const x = (L[pe] ||= { days: [], paid: 0, pays: [] }); x.days.push({ date: o.date, a: d.a, miss: d.miss }) }));
-  (S.pays || []).forEach(p => { const x = (L[p.pe] ||= { days: [], paid: 0, pays: [] }); x.paid += (+p.amt || 0) + (+p.adj || 0); x.pays.push(p) });
+  (S.pays || []).filter(p => p.date >= st || (p.for && p.for >= st)).forEach(p => { const x = (L[p.pe] ||= { days: [], paid: 0, pays: [] }); x.paid += (+p.amt || 0) + (+p.adj || 0); x.pays.push(p) });
   Object.entries(L).forEach(([pe, x]) => {
     x.days.sort((a, b) => a.date.localeCompare(b.date));
     x.days.forEach(d => { d.paid = 0 });
@@ -1710,7 +1741,7 @@ function ledger() {
 }
 /* ---- 總覽：今天的付款 ---- */
 function payTodayPanel() {
-  if (!S.payOrders) return S.payLoading ? "" : "";
+  if (!S.payOrders || S.date < payStart()) return "";
   const L = ledger(), today = S.ord ? orderDues(S.ord) : {};
   const pes = Object.keys(today); if (!pes.length) return "";
   return `<div class="panel"><h3>這張單的付款</h3>
@@ -1727,7 +1758,7 @@ function renderPay() {
   const pays = (S.pays || []).slice().sort((a, b) => (b.date + (b.t || 0)).localeCompare(a.date + (a.t || 0)));
   const open = S.payOpen || "";
   $("#vPay").innerHTML = `
-  <div class="panel pay-top"><div><small>全部未付</small><b>${money(tot)}</b></div><button class="btn sm" id="payXlsx">匯出付款紀錄</button><button class="btn sm" id="payReload">重新整理</button></div>
+  <div class="panel pay-top"><div><small>全部未付（${dateLabel(payStart()).replace(/（.）/, "")} 起）</small><b>${money(tot)}</b></div><button class="btn sm" id="payXlsx">匯出付款紀錄</button><button class="btn sm" id="payReload">重新整理</button></div>
   ${list.length ? list.map(x => { const un = x.days.filter(d => d.left > 0 || d.miss);
     return `<div class="panel pay-c${x.left <= 0 && !x.miss ? " fin" : ""}">
       <div class="pay-h"><div><b>${esc(x.pe)}</b><span class="pm pm-${x.m}">${PAY_M[x.m]}</span></div>
@@ -1737,6 +1768,8 @@ function renderPay() {
       <div class="pay-b">${x.left > 0 ? `<button class="btn ${x.m === "bank" ? "pri" : "okb"}" data-pay="${esc(x.pe)}" data-amt="${x.left}">${x.m === "bank" ? "記錄匯款" : x.m === "weekly" ? "付週帳" : "付現金"} ${money(x.left)}</button>` : ""}<button class="btn" data-pay="${esc(x.pe)}" data-amt="">其他金額</button></div>
       ${x.pays.length ? `<div class="pay-hist">${x.pays.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, open === x.pe ? 999 : 3).map(p => payRow(p)).join("")}</div>` : ""}
     </div>` }).join("") : `<div class="empty">還沒有帳款。叫貨單填了單價後，這裡會自動算出要付每家多少錢。</div>`}
+  <div class="panel"><h3>帳款起算日</h3><p class="muted" style="margin:0 0 8px">這天以前的叫貨和付款都不算進帳款</p>
+    <div style="display:flex;gap:8px"><input type="date" class="in" id="payStartIn" value="${payStart()}" style="flex:1"><button class="btn sm" id="payStartOk" style="padding:10px 14px">套用</button></div></div>
   <div class="panel"><h3>付款方式設定</h3><p class="muted" style="margin:0 0 8px">每家預設用哪種方式付，會決定按鈕的文字和提醒</p>
     ${list.map(x => `<div class="pmset"><span>${esc(x.pe)}</span><div class="seg">${Object.entries(PAY_M).map(([k, v]) => `<button class="${x.m === k ? "on" : ""}" data-pm="${esc(x.pe)}" data-mv="${k}">${v}</button>`).join("")}</div></div>`).join("") || `<p class="muted">有帳款後才會出現</p>`}
   </div>`;
@@ -1780,6 +1813,7 @@ document.addEventListener("click", async e => {
   const pm = e.target.closest("[data-pm]");
   if (pm) { const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.payees = { ...(cfg.payees || {}) }; cfg.payees[pm.dataset.pm] = { ...(cfg.payees[pm.dataset.pm] || {}), m: pm.dataset.mv }; await store.saveOrdCfg(cfg).catch(err); return }
   if (e.target.closest("#payReload")) { S.payOrders = null; renderPay(); return }
+  if (e.target.closest("#payStartOk")) { const v = $("#payStartIn").value; if (!v) return; if (!confirm(`帳款改從 ${v} 開始算？`)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.payStart = v; await store.saveOrdCfg(cfg).catch(err); S.payOrders = null; renderPay(); return toast(`帳款從 ${v} 開始算`) }
   if (e.target.closest("#payXlsx")) return exportPays();
 });
 function exportPays() {
