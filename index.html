@@ -82,7 +82,7 @@ main{padding:6px 12px calc(84px + var(--safe-b))}
 .row.set{background:#fff;border-color:rgba(0,0,0,.06);box-shadow:inset 5px 0 0 var(--ok)}
 .row.need{background:#fff;box-shadow:inset 5px 0 0 var(--low)}
 .bdg{display:inline-block;font-size:11px;font-weight:700;border-radius:5px;padding:0 5px;line-height:17px;flex:none}
-.bdg.lo{background:var(--low);color:#fff}.bdg.nl{background:var(--bg);color:var(--muted)}
+.bdg.lo{background:var(--low);color:#fff}.bdg.okd{background:var(--ok);color:#fff}.bdg.nl{background:var(--bg);color:var(--muted)}
 
 /* nav */
 nav.bn{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--paper);border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
@@ -202,6 +202,19 @@ table.pt .pin::placeholder{color:#B5BCC6;font-weight:400}
 table.pt tr.np .pin{border-color:#F2C58E;background:#FFFAF3}
 table.pt tr.tot td{font-weight:900;border-bottom:0;padding-top:10px}
 table.pt tr.tot .r{font-size:18px}
+.ck-g{border-left:4px solid var(--cc);padding-left:8px;margin:10px 0 4px}
+.ck-h{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14px;margin-bottom:4px}
+.ck-h small{font-family:var(--mono);color:var(--muted);font-weight:700}
+.ck-ga{margin-left:auto;font-size:12px;font-weight:700;border:1px solid var(--line);border-radius:8px;padding:3px 8px;background:#fff}
+.ck-r{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);min-height:46px}
+.ck-r .bx{width:26px;height:26px;border-radius:7px;border:2px solid #B9C0CA;display:flex;align-items:center;justify-content:center;font-weight:900;flex:none;background:#fff}
+.ck-r .nm{flex:1;font-weight:700;min-width:0}
+.ck-r .q{font-family:var(--mono);font-weight:700;white-space:nowrap}
+.ck-r .w{font-size:11px;color:var(--muted);width:64px;text-align:right;flex:none}
+.ck-r.ok .bx{background:var(--ok);border-color:var(--ok);color:#fff}
+.ck-r.ok .nm,.ck-r.ok .q{color:var(--muted);text-decoration:line-through}
+.ck-r.chg .bx{background:var(--low);border-color:var(--low);color:#fff}
+.ck-r.chg .w{color:var(--low);font-weight:700}
 .lt{white-space:pre-wrap;font-size:14px;line-height:1.6;background:var(--bg);border-radius:10px;padding:10px;max-height:220px;overflow:auto;margin:0 0 10px}
 .hist{display:flex;align-items:center;gap:10px;width:100%;padding:12px 4px;border-bottom:1px solid var(--line);text-align:left}
 .hist .d{font-family:var(--mono);font-weight:700;font-size:15px;width:100px;flex:none}
@@ -222,6 +235,8 @@ select.in{appearance:auto}
 .ed-row{display:grid;grid-template-columns:1fr 92px 56px;gap:4px;align-items:center;margin-bottom:6px;padding:6px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .ed-row .ac{grid-column:1/-1;display:flex;gap:4px}
 .ed-row .ac .lk{flex:1;min-width:0}
+.ed-row .ac .nvb{flex:none;width:auto!important;padding:0 7px;font-size:12px;font-weight:700;color:var(--muted)}
+.ed-row .ac .nvb.on{background:#6FAE4E;color:#fff}
 .ed-row .ac .cs{flex:none;width:76px;height:36px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px;padding:0 2px}
 .ed-row .ac button:not(.lk){width:40px;flex:none}
 .ed-row input{border:1px solid var(--line);border-radius:8px;padding:8px 6px;background:var(--bg);min-width:0;width:100%}
@@ -231,6 +246,8 @@ select.in{appearance:auto}
 .ed-row .lk.no{color:var(--muted)}
 .ed-row .del{color:var(--warn)}
 .ed-head{display:grid;grid-template-columns:1fr 92px 56px;padding:0 7px;gap:4px;font-size:12px;color:var(--muted);margin:10px 0 4px}
+.vrow{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-weight:700;border-left:4px solid var(--cc);padding-left:8px}
+.vrow span{width:56px;flex:none}.vrow input{flex:1;min-width:0;padding:8px}
 .keepg{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
 .keepg label{display:flex;align-items:center;gap:6px;font-weight:700;border-left:4px solid var(--cc);padding-left:8px}
 .keepg label span{flex:1}.keepg input{width:56px;padding:6px;text-align:center}
@@ -258,15 +275,28 @@ select.in{appearance:auto}
   .pf-h{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:3mm}
   .pf-h b{font-size:18pt;font-weight:900}
   .pf-h span{font-size:12pt}
-  .pf{width:100%;border-collapse:collapse;table-layout:fixed}
-  .pf td{border:1px solid #000;height:6.2mm;padding:0 1.2mm;font-size:10.5pt;overflow:hidden;white-space:nowrap}
-  .pf td.n{font-weight:700}
-  .pf td.q{text-align:center;font-size:10pt}
-  .pf td.q b{font-size:12.5pt;font-family:var(--mono)}
-  .pf td.q i{font-style:normal;color:#555;font-size:9pt;margin-right:1mm}
-  .pf td.h{font-weight:900;text-align:center;background:#eee;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pf-note{margin-top:2mm;border:1px solid #000;min-height:14mm;padding:2mm;font-size:11pt;white-space:pre-wrap}
+  /* 字級用變數：一般 / big（叫得少）/ tight（叫得多） */
+  .pf{width:100%;border-collapse:collapse;table-layout:fixed;--fn:10.5pt;--fq:9.5pt;--rh:5.9mm}
+  .pf.big{--fn:11.5pt;--fq:10.5pt;--rh:7.2mm}
+  .pf.tight{--fn:9pt;--fq:8.5pt;--rh:5.2mm}
+  .pf.xtight{--fn:8pt;--fq:7.5pt;--rh:4.5mm}
+  .pf td{border:1px solid #000;height:var(--rh);padding:0 1.2mm;font-size:var(--fn);overflow:hidden;white-space:nowrap;line-height:1.05}
+  .pf td.n{font-weight:700;letter-spacing:-.02em}
+  .pf td.h{font-weight:900;text-align:center;background:#eee;font-size:9pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pf td.gap{border:0}
-  .pf-note{margin-top:3mm;border:1px solid #000;min-height:18mm;padding:2mm;font-size:11pt;white-space:pre-wrap}
+  .pf td.tq{text-align:left;padding:0 1mm;font-weight:700;font-size:var(--fq)}
+  .pf td.n.sm{font-size:calc(var(--fn) * .88);letter-spacing:-.03em}
+  .pf td.tq.sm{font-size:calc(var(--fq) * .9);letter-spacing:-.03em}
+  .pf td.tq.xs{font-size:calc(var(--fq) * .8);letter-spacing:-.04em}
+  .pv-page{page-break-before:always;break-before:page}
+  .pv-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm}
+  .pv{border:1.5px solid #000;padding:2.5mm;break-inside:avoid}
+  .pv-t{font-size:16pt;font-weight:900;border-bottom:1.5px solid #000;padding-bottom:1.5mm;margin-bottom:1.5mm}
+  .pv-t small{font-size:10pt;font-weight:500;margin-left:3mm}
+  .pv table{width:100%;border-collapse:collapse}
+  .pv td{border-bottom:1px solid #999;padding:1.2mm 1mm;font-size:12pt}
+  .pv td.r{text-align:right;font-weight:700;font-family:var(--mono)}
 }
 </style>
 </head>
@@ -387,7 +417,7 @@ const SEED_XILUO = [
   ["根莖類","蒜苗",["洗","沒洗"],"",["蒜苗"]],
   ["根莖類","刈菜",["菜","仁"],"",["刈菜","刈仁"]],
   ["葉菜類","初秋",[],"件",["做好初秋"]],
-  ["葉菜類","硬種",[],"件",["高麗箱裝","高麗籃裝"]],
+  ["葉菜類","硬種",[],"件",["高麗箱裝","高麗籃裝","做好高麗"]],
   ["葉菜類","包心白菜",[],"件",["包心白菜"]],
   ["葉菜類","油菜",[],"件",["油菜"]],
   ["葉菜類","青江菜",[],"件",["青江菜@葉菜類"]],
@@ -550,6 +580,7 @@ if (ORDER_FB && F) {
     setLines: (d, s, obj) => merge(d, s, { lines: encLines(obj) }),
     setNote: (d, s, note, by) => merge(d, s, { note, noteBy: by }),
     setSent: (d, s, v) => merge(d, s, { sent: v }),
+    setCk: (d, s, key, v) => merge(d, s, { ck: { [key]: v == null ? F.deleteField() : v } }),
     prevOrder: async (d, s) => { const x = await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", "<", d), F.orderBy("date", "desc"), F.limit(30))); return x.docs.map(y => decDoc(y.data())).find(y => y.sup === s && y.lines && Object.keys(y.lines).length) || null },
     listOrders: async n => (await F.getDocs(F.query(F.collection(db, "orders"), F.orderBy("date", "desc"), F.limit(n)))).docs.map(x => decDoc(x.data())),
     listRange: async (a, b) => (await F.getDocs(F.query(F.collection(db, "orders"), F.where("date", ">=", a), F.where("date", "<=", b)))).docs.map(x => decDoc(x.data()))
@@ -576,6 +607,7 @@ if (ORDER_FB && F) {
     setLines: async (d, s, obj) => safe(() => edit(d, s, x => Object.assign(x.lines, obj))),
     setNote: async (d, s, note, by) => safe(() => edit(d, s, x => { x.note = note; x.noteBy = by })),
     setSent: async (d, s, v) => safe(() => edit(d, s, x => { x.sent = v })),
+    setCk: async (d, s, key, v) => safe(() => edit(d, s, x => { x.ck ||= {}; if (v == null) delete x.ck[key]; else x.ck[key] = v })),
     prevOrder: async (d, s) => Object.values(orders()).filter(x => x.sup === s && x.date < d && Object.keys(x.lines || {}).length).sort((a, b) => b.date.localeCompare(a.date))[0] || null,
     listOrders: async n => Object.values(orders()).sort((a, b) => b.date.localeCompare(a.date)).slice(0, n),
     listRange: async (a, b) => Object.values(orders()).filter(x => x.date >= a && x.date <= b)
@@ -630,7 +662,32 @@ function iQty(i, e) {
 
 /* ---- 叫貨品項 ---- */
 const isUnitOpt = o => UNIT_WORDS.has(o);
-const optKeys = it => (it.o && it.o.length ? it.o : [""]);
+/* ===== 分廠商叫貨（例如葉菜類：阿凱、大北園、惠鮮、其他）=====
+   該分類的品項，每個廠商各填一個數量；有規格的品項用「規格·廠商」 */
+const DEF_VEND = { "葉菜類": ["阿凱", "大北園", "惠鮮", "其他"] };
+const DEF_NOVEND = ["初秋", "硬種", "包心白菜", "廣東A", "格藍芽"];   /* 西螺葉菜類裡先不分廠商的品項 */
+let vendCache = new WeakMap();
+function vendorsOf(it) {
+  if (vendCache.has(it)) return vendCache.get(it);
+  const sp = ((S.ocfg && S.ocfg.sups) || []).find(q => q.items.includes(it));
+  const v = it.nv ? [] : (sp && sp.vend && sp.vend[it.c]) || [];   /* nv＝這個品項不分廠商 */
+  vendCache.set(it, v); return v;
+}
+const baseKeys = it => (it.o && it.o.length ? it.o : [""]);
+const optKeys = it => { const b = baseKeys(it), v = vendorsOf(it); return v.length ? b.flatMap(x => v.map(w => x ? `${x}·${w}` : w)) : b };
+/* 拆開 key → { spec, vend } */
+function splitKey(it, k) {
+  const v = vendorsOf(it); if (!v.length) return { spec: k, vend: "" };
+  const i = k.lastIndexOf("·"); if (i >= 0) return { spec: k.slice(0, i), vend: k.slice(i + 1) };
+  return v.includes(k) ? { spec: "", vend: k } : { spec: k, vend: "" };
+}
+/* 這個品項上次跟哪家叫最多 → 建議量預設給那家 */
+function favVendor(it) {
+  const v = vendorsOf(it); if (!v.length) return "";
+  const pe = S.prev && S.prev.lines && S.prev.lines[it.id];
+  if (pe && pe.vs) { const tot = {}; Object.entries(pe.vs).forEach(([k, q]) => { const w = splitKey(it, k).vend; if (w && q > 0) tot[w] = (tot[w] || 0) + q }); const best = Object.keys(tot).sort((a, b) => tot[b] - tot[a])[0]; if (best) return best }
+  return v[0];
+}
 function partText(it, o, q) {
   if (!o) return `${fmt(q)}${it.u || ""}`;
   if (isUnitOpt(o)) return `${fmt(q)}${o}`;
@@ -638,7 +695,7 @@ function partText(it, o, q) {
 }
 function lineText(it, e) { if (!e || !e.vs) return ""; return optKeys(it).concat(Object.keys(e.vs).filter(k => !optKeys(it).includes(k))).filter(k => e.vs[k] != null && e.vs[k] > 0).map(k => partText(it, k, e.vs[k])).join(" ") }
 function lineHtml(it, e) {
-  const ks = optKeys(it).filter(k => e.vs[k] > 0);
+  const ks = qtyOpts(it, e);
   return ks.map(k => !k ? `${fmt(e.vs[k])}${it.u ? `<em>${esc(it.u)}</em>` : ""}` : isUnitOpt(k) ? `${fmt(e.vs[k])}<em>${esc(k)}</em>` : `<em>${esc(k)}</em>${fmt(e.vs[k])}${it.u ? `<em>${esc(it.u)}</em>` : ""}`).join(" ");
 }
 const hasQty = e => !!e && !!e.vs && Object.values(e.vs).some(v => v > 0);
@@ -670,12 +727,16 @@ const catsOf = () => { const base = (S.inv && S.inv.cats) || DEF_CATS; const use
 const itemsOf = c => oItems().filter(i => i.c === c);
 
 /* 連動分析：每個叫貨品項 → 各個連動點貨品項的庫存、建議 */
-function optFor(it, inv) {
-  const ks = optKeys(it); if (ks.length === 1) return ks[0];
+function specFor(it, inv) {
+  const ks = baseKeys(it); if (ks.length === 1) return ks[0];
   const rest = inv.n.replace(it.n, "");
   const hit = ks.find(k => k && rest.includes(k)); if (hit) return hit;
   const u = iUnits(inv)[0]; if (ks.includes(u)) return u;
   return ks[0];
+}
+function optFor(it, inv) {
+  const sp = specFor(it, inv), w = favVendor(it);
+  return w ? (sp ? `${sp}·${w}` : w) : sp;
 }
 /* ================= 預估叫貨量 =================
    時間順序：早上出貨 → 點貨（庫存）→ 叫貨 → 下午載回（到貨）→ 隔天早上出貨
@@ -707,7 +768,7 @@ function loadHist() {
         const ivs = it.inv.map(invById).filter(Boolean); if (!ivs.length) return;
         Object.entries(e.vs).forEach(([o2, q]) => {
           if (!(q > 0)) return;
-          const t = ivs.length === 1 ? ivs[0] : (ivs.find(v => optFor(it, v) === o2) || ivs[0]);
+          const t = ivs.length === 1 ? ivs[0] : (ivs.find(v => specFor(it, v) === splitKey(it, o2).spec) || ivs[0]);
           const r = (rec[o.date] ||= {}); r[t.id] = (r[t.id] || 0) + q * factorOf(it, t.id);
         });
       });
@@ -836,12 +897,17 @@ function relink() {
     if (ids.length) { it.inv = ids; n++ }
   });
   if (cfg.needLink) { delete cfg.needLink; n++ }
+  /* 一次性補連動：叫貨的高麗（硬種）也涵蓋點貨的「做好高麗」 */
+  if (x && !cfg.fix7) {
+    const add = byName["做好高麗"] && byName["做好高麗"][0];
+    if (add) { x.items.filter(it => it.c === "葉菜類" && (it.n === "硬種" || it.n === "高麗" || it.n === "高麗菜")).forEach(it => { if (!(it.inv || []).includes(add.id)) { it.inv = [...(it.inv || []), add.id]; n++ } }); cfg.fix7 = 1; n++ }
+  }
   if (n) store.saveOrdCfg(cfg).then(() => toast(`點貨品項有更新，已自動連動 ${n} 項`)).catch(err);
 }
 store.watchOrdCfg(c => {
-  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; ensureSeed(); relink();
+  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
-  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 4)) { migrate(); return }
+  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 6)) { migrate(); return }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length) {
     if (!S.sup || !sups().some(s => s.id === S.sup)) { let last = ""; try { last = localStorage.getItem("cxo-sup") || "" } catch {} S.sup = sups().some(s => s.id === last) ? last : sups()[0].id; openOrder() }
     renderSupSel();
@@ -850,11 +916,15 @@ store.watchOrdCfg(c => {
 });
 /* 舊設定自動修正：台青＝台灣蘆筍，不是青江菜 */
 function migrate() {
-  const cfg = JSON.parse(JSON.stringify(S.ocfg)), v = cfg.ver || 0; cfg.ver = 4;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), v = cfg.ver || 0; cfg.ver = 6;
   if (!cfg.people || !cfg.people.length) cfg.people = DEFAULT_PEOPLE.slice();
   const x = cfg.sups.find(s => s.id === "xiluo");
   if (v < 3) { const it = x && x.items.find(i => i.n === "台青");
     if (it) { const qj = invItems().filter(i => i.n === "青江菜").map(i => i.id); it.inv = (it.inv || []).filter(id => !qj.includes(id)); if (it.u === "捆") it.u = "" } }
+  /* v6：初秋、硬種、包心白菜、廣東A、格藍芽 先不分廠商 */
+  if (v < 6 && x) x.items.forEach(i => { if (i.c === "葉菜類" && DEF_NOVEND.includes(i.n)) i.nv = 1 });
+  /* v5：西螺葉菜類分廠商叫貨 */
+  if (v < 5 && x && !x.vend) x.vend = JSON.parse(JSON.stringify(DEF_VEND));
   /* v4：白K 從「其他」移到「根莖類」，排在馬K 後面 */
   if (v < 4 && x) { const k = x.items.findIndex(i => i.n === "白K" && i.c === "其他");
     if (k >= 0) { const [it] = x.items.splice(k, 1); it.c = "根莖類"; const m = x.items.findIndex(i => i.n === "馬K" && i.c === "根莖類"); const last = x.items.map(i => i.c).lastIndexOf("根莖類"); x.items.splice((m >= 0 ? m : last) + 1, 0, it) } }
@@ -867,7 +937,8 @@ function ensureSeed() {
   const byName = {}; invItems().forEach(i => (byName[i.n] ||= []).push(i));
   const resolve = key => { const [n, c] = key.split("@"); const l = byName[n] || []; return (c ? l.find(i => i.c === c) : null) || (c ? null : l[0]) };
   const items = SEED_XILUO.map((r, k) => ({ id: "o" + String(k + 1).padStart(3, "0"), c: r[0], n: r[1], o: r[2], u: r[3], inv: r[4].map(resolve).filter(Boolean).map(i => i.id) }));
-  const cfg = { ver: 4, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, items }] };
+  items.forEach(i => { if (i.c === "葉菜類" && DEF_NOVEND.includes(i.n)) i.nv = 1 });
+  const cfg = { ver: 6, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, vend: JSON.parse(JSON.stringify(DEF_VEND)), items }] };
   if (!invItems().length) cfg.needLink = true;
   store.saveOrdCfg(cfg).catch(e => { seeded = false; err(e) });
 }
@@ -922,7 +993,8 @@ function renderTop() {
       : `${S.date === today() ? "今天" : dateLabel(S.date)}點貨進行中，已點 <b>${n}</b> / ${tot} 項`;
   }
   $("#invSrc").innerHTML = src;
-  $("#ordCnt").textContent = `叫 ${st.ordered.length} 項`;
+  const cs = st.ordered.length ? ckStat() : null;
+  $("#ordCnt").textContent = `叫 ${st.ordered.length} 項${cs && cs.n ? `・訂 ${cs.ok}/${cs.n}` : ""}`;
   const cd = coverDays(S.date);
   if (cd.length > 1) $("#invSrc").innerHTML += `　<span class="old">接下來休市，要叫${cd.length}天的量</span>`;
   const sent = S.ord && S.ord.sent;
@@ -954,7 +1026,8 @@ function rowHtml(it, e) {
   else if (a.needAny) { cls += " need"; val = `<span class="sug">${a.how === "fc" ? "預估" : "建議"} ${esc(sugText(it, a.sug))}</span>` }
   const multi = ordered && Object.values(e.vs).filter(v => v > 0).length > 1;
   const spec = it.o && it.o.length ? `<small>${esc(it.o.join("/"))}</small>` : it.u ? `<small>${esc(it.u)}</small>` : "";
-  return `<button class="${cls}" data-id="${it.id}"><span class="nm"><b>${esc(it.n)}${spec}</b><span class="stk">${stockHtml(a)}</span></span><span class="val${multi ? " multi" : ""}">${val}</span></button>`;
+  const okb = ordered && itemCk(it) ? `<span class="bdg okd">已訂</span>` : "";
+  return `<button class="${cls}" data-id="${it.id}"><span class="nm"><b>${esc(it.n)}${spec}${okb}</b><span class="stk">${stockHtml(a)}</span></span><span class="val${multi ? " multi" : ""}">${val}</span></button>`;
 }
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; S.cat = b.dataset.cat; renderOrd(); window.scrollTo(0, 0) });
 $("#list").addEventListener("click", e => {
@@ -984,8 +1057,11 @@ function openKp(id) {
   const e = lines()[id], ks = optKeys(it), a = analyze(it);
   const bufs = {}, fresh = {};
   ks.forEach(k => { const v = e && e.vs ? e.vs[k] : null; bufs[k] = v != null && v > 0 ? fmt(v) : ""; fresh[k] = true });
+  const touched0 = {};
+  if (vendorsOf(it).length && e && e.vs && e.vs[""] > 0 && ks.every(k => bufs[k] === "")) { const w = favVendor(it); bufs[w] = fmt(e.vs[""]); touched0[w] = true }
+  if (!vendorsOf(it).length && ks.length === 1 && ks[0] === "" && e && e.vs) { const ex = Object.entries(e.vs).filter(([k, q]) => k !== "" && q > 0); if (ex.length) { bufs[""] = fmt(ex.reduce((a, [, q]) => a + q, 0) + (e.vs[""] || 0)); touched0[""] = true } }
   const first = ks.find(k => bufs[k] !== "") ?? ks.find(k => a.sug[k]) ?? ks[0];
-  S.kp = { id, ks, bufs, fresh, touched: {}, o: first };
+  S.kp = { id, ks, bufs, fresh, touched: touched0, o: first };
   S.cat = it.c;
   const kp = $("#kp"); kp.style.setProperty("--kt", catTint(it.c)); kp.classList.add("show");
   renderKp();
@@ -1108,18 +1184,66 @@ $("#nav").onclick = e => { const b = e.target.closest("[data-v]"); if (b) setVie
 function goItem(id) { const it = oById(id); if (!it) return; S.cat = it.c; setView("Ord"); openKp(id) }
 
 /* ---------- 總覽（明細、價格、傳給廠商） ---------- */
+/* 分廠商分類：依廠商整理 [{ vend, rows:[{n, t}] }]；沒指定廠商的舊資料歸「未分廠商」 */
+function byVendor(cat, L) {
+  const s = sup(), vs = (s.vend && s.vend[cat]) || [], out = new Map([["", []], ...vs.map(v => [v, []])]);
+  itemsOf(cat).filter(i => hasQty(L[i.id])).forEach(it => {
+    const e = L[it.id], per = {};
+    if (!vendorsOf(it).length) { (per[""] ||= []).push(lineText(it, e)) }
+    else qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || "未分廠商"; (per[w] ||= []).push(partText(it, spec, e.vs[k])) });
+    Object.entries(per).forEach(([w, ts]) => { if (!out.has(w)) out.set(w, []); out.get(w).push({ n: it.n, t: ts.join(" ") }) });
+  });
+  return [...out].filter(([, r]) => r.length).map(([vend, rows]) => ({ vend, rows }));
+}
 function orderText() {
   const L = lines(), s = sup();
   const parts = [`採鮮農產行 叫貨`, `${dateLabel(S.date)}　${s.name}`];
   catsOf().forEach(cat => {
     const ls = itemsOf(cat).filter(i => hasQty(L[i.id]));
     if (!ls.length) return;
-    parts.push("", `【${cat}】`);
-    ls.forEach(i => parts.push(`${i.n}　${lineText(i, L[i.id])}`));
+    const vs = (s.vend && s.vend[cat]) || [];
+    if (!vs.length) { parts.push("", `【${cat}】`); ls.forEach(i => parts.push(`${i.n}　${lineText(i, L[i.id])}`)); return }
+    byVendor(cat, L).forEach(({ vend, rows }) => { parts.push("", vend ? `【${cat}｜${vend}】` : `【${cat}】`); rows.forEach(r => parts.push(`${r.n}　${r.t}`)) });
   });
   const note = (S.ord && S.ord.note || "").trim();
   if (note) parts.push("", "備註：" + note);
   return parts.join("\n");
+}
+/* ===== 下訂確認：每個品項（分廠商的每一家）打勾＝已經跟廠商下訂 =====
+   ck[key] = { by, t, q }；q 是打勾當時的數量，數量之後被改就要重新確認 */
+function ckRows() {
+  const L = lines(), groups = [];
+  catsOf().forEach(cat => {
+    const plain = [], byV = new Map();
+    itemsOf(cat).filter(it => hasQty(L[it.id])).forEach(it => {
+      const e = L[it.id];
+      if (!vendorsOf(it).length) { plain.push({ key: it.id, id: it.id, n: it.n, t: lineText(it, e) }); return }
+      const per = new Map();
+      qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || "未分廠商"; per.set(w, [...(per.get(w) || []), partText(it, spec, e.vs[k])]) });
+      per.forEach((ts, w) => { if (!byV.has(w)) byV.set(w, []); byV.get(w).push({ key: `${it.id}|${w}`, id: it.id, n: it.n, t: ts.join(" ") }) });
+    });
+    if (plain.length) groups.push({ title: cat, cat, rows: plain });
+    const order = [...((sup().vend || {})[cat] || []), "未分廠商"];
+    [...byV.keys()].sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(w => groups.push({ title: `${cat}｜${w}`, cat, rows: byV.get(w) }));
+  });
+  const ck = (S.ord && S.ord.ck) || {};
+  groups.forEach(g => g.rows.forEach(r => { const c = ck[r.key]; r.ck = c; r.st = !c ? "no" : c.q === r.t ? "ok" : "chg" }));
+  return groups;
+}
+function ckStat() { const rs = ckRows().flatMap(g => g.rows); return { n: rs.length, ok: rs.filter(r => r.st === "ok").length, chg: rs.filter(r => r.st === "chg").length } }
+/* 這個品項是否全部已下訂（叫貨清單上顯示用） */
+function itemCk(it) { const rs = ckRows().flatMap(g => g.rows).filter(r => r.id === it.id); return rs.length && rs.every(r => r.st === "ok") }
+function ckPanel() {
+  const gs = ckRows(); if (!gs.length) return "";
+  const rs = gs.flatMap(g => g.rows), ok = rs.filter(r => r.st === "ok").length, chg = rs.filter(r => r.st === "chg").length, done = ok === rs.length;
+  return `<div class="panel ck-p${done ? " fin" : ""}"><h3>下訂確認 <span class="c ${done ? "ok" : "o"}">${ok} / ${rs.length}</span>${chg ? `<span class="c o">${chg} 項數量有改</span>` : ""}${!done ? `<button class="btn sm r" id="ckAll">全部已下訂</button>` : `<button class="btn sm r" id="ckNone">全部取消</button>`}</h3>
+    <p class="muted" style="margin:0 0 8px">跟廠商講好一項就點一下打勾；打勾後數量被改，會變橘色要再確認一次</p>
+    ${gs.map(g => { const gok = g.rows.filter(r => r.st === "ok").length; return `<div class="ck-g" style="--cc:${catColor(g.cat)}"><div class="ck-h"><span>${esc(g.title)}</span><small>${gok}/${g.rows.length}</small>${gok < g.rows.length ? `<button class="ck-ga" data-ckg="${esc(g.title)}">這組全勾</button>` : ""}</div>
+      ${g.rows.map(r => `<button class="ck-r ${r.st}" data-ck="${esc(r.key)}"><span class="bx">${r.st === "ok" ? "✓" : r.st === "chg" ? "!" : ""}</span><span class="nm">${esc(r.n)}</span><span class="q">${esc(r.t)}</span><span class="w">${r.ck ? (r.st === "chg" ? `原 ${esc(r.ck.q)}` : `${esc(r.ck.by || "")} ${hm(r.ck.t)}`) : ""}</span></button>`).join("")}</div>` }).join("")}
+  </div>`;
+}
+function setCkRows(rows, on) {
+  rows.forEach(r => { if (on && r.st !== "ok") store.setCk(S.date, S.sup, r.key, { by: S.me, t: Date.now(), q: r.t }); if (!on && r.ck) store.setCk(S.date, S.sup, r.key, null) });
 }
 function renderSum() {
   const ae = document.activeElement, keep = ae && ae.id && $("#vSum").contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName) ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
@@ -1134,6 +1258,7 @@ function renderSum() {
   $("#vSum").innerHTML = `
   ${st.miss.length ? `<div class="panel alert"><h3>建議要叫還沒叫 <span class="c o">${st.miss.length}</span><button class="btn sg sm r" id="fillAll">全部帶入建議</button></h3>
     <div class="chips">${st.miss.map(i => `<button class="chip o" data-go="${i.id}">${esc(i.n)} ${esc(sugText(i, analyze(i).sug))}</button>`).join("")}</div></div>` : ""}
+  ${ckPanel()}
   <div class="panel ${sent && !edited ? "fin" : ""}"><h3>${esc(sup().name)} ${dateLabel(S.date)} <span class="c">${st.ordered.length} 項</span></h3>
     ${st.ordered.length ? `
     <div class="amt"><div><small>叫貨金額</small><b>${money(amt.a)}</b></div>${amt.miss ? `<span class="c o">${amt.miss} 筆未填價格</span>` : `<span class="c ok">價格都填好了</span>`}${canLast ? `<button class="btn sm" id="fillLast">帶入上次價格</button>` : ""}</div>
@@ -1198,6 +1323,12 @@ $("#vSum").addEventListener("input", e => {
 $("#vSum").addEventListener("click", async e => {
   const g = e.target.closest("[data-go]"); if (g) return goItem(g.dataset.go);
   if (e.target.closest("#fillAll")) return fillSuggest(oItems());
+  const ckb = e.target.closest("[data-ck]");
+  if (ckb) { if (needMe()) return; const r = ckRows().flatMap(g => g.rows).find(x => x.key === ckb.dataset.ck); if (r) setCkRows([r], r.st !== "ok"); return }
+  const ckg = e.target.closest("[data-ckg]");
+  if (ckg) { if (needMe()) return; const g = ckRows().find(x => x.title === ckg.dataset.ckg); if (g) setCkRows(g.rows, true); return }
+  if (e.target.closest("#ckAll")) { if (needMe()) return; setCkRows(ckRows().flatMap(g => g.rows), true); return toast("全部標記已下訂") }
+  if (e.target.closest("#ckNone")) { if (!confirm("取消全部的下訂確認？")) return; setCkRows(ckRows().flatMap(g => g.rows), false); return }
   if (e.target.closest("#fillLast")) {
     const last = S.last || {}; let n = 0;
     ordStats().ordered.forEach(i => { const l = lines()[i.id]; qtyOpts(i, l).forEach(o => { const lp = last[`${i.id}|${pk(o)}`]; if (priceOf(l, o) == null && lp) { store.setPrice(S.date, S.sup, i.id, o, lp.p); n++ } }) });
@@ -1228,27 +1359,56 @@ function sheetCols() {
   cats.forEach(c => { const i = len.indexOf(Math.min(...len)); cols[i].push(c); len[i] += itemsOf(c).length + 1 });
   return cols;
 }
+/* 列印／Excel：只列有叫貨數量的品項，平均分成三欄。
+   每個品項兩格數量：不同廠商（或規格）各佔一格；超過兩個再往下多一列 */
+function itemParts(it, e) {
+  if (vendorsOf(it).length) {
+    const per = new Map();
+    qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || ""; per.set(w, [...(per.get(w) || []), partText(it, spec, e.vs[k])]) });
+    return [...per].map(([w, ts]) => (w ? w + " " : "") + ts.join(" "));
+  }
+  return qtyOpts(it, e).map(k => partText(it, k, e.vs[k]));
+}
 function sheetGrid() {
-  const L = lines();
-  return sheetCols().map(col => col.flatMap(cat => [
-    { h: cat },
-    ...itemsOf(cat).map(it => {
-      const e = L[it.id], ks = optKeys(it);
-      const cells = ks.length === 1 ? [[ks[0] || it.u || "", e && e.vs ? e.vs[ks[0]] : null], ["", null]] : ks.slice(0, 2).map(k => [k, e && e.vs ? e.vs[k] : null]);
-      const extra = ks.slice(2).filter(k => e && e.vs && e.vs[k] > 0).map(k => partText(it, k, e.vs[k])).join(" ");
-      return { n: it.n + (extra ? " " + extra : ""), cells };
-    })
-  ]));
+  const L = lines(), R = {};
+  catsOf().forEach(cat => {
+    const out = [];
+    itemsOf(cat).filter(it => hasQty(L[it.id])).forEach(it => { const ps = itemParts(it, L[it.id]); for (let i = 0; i < ps.length; i += 2) out.push({ n: i ? "" : it.n, q: [ps[i], ps[i + 1] || ""], cat, cont: i > 0 }) });
+    if (out.length) R[cat] = out;
+  });
+  const used = catsOf().filter(c => R[c]);
+  if (!used.length) return [[], [], []];
+  const len = col => col.reduce((n, c) => n + R[c].length + 1, 0);
+  /* 排法跟紙本採購單一樣：每欄上面是品項多的分類，下面接品項少的分類
+     西螺：根莖＋其他｜葉菜＋水菜｜瓜果＋辛香；其他廠商：叫最多的三類各開一欄，其餘接在最短的欄下面 */
+  const s = sup();
+  let cols;
+  if (s.cols && s.cols.length) cols = s.cols.slice(0, 3).map(c => (Array.isArray(c) ? c : c.c || []).filter(x => R[x]));
+  else {
+    const heads = used.slice().sort((a, b) => R[b].length - R[a].length).slice(0, 3);
+    cols = used.filter(c => heads.includes(c)).map(c => [c]);
+  }
+  while (cols.length < 3) cols.push([]);
+  used.filter(c => !cols.flat().includes(c)).forEach(c => { let m = 0; cols.forEach((col, i) => { if (len(col) < len(cols[m])) m = i }); cols[m].push(c) });
+  /* 空的欄：從最長、而且有兩類以上的欄，把下面那一類搬過來 */
+  cols.forEach((col, i) => {
+    if (col.length) return;
+    const src = cols.map((c, k) => [k, len(c)]).filter(([k]) => cols[k].length > 1).sort((a, b) => b[1] - a[1])[0];
+    if (src) col.push(cols[src[0]].pop());
+  });
+  return cols.map(col => col.flatMap(c => [{ h: c, cat: c }, ...R[c]]));
 }
 function printSheet() {
-  const g = sheetGrid(), rows = Math.max(...g.map(c => c.length));
-  let h = `<div class="pf-h"><b>採鮮農產行　${esc(sup().name)}採購單</b><span>${S.date.replace(/-/g, " / ")}　${dateLabel(S.date).slice(-3)}</span></div><table class="pf"><colgroup>${g.map((_, i) => `<col style="width:15%"><col style="width:9%"><col style="width:9%">${i < g.length - 1 ? `<col style="width:1%">` : ""}`).join("")}</colgroup>`;
+  const g = sheetGrid(), rows = Math.max(0, ...g.map(c => c.length));
+  const sz = rows <= 26 ? "big" : rows <= 36 ? "" : rows <= 44 ? "tight" : "xtight";
+  let h = `<div class="pf-h"><b>採鮮農產行　${esc(sup().name)}採購單</b><span>${S.date.replace(/-/g, " / ")}　${dateLabel(S.date).slice(-3)}　共 ${ordStats().ordered.length} 項</span></div><table class="pf ${sz}"><colgroup>${g.map((_, i) => `<col style="width:12.5%"><col style="width:10%"><col style="width:10%">${i < g.length - 1 ? `<col style="width:.75%">` : ""}`).join("")}</colgroup>`;
   for (let r = 0; r < rows; r++) {
     h += "<tr>" + g.map((col, i) => {
       const x = col[r], gap = i < g.length - 1 ? `<td class="gap"></td>` : "";
       if (!x) return `<td style="border:0"></td><td style="border:0"></td><td style="border:0"></td>${gap}`;
-      if (x.h) return `<td class="h">${esc(x.h)}</td><td class="h">數量</td><td class="h">數量</td>${gap}`;
-      return `<td class="n">${esc(x.n)}</td>${x.cells.map(([k, v]) => `<td class="q">${k ? `<i>${esc(k)}</i>` : ""}${v > 0 ? `<b>${fmt(v)}</b>` : ""}</td>`).join("")}${gap}`;
+      if (x.h) return `<td class="h" style="border-top:2px solid ${catColor(x.cat)}">${esc(x.h)}</td><td class="h">數量</td><td class="h">數量</td>${gap}`;
+      const qc = t => `<td class="q tq${t.length > 6 ? " xs" : t.length > 4 ? " sm" : ""}">${esc(t)}</td>`;
+      return `<td class="n${x.n.length > 4 ? " sm" : ""}">${esc(x.n)}</td>${qc(x.q[0])}${qc(x.q[1])}${gap}`;
     }).join("") + "</tr>";
   }
   h += "</table>";
@@ -1259,21 +1419,16 @@ function printSheet() {
 }
 function exportXlsx() {
   if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
-  const g = sheetGrid(), rows = Math.max(...g.map(c => c.length));
-  const aoa = [[`採鮮農產行 ${sup().name}採購單`, "", "", "", "", "", "", S.date], []];
+  const g = sheetGrid(), rows = Math.max(0, ...g.map(c => c.length));
+  const aoa = [[`採鮮農產行 ${sup().name}採購單`, "", "", "", "", "", "", "", S.date], []];
   for (let r = 0; r < rows; r++) {
     const row = [];
-    g.forEach(col => {
-      const x = col[r];
-      if (!x) row.push("", "", "");
-      else if (x.h) row.push(x.h, "數量", "數量");
-      else row.push(x.n, ...x.cells.map(([k, v]) => v > 0 ? `${k}${k ? " " : ""}${fmt(v)}` : k));
-    });
+    g.forEach(col => { const x = col[r]; if (!x) row.push("", "", ""); else if (x.h) row.push(x.h, "數量", "數量"); else row.push(x.n, x.q[0], x.q[1]) });
     aoa.push(row);
   }
   const note = (S.ord && S.ord.note || "").trim(); if (note) aoa.push([], ["備註：" + note]);
   const ws = XLSX.utils.aoa_to_sheet(aoa);
-  ws["!cols"] = g.flatMap(() => [{ wch: 12 }, { wch: 8 }, { wch: 8 }]);
+  ws["!cols"] = g.flatMap(() => [{ wch: 12 }, { wch: 11 }, { wch: 11 }]);
   const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, sup().name);
   const L = lines(), pr = [["分類", "品名", "規格", "數量", "單位", "單價", "小計"]];
   catsOf().forEach(cat => itemsOf(cat).filter(i => hasQty(L[i.id])).forEach(i => qtyOpts(i, L[i.id]).forEach(o => {
@@ -1283,6 +1438,9 @@ function exportXlsx() {
   pr.push([], ["", "", "", "", "", "合計", orderAmt(L, oById).a]);
   const ws2 = XLSX.utils.aoa_to_sheet(pr); ws2["!cols"] = [{ wch: 8 }, { wch: 12 }, { wch: 8 }, { wch: 7 }, { wch: 6 }, { wch: 8 }, { wch: 10 }];
   XLSX.utils.book_append_sheet(wb, ws2, "價格明細");
+  const vrows = [["分類", "廠商", "品名", "數量"]];
+  catsOf().filter(c => (sup().vend && sup().vend[c] || []).length).forEach(c => byVendor(c, L).filter(b => b.vend).forEach(b => b.rows.forEach(r => vrows.push([c, b.vend, r.n, r.t]))));
+  if (vrows.length > 1) { const ws3 = XLSX.utils.aoa_to_sheet(vrows); ws3["!cols"] = [{ wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 14 }]; XLSX.utils.book_append_sheet(wb, ws3, "分廠商"); }
   XLSX.writeFile(wb, `${sup().name}採購單${S.date.replace(/-/g, "")}.xlsx`);
 }
 
@@ -1317,6 +1475,10 @@ function renderSet() {
   <div class="panel"><h3>人員</h3>
     <div class="chips">${people().map(p => `<span class="chip">${esc(p)}${people().length > 1 ? ` <button data-delp="${esc(p)}" aria-label="移除${esc(p)}" style="color:var(--warn);font-weight:900;padding:0 2px">×</button>` : ""}</span>`).join("")}<button class="chip" data-addp="1">＋ 新增</button></div>
   </div>
+  <div class="panel"><h3>分廠商叫貨 <span class="c">${esc(sup().name)}</span></h3>
+    <p class="muted" style="margin:0 0 8px">填了廠商的分類，輸入數量時要選廠商，LINE 文字和列印會分廠商列出。廠商用「、」分開，空白＝不分廠商。</p>
+    ${catsOf().map(c => `<label class="vrow" style="--cc:${catColor(c)}"><span>${esc(c)}</span><input class="in" data-vend="${esc(c)}" value="${esc(((sup().vend || {})[c] || []).join("、"))}" placeholder="不分廠商"></label>`).join("")}
+  </div>
   <div class="panel"><h3>休市日</h3>
     <p class="muted" style="margin:0 0 8px">每週日自動算休市。傳統節日請加在這裡，前一天叫貨會自動多叫。</p>
     <div class="chips">${closedList().filter(d => d >= today()).sort().map(d => `<span class="chip">${dateLabel(d)} ${d.slice(0, 4)} <button data-delc="${d}" aria-label="移除" style="color:var(--warn);font-weight:900;padding:0 2px">×</button></span>`).join("") || `<span class="muted">目前沒有設定節日</span>`}</div>
@@ -1335,8 +1497,8 @@ function renderSet() {
     ${d ? "" : `<button class="btn pri" id="edStart" style="margin-top:10px">編輯品項</button>`}
     ${d ? `<div class="ed-head"><span>品名 ／ 下排：連動點貨</span><span>規格</span><span>單位</span></div>` : ""}
     ${byCat.map(([c, its]) => `<div class="ed-cat" style="--cc:${catColor(c)}"><span class="sw"></span>${esc(c)} <span class="muted">${its.length}</span>${d ? `<button class="btn sm" data-add="${esc(c)}">＋ 新增</button>` : ""}</div>
-      ${d ? its.map(it => `<div class="ed-row" data-rid="${it.id}"><input class="n" value="${esc(it.n)}" data-f="n"><input class="u" value="${esc((it.o || []).join("/"))}" data-f="o" placeholder="—"><input class="u" value="${esc(it.u || "")}" data-f="u" placeholder="—"><div class="ac"><select class="cs" data-f="c" aria-label="分類">${cats.concat(cats.includes(it.c) ? [] : [it.c]).map(c => `<option${c === it.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select><button class="lk${(it.inv || []).length ? "" : " no"}" data-lk="${it.id}">🔗 ${esc(linkTxt(it))}</button><button data-mv="-1" aria-label="上移">↑</button><button data-mv="1" aria-label="下移">↓</button><button class="del" data-del="1" aria-label="刪除">✕</button></div></div>`).join("")
-        : `<div class="muted" style="line-height:1.8">${its.map(it => `${esc(it.n)}${(it.inv || []).length ? "" : `<span style="color:var(--low)">*</span>`}`).join("、") || "—"}</div>`}`).join("")}
+      ${d ? its.map(it => `<div class="ed-row" data-rid="${it.id}"><input class="n" value="${esc(it.n)}" data-f="n"><input class="u" value="${esc((it.o || []).join("/"))}" data-f="o" placeholder="—"><input class="u" value="${esc(it.u || "")}" data-f="u" placeholder="—"><div class="ac">${((sup().vend || {})[it.c] || []).length ? `<button class="nvb${it.nv ? "" : " on"}" data-nv="1" title="分廠商叫貨">${it.nv ? "不分" : "分廠商"}</button>` : ""}<select class="cs" data-f="c" aria-label="分類">${cats.concat(cats.includes(it.c) ? [] : [it.c]).map(c => `<option${c === it.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select><button class="lk${(it.inv || []).length ? "" : " no"}" data-lk="${it.id}">🔗 ${esc(linkTxt(it))}</button><button data-mv="-1" aria-label="上移">↑</button><button data-mv="1" aria-label="下移">↓</button><button class="del" data-del="1" aria-label="刪除">✕</button></div></div>`).join("")
+        : `<div class="muted" style="line-height:1.8">${its.map(it => `${esc(it.n)}${it.nv && ((sup().vend || {})[it.c] || []).length ? `<small>(不分)</small>` : ""}${(it.inv || []).length ? "" : `<span style="color:var(--low)">*</span>`}`).join("、") || "—"}</div>`}`).join("")}
     ${d ? `<div class="grid2" style="margin-top:16px;position:sticky;bottom:calc(70px + var(--safe-b))"><button class="btn" id="edCancel">取消</button><button class="btn okb" id="edSave">儲存</button></div>` : ""}
   </div>
   <div class="panel"><h3>說明</h3><p class="muted" style="margin:0;line-height:1.7">
@@ -1381,6 +1543,7 @@ $("#vSet").addEventListener("click", async e => {
   syncDraftInputs();
   const id = row.dataset.rid, its = S.draft.items, i = its.findIndex(x => x.id === id);
   if (t.closest("[data-del]")) { its.splice(i, 1); renderSet(); return }
+  if (t.closest("[data-nv]")) { if (its[i].nv) delete its[i].nv; else its[i].nv = 1; renderSet(); return }
   const mv = t.closest("[data-mv]");
   if (mv) { const dir = +mv.dataset.mv; let j = i + dir; while (its[j] && its[j].c !== its[i].c) j += dir; if (!its[j]) return; [its[i], its[j]] = [its[j], its[i]]; renderSet(); return }
   if (t.closest("[data-lk]")) { S.lkItem = id; openLink(); return }
@@ -1393,6 +1556,13 @@ $("#vSet").addEventListener("change", async e => {
     const [it] = its.splice(k, 1); it.c = cs.value;
     const last = its.map(i => i.c).lastIndexOf(it.c); its.splice(last >= 0 ? last + 1 : its.length, 0, it);
     renderSet(); toast(`${it.n || "品項"} 移到 ${it.c}`); return;
+  }
+  const vd = e.target.closest("[data-vend]");
+  if (vd) {
+    const list = [...new Set(vd.value.split(/[、,，\/\s]+/).map(x => x.trim()).filter(Boolean))];
+    const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup);
+    x.vend = { ...(x.vend || {}) }; if (list.length) x.vend[vd.dataset.vend] = list; else delete x.vend[vd.dataset.vend];
+    await store.saveOrdCfg(cfg).then(() => toast(list.length ? `${vd.dataset.vend}：${list.join("、")}` : `${vd.dataset.vend} 不分廠商`)).catch(err); return;
   }
   const k = e.target.closest("[data-keep]"); if (!k) return;
   const v = Math.max(1, Math.min(10, Math.round(+k.value || 1)));
