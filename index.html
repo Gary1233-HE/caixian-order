@@ -262,12 +262,14 @@ select.in{appearance:auto}
 .viewer .vb .i{flex:1;font-size:14px;opacity:.8}
 .viewer .vb button{color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:7px 12px;font-size:14px}
 .viewer .vb .del{color:#FF9D92;border-color:rgba(255,157,146,.5)}
-.viewer .vi{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding-bottom:var(--safe-b)}
-.viewer .vi img{max-width:100%;max-height:100%;object-fit:contain}
-.viewer .vi img.z{max-width:none;max-height:none;width:200%}
+.viewer .vi{flex:1;overflow:hidden;position:relative;touch-action:none;margin-bottom:var(--safe-b);cursor:grab}
+.viewer .vi img{position:absolute;left:0;top:0;transform-origin:0 0;max-width:none;max-height:none;user-select:none;-webkit-user-drag:none;-webkit-touch-callout:default}
+.viewer .vi .empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.viewer .vz{display:flex;align-items:center;gap:4px;color:#fff;font-family:var(--mono);font-size:12px}
+.viewer .vz button{padding:4px 11px!important;font-size:16px!important}
+#vZoomT{min-width:42px;text-align:center}
 .viewer .vi img.stk-img{background:#fff}
-.viewer .vi img.stk-img.z{width:420%}
-.viewer .vi:has(img.z){align-items:flex-start;justify-content:flex-start}
+
 /* 點貨頁左邊：備註＋拍照 */
 .lfab{position:fixed;z-index:35;display:flex;align-items:center;gap:6px;background:var(--ink);color:#fff;border-radius:16px;font-weight:900;box-shadow:0 6px 18px rgba(20,30,25,.25)}
 .lfab svg{width:20px;height:20px;flex:none}
@@ -364,7 +366,7 @@ select.in{appearance:auto}
 <button class="lfab hide" id="noteFab" aria-label="備註和拍照"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10-10-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>備註</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><b id="noteBadge" class="hide"></b></button>
 <input type="file" id="phIn" accept="image/*" multiple class="hide">
 <input type="file" id="xlIn" accept=".xlsx,.xls,.csv" class="hide">
-<div class="viewer hide" id="viewer"><div class="vb"><span class="i" id="vInfo"></span><button class="hide" id="vShare">分享</button><button class="hide" id="vDl">下載</button><button class="del" id="vDel">刪除</button><button id="vX">關閉</button></div><div class="vi" id="vImg"></div></div>
+<div class="viewer hide" id="viewer"><div class="vb"><span class="i" id="vInfo"></span><span class="vz"><button id="vZout" aria-label="縮小">−</button><span id="vZoomT">100%</span><button id="vZin" aria-label="放大">＋</button></span><button class="hide" id="vShare">分享</button><button class="hide" id="vDl">下載</button><button class="del" id="vDel">刪除</button><button id="vX">關閉</button></div><div class="vi" id="vImg"></div></div>
 <div class="fab hide" id="fab" aria-label="傳送與列印">
   <button class="f-stk" data-fab="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10M15 10v10"/></svg><span class="l">庫存總表</span><span class="s">庫存總表</span></button>
   <button class="f-print" data-fab="print"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M6 14h12v7H6z"/></svg><span class="l">A4 列印點貨結果</span><span class="s">A4列印</span></button>
@@ -870,7 +872,7 @@ async function stockImage() {
 let stkUrl = null;
 async function openStockImage() {
   if (!Object.keys(counts()).length && !confirm("這天還沒有點貨資料，要看空白的總表嗎？")) return;
-  $("#vInfo").textContent = `庫存總表　${dateLabel(S.date)}（點圖放大）`;
+  $("#vInfo").textContent = `庫存總表　${dateLabel(S.date)}`;
   $("#vImg").innerHTML = `<div class="empty" style="color:#fff">產生圖片中…</div>`;
   $("#vDel").classList.add("hide"); $("#vDl").classList.remove("hide"); if (navigator.share) $("#vShare").classList.remove("hide");
   $("#viewer").classList.remove("hide"); vCur = null;
@@ -1150,7 +1152,53 @@ async function openViewer(id) {
 }
 function closeViewer() { vCur = null; $("#viewer").classList.add("hide"); $("#vImg").innerHTML = "" }
 $("#vX").onclick = closeViewer;
-$("#vImg").onclick = e => { if (e.target.tagName === "IMG") e.target.classList.toggle("z") };
+/* ===== 圖片自由縮放：兩指捏合、滑鼠滾輪、拖曳移動、點兩下放大／還原 ===== */
+const ZV = { s: 1, x: 0, y: 0, img: null, pts: new Map(), pinch: null, pan: null, lastTap: 0 };
+function zApply() { if (ZV.img) ZV.img.style.transform = `translate(${ZV.x}px,${ZV.y}px) scale(${ZV.s})` }
+function zClamp() {
+  const box = $("#vImg").getBoundingClientRect(), w = ZV.img.offsetWidth * ZV.s, h = ZV.img.offsetHeight * ZV.s;
+  ZV.x = w <= box.width ? (box.width - w) / 2 : Math.min(0, Math.max(box.width - w, ZV.x));
+  ZV.y = h <= box.height ? (box.height - h) / 2 : Math.min(0, Math.max(box.height - h, ZV.y));
+}
+function zFit() {
+  const img = $("#vImg img"); if (!img) return; ZV.img = img;
+  const box = $("#vImg").getBoundingClientRect(), k = Math.min(box.width / img.naturalWidth, box.height / img.naturalHeight, 1);
+  img.style.width = img.naturalWidth * k + "px"; img.style.height = img.naturalHeight * k + "px";
+  ZV.s = 1; ZV.x = 0; ZV.y = 0; zClamp(); zApply(); zBtns();
+}
+/* 以畫面上某一點為中心縮放 */
+function zTo(ns, cx, cy) {
+  ns = Math.max(1, Math.min(10, ns));
+  const box = $("#vImg").getBoundingClientRect(), px = cx - box.left, py = cy - box.top;
+  ZV.x = px - (px - ZV.x) * ns / ZV.s; ZV.y = py - (py - ZV.y) * ns / ZV.s; ZV.s = ns;
+  zClamp(); zApply(); zBtns();
+}
+function zBtns() { const t = $("#vZoomT"); if (t) t.textContent = Math.round(ZV.s * 100) + "%" }
+const vi = $("#vImg");
+new MutationObserver(() => { const img = $("#vImg img"); if (!img) { ZV.img = null; return } if (img === ZV.img) return; if (img.complete) zFit(); else img.onload = zFit }).observe(vi, { childList: true });
+window.addEventListener("resize", () => { if (ZV.img) zFit() });
+vi.addEventListener("pointerdown", e => {
+  if (!ZV.img) return; vi.setPointerCapture(e.pointerId); ZV.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ZV.pts.size === 2) { const [a, b] = [...ZV.pts.values()]; ZV.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: ZV.s, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 }; ZV.pan = null }
+  else if (ZV.pts.size === 1) {
+    const now = Date.now();
+    if (now - ZV.lastTap < 300) { zTo(ZV.s > 1.2 ? 1 : 3, e.clientX, e.clientY); ZV.lastTap = 0; return }
+    ZV.lastTap = now; ZV.pan = { x: e.clientX, y: e.clientY, ox: ZV.x, oy: ZV.y };
+  }
+});
+vi.addEventListener("pointermove", e => {
+  if (!ZV.pts.has(e.pointerId)) return; ZV.pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ZV.pinch && ZV.pts.size >= 2) {
+    const [a, b] = [...ZV.pts.values()], d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+    zTo(ZV.pinch.s * d / ZV.pinch.d, mx, my);
+    ZV.x += mx - ZV.pinch.mx; ZV.y += my - ZV.pinch.my; ZV.pinch.mx = mx; ZV.pinch.my = my; zClamp(); zApply();
+  } else if (ZV.pan) { ZV.x = ZV.pan.ox + e.clientX - ZV.pan.x; ZV.y = ZV.pan.oy + e.clientY - ZV.pan.y; zClamp(); zApply() }
+});
+const zUp = e => { ZV.pts.delete(e.pointerId); if (ZV.pts.size < 2) ZV.pinch = null; if (!ZV.pts.size) ZV.pan = null; else if (ZV.pts.size === 1) { const p = [...ZV.pts.values()][0]; ZV.pan = { x: p.x, y: p.y, ox: ZV.x, oy: ZV.y } } };
+vi.addEventListener("pointerup", zUp); vi.addEventListener("pointercancel", zUp);
+vi.addEventListener("wheel", e => { if (!ZV.img) return; e.preventDefault(); zTo(ZV.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15), e.clientX, e.clientY) }, { passive: false });
+$("#vZin").onclick = () => { const b = vi.getBoundingClientRect(); zTo(ZV.s * 1.5, b.left + b.width / 2, b.top + b.height / 2) };
+$("#vZout").onclick = () => { const b = vi.getBoundingClientRect(); zTo(ZV.s / 1.5, b.left + b.width / 2, b.top + b.height / 2) };
 $("#vDel").onclick = async () => { if (!vCur || !confirm("刪除這張照片？")) return; const { d, id } = vCur; closeViewer(); try { await store.delPhoto(d, id); toast("照片已刪除") } catch (e) { err(e) } };
 
 /* ---------- settings ---------- */
