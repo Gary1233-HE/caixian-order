@@ -109,6 +109,7 @@ nav.bn .dot{position:absolute;top:6px;left:calc(50% + 8px);background:var(--low)
 .kp-info small{display:block;font-size:12px;color:var(--muted)}
 .kp-info .stk b{display:block;font-size:15px;line-height:1.35}
 .kp-info .stk b .lo{color:var(--low)}.kp-info .stk b .z{color:var(--warn)}
+.lbr{display:block;font-size:11px;color:var(--muted);font-weight:500}
 .kp-info .pv b{font-size:15px;line-height:1.35;display:block}
 .kp-opts{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 12px;margin:0 -12px}
 .kp-opts::-webkit-scrollbar{display:none}
@@ -721,6 +722,24 @@ if (!DEMO) {
   } catch (e) { console.error(e) }
 }
 
+/* ---- 倉庫＋市場合計：同一天兩邊的點貨數量相加 ----
+   一邊沒點就用另一邊；任一邊標「夠用」就算夠用；單位逐一相加 */
+function mergeInvDay(wh, mk) {
+  if (!mk || !mk.counts || !Object.keys(mk.counts).length) return wh;
+  if (!wh) return { ...mk, counts: Object.fromEntries(Object.entries(mk.counts).map(([id, e]) => [id, { ...e, mk: e }])), fromMk: 1 };
+  const out = { ...wh, counts: { ...(wh.counts || {}) }, mkDone: mk.done || null };
+  Object.entries(mk.counts).forEach(([id, m]) => {
+    const w = out.counts[id];
+    if (!w) { out.counts[id] = { ...m, mk: m }; return }
+    if (w.ok || m.ok) { out.counts[id] = { ok: 1, by: w.by, wh: w, mk: m }; return }
+    const it = typeof invById === "function" ? invById(id) : null, u0 = it ? iUnits(it)[0] : "";
+    const toVs = e => e.vs ? { ...e.vs } : { [u0]: e.v || 0 };
+    const a = toVs(w), b = toVs(m), vs = { ...a };
+    Object.entries(b).forEach(([u, q]) => { vs[u] = (vs[u] || 0) + (q || 0) });
+    out.counts[id] = { v: vs[u0] != null ? vs[u0] : Object.values(vs)[0] || 0, vs, by: w.by, wh: w, mk: m };
+  });
+  return out;
+}
 /* ---- 點貨（唯讀） ---- */
 let inv;
 if (F) {
@@ -728,18 +747,34 @@ if (F) {
   inv = {
     mode: "fb",
     watchCfg: cb => F.onSnapshot(F.doc(db, "config", "inventory"), x => { ST.inv = ""; showStatus(); cb(x.exists() ? x.data() : null) }, e => { fail("inv")(e); cb(null) }),
-    /* 最新一筆 <= 叫貨日 的點貨紀錄（即時） */
-    watchDay: (d, cb) => F.onSnapshot(F.query(F.collection(db, "inventory"), F.where("date", "<=", d), F.orderBy("date", "desc"), F.limit(1)), x => cb(x.empty ? null : x.docs[0].data()), fail("inv")),
-    listDays: async (a, b) => (await F.getDocs(F.query(F.collection(db, "inventory"), F.where("date", ">=", a), F.where("date", "<=", b)))).docs.map(x => x.data())
+    /* 最新一筆 <= 叫貨日 的倉庫點貨紀錄，加上同一天的市場點貨（即時） */
+    watchDay: (d, cb) => {
+      let wh = null, mk = null, mkUn = null, mkDate = null;
+      const emit = () => cb(mergeInvDay(wh, mk));
+      const whUn = F.onSnapshot(F.query(F.collection(db, "inventory"), F.where("date", "<=", d), F.orderBy("date", "desc"), F.limit(1)), x => {
+        wh = x.empty ? null : x.docs[0].data();
+        const md = wh ? wh.date : d;
+        if (md !== mkDate) { if (mkUn) mkUn(); mk = null; mkDate = md; mkUn = F.onSnapshot(F.doc(db, "inventory_market", md), y => { mk = y.exists() ? y.data() : null; emit() }, () => {}) }
+        emit();
+      }, fail("inv"));
+      return () => { whUn(); if (mkUn) mkUn() };
+    },
+    listDays: async (a, b) => {
+      const q = c => F.getDocs(F.query(F.collection(db, c), F.where("date", ">=", a), F.where("date", "<=", b))).then(r => r.docs.map(x => x.data())).catch(() => []);
+      const [w, m] = await Promise.all([q("inventory"), q("inventory_market")]);
+      const mm = {}; m.forEach(x => { mm[x.date] = x });
+      const ds = new Set([...w.map(x => x.date), ...m.map(x => x.date)]);
+      return [...ds].map(dd => mergeInvDay(w.find(x => x.date === dd) || null, mm[dd] || null));
+    }
   };
 } else {
-  const K = { ic: "cxo-demo-invcfg", id: "cxo-demo-invdays" };
+  const K = { ic: "cxo-demo-invcfg", id: "cxo-demo-invdays", mk: "cxo-demo-invdays-mk" };
   if (DEMO && !rd(K.ic)) seedDemo(K);
   inv = {
     mode: "local",
     watchCfg: cb => { cb(rd(K.ic)); return () => {} },
-    watchDay: (d, cb) => { const a = rd(K.id) || {}; const k = Object.keys(a).filter(x => x <= d).sort().pop(); cb(k ? a[k] : null); return () => {} },
-    listDays: async (a, b) => Object.values(rd(K.id) || {}).filter(x => x.date >= a && x.date <= b)
+    watchDay: (d, cb) => { const a = rd(K.id) || {}, m = rd(K.mk) || {}; const k = Object.keys(a).filter(x => x <= d).sort().pop(); cb(mergeInvDay(k ? a[k] : null, m[k || d] || null)); return () => {} },
+    listDays: async (a, b) => { const w = rd(K.id) || {}, m = rd(K.mk) || {}; return [...new Set([...Object.keys(w), ...Object.keys(m)])].filter(x => x >= a && x <= b).map(x => mergeInvDay(w[x] || null, m[x] || null)) }
   };
 }
 
@@ -1311,7 +1346,8 @@ function renderKp() {
   $("#kpStk").innerHTML = a.linked ? a.rows.map(r => {
     const nm = a.rows.length > 1 ? esc(r.inv.n) + " " : "";
     if (r.e == null) return `<div>${nm}未點${r.min ? `　安全 ${fmt(r.min)}` : ""}</div>`;
-    return `<div>${nm}<span class="${r.zero ? "z" : r.need > 0 ? "lo" : ""}">${esc(r.qty)}</span>${r.min ? `　安全 ${fmt(r.min)}` : ""}</div>`;
+    const br = r.e.mk ? `<small class="lbr">${r.e.wh ? `倉 ${esc(iQty(r.inv, r.e.wh))}＋` : "倉 未點＋"}市 ${esc(iQty(r.inv, r.e.mk))}</small>` : "";
+    return `<div>${nm}<span class="${r.zero ? "z" : r.need > 0 ? "lo" : ""}">${esc(r.qty)}</span>${r.min ? `　安全 ${fmt(r.min)}` : ""}${br}</div>`;
   }).join("") : `<span style="color:var(--muted)">沒有連動點貨</span>`;
   const pe = S.prev && S.prev.lines && S.prev.lines[k.id];
   $("#kpPrev").innerHTML = pe && hasQty(pe) ? `${esc(lineText(it, pe))}<br><span style="font-size:12px;color:var(--muted)">${dateLabel(S.prev.date)}</span>` : "—";
