@@ -493,6 +493,15 @@ select.in{appearance:auto}
 .row .sug.cvh{font-size:12px;line-height:1.2;text-align:center;color:#8A4B00}
 .cv-r{display:flex;align-items:center;gap:6px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}.cv-r .n{flex:1;min-width:0;font-weight:700}.cv-r small{display:block;font-weight:500;font-size:11px;color:var(--muted)}
 .cv-r input{width:62px;border:1px solid var(--line);border-radius:8px;padding:7px;text-align:center;font-family:var(--mono);font-weight:700;background:#fff}
+.bdg.nu{background:#FFF3E0;color:#B7630A;border:1px solid #F2C58E;margin-left:6px}
+.kp-setup{padding:14px 16px;overflow:auto}.kp-setup.hide{display:none}
+.su-t{font-size:20px;font-weight:900;color:var(--low)}.su-p{margin:6px 0 12px;color:var(--muted);font-size:14px}
+.su-l{font-size:13px;font-weight:700;color:var(--muted);margin:12px 0 6px}
+.su-chips{display:flex;flex-wrap:wrap;gap:8px}.su-chips button{border:1.5px solid var(--line);border-radius:12px;padding:11px 16px;font-size:18px;font-weight:900;background:#fff}
+.su-chips button.sg{border-color:#7DB892;background:#F1FAF4}.su-chips button small{display:block;font-size:10px;font-weight:500;color:var(--muted)}
+.su-chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.su-chips button.on small{color:#cde}
+.su-in{width:100%;margin-top:10px;border:2px solid var(--line);border-radius:12px;padding:13px;font-size:20px;font-weight:700;background:#fff}.su-in:focus{border-color:var(--ink);outline:none}
+.su-ok{width:100%;margin-top:16px;background:var(--ink);color:#fff;border-radius:14px;padding:16px;font-size:18px;font-weight:900}
 .sub-cat{font-weight:900;font-size:14px;border-left:4px solid var(--cc);padding-left:8px;margin:12px 2px 6px}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
 .fab{position:fixed;z-index:35;display:flex;gap:8px}
@@ -587,6 +596,15 @@ select.in{appearance:auto}
   <div class="kp-top">
     <button class="bk" id="kpClose">← 清單</button>
     <div class="nm"><b id="kpName"></b><span id="kpSub"></span></div>
+  </div>
+  <div class="kp-setup hide" id="kpSetup">
+    <div class="su-t">先設定這個品項的叫貨單位</div>
+    <p class="su-p">沒有單位的話，叫貨單、下訂、列印和成本都看不懂。設定一次，以後都會記住。</p>
+    <div class="su-l">單位（必填）</div><div class="su-chips" id="suChips"></div>
+    <input class="su-in" id="suUnit" placeholder="或自己打單位，例如 箱" autocomplete="off" enterkeyhint="next">
+    <div class="su-l">規格（選填）：用 / 分開，可以寫重量，例如 台灣/進口　或　漂亮10kg/中</div>
+    <input class="su-in" id="suSpec" placeholder="沒有規格就空著" autocomplete="off" enterkeyhint="done">
+    <button class="su-ok" id="suOk">儲存並開始叫貨</button>
   </div>
   <div class="kp-body">
     <div class="kp-info">
@@ -1008,6 +1026,9 @@ function iQty(i, e) {
 
 /* ---- 叫貨品項 ---- */
 const isUnitOpt = o => UNIT_WORDS.has(o);
+/* 叫貨單位和規格都沒設定：叫貨前要先設定（有規格的，例如 台灣/進口，算有設定） */
+const needUnit = it => !String(it.u || "").trim() && !(it.o || []).some(x => String(x).trim());
+const COMMON_UNITS = ["件", "箱", "包", "袋", "把", "籃", "斤", "公斤", "盒", "束", "捆", "桶", "顆", "條", "瓶", "支", "粒"];
 /* ===== 分廠商叫貨（例如葉菜類：阿凱、大北園、惠鮮、其他）=====
    該分類的品項，每個廠商各填一個數量；有規格的品項用「規格·廠商」 */
 const DEF_VEND = { "葉菜類": ["阿凱", "大北園", "惠鮮", "其他"] };
@@ -1529,6 +1550,7 @@ function renderOrd() {
     <div class="rows">${its.map(i => rowHtml(i, L[i.id])).join("")}</div>`;
 }
 function rowHtml(it, e) {
+  const nu = needUnit(it) ? `<span class="bdg nu">未設單位</span>` : "";
   const a = analyze(it), ordered = hasQty(e);
   let cls = "row", val = `<span class="dash">—</span>`;
   if (ordered) { cls += " set"; val = lineHtml(it, e) }
@@ -1537,7 +1559,7 @@ function rowHtml(it, e) {
   const multi = ordered && Object.values(e.vs).filter(v => v > 0).length > 1;
   const spec = it.o && it.o.length ? `<small>${esc(it.o.join("/"))}</small>` : it.u ? `<small>${esc(it.u)}</small>` : "";
   const okb = ordered && itemCk(it) ? `<span class="bdg okd">已訂</span>` : "";
-  return `<button class="${cls}" data-id="${it.id}"><span class="nm"><b>${esc(it.n)}${spec}${okb}</b><span class="stk">${stockHtml(a)}</span></span><span class="val${multi ? " multi" : ""}">${val}</span></button>`;
+  return `<button class="${cls}" data-id="${it.id}"><span class="nm"><b>${esc(it.n)}${spec}${okb}${nu}</b><span class="stk">${stockHtml(a)}</span></span><span class="val${multi ? " multi" : ""}">${val}</span></button>`;
 }
 $("#oq").addEventListener("input", e => { S.oq = e.target.value; renderOrd() });
 $("#ofl").addEventListener("click", e => { const b = e.target.closest("[data-of]"); if (!b) return; S.of = b.dataset.of; renderOrd() });
@@ -1555,11 +1577,29 @@ $("#list").addEventListener("click", e => {
   if (e.target.closest("[data-fillall]")) { const L = lines(), q = norm(S.oq || ""); fillSuggest(oItems().filter(it => (!q || norm(it.n).includes(q)))); return }
   const r = e.target.closest("[data-id]"); if (r) openKp(r.dataset.id);
 });
+$("#kpSetup").addEventListener("click", e => {
+  const b = e.target.closest("[data-su]"); if (b) { $("#suUnit").value = b.dataset.su; document.querySelectorAll("#suChips button").forEach(x => x.classList.toggle("on", x === b)); return }
+});
+$("#suUnit").addEventListener("input", () => document.querySelectorAll("#suChips button").forEach(x => x.classList.toggle("on", x.dataset.su === $("#suUnit").value.trim())));
+$("#suUnit").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#suSpec").focus() } });
+$("#suSpec").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#suOk").click() } });
+$("#suOk").onclick = async () => {
+  const id = $("#kpSetup").dataset.id, u = $("#suUnit").value.trim(); if (!id) return;
+  if (!u) { toast("先選或輸入單位"); $("#suUnit").focus(); return }
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), it = x && x.items.find(i => i.id === id); if (!it) return;
+  const raw = $("#suSpec").value.split(/[\/、,，|]/).map(t => t.trim()).filter(Boolean), ow = {};
+  it.u = u; it.o = raw.map(t => { const p = splitWt(t); if (p.w) ow[p.n] = p.w; return p.n });
+  if (Object.keys(ow).length) it.ow = ow; else delete it.ow;
+  await store.saveOrdCfg(cfg).catch(err);
+  const t0 = Date.now(); const go = () => { const n = oById(id); if ((n && !needUnit(n)) || Date.now() - t0 > 4000) { S.kp = null; $("#kp").classList.remove("show"); openKp(id); toast(`已設定「${it.n}」單位：${u}${it.o.length ? "，規格：" + it.o.join("/") : ""}`) } else setTimeout(go, 150) }; go();
+};
 function fillSuggest(its) {
   if (needMe()) return;
   const L = lines(), obj = {}; let n = 0;
-  its.forEach(it => { if (hasQty(L[it.id])) return; const a = analyze(it); if (!a.needAny) return; obj[it.id] = mkEntry(it, a.sug, true); n++ });
-  if (!n) return toast("沒有需要帶入的建議");
+  let skip = 0;
+  its.forEach(it => { if (hasQty(L[it.id])) return; const a = analyze(it); if (!a.needAny) return; if (needUnit(it)) { skip++; return } obj[it.id] = mkEntry(it, a.sug, true); n++ });
+  if (!n) return toast(skip ? `${skip} 項還沒設叫貨單位，先點進去設定才能叫` : "沒有需要帶入的建議");
+  if (skip) toast(`有 ${skip} 項還沒設叫貨單位，沒有帶入`, 3000);
   store.setLines(S.date, S.sup, obj); stampEdit();
   toast(`已帶入 ${n} 項建議，數量可以再點進去改`);
 }
@@ -1595,6 +1635,16 @@ function kpNum(k) { const b = S.kp.bufs[k]; if (b === "" || b === ".") return nu
 function renderKp() {
   const k = S.kp, it = oById(k.id); if (!it) return closeKp();
   const a = analyze(it), e = lines()[k.id];
+  { const need = needUnit(it), su = $("#kpSetup"), was = su.dataset.id;
+    su.classList.toggle("hide", !need); document.querySelector("#kp .kp-body").classList.toggle("hide", need);
+    if (need && was !== it.id) {
+      su.dataset.id = it.id; const ul = a.rows.map(r => iUnits(r.inv)[0]).filter(Boolean);
+      $("#suChips").innerHTML = [...new Set([...ul, ...COMMON_UNITS])].map((u, i) => `<button data-su="${esc(u)}" class="${ul.includes(u) ? "sg" : ""}">${esc(u)}${ul.includes(u) && i === 0 ? "<small>點貨用</small>" : ""}</button>`).join("");
+      $("#suUnit").value = ""; $("#suSpec").value = (it.o || []).join("/");
+    }
+    if (!need) su.dataset.id = "";
+    if (need) { $("#kpName").textContent = it.n; $("#kpSub").textContent = `${it.c}　${sup().name}　還沒設單位`; return }
+  }
   $("#kpName").textContent = it.n;
   $("#kpSub").textContent = [it.c, sup().name, it.o && it.o.length ? it.o.join("/") : it.u].filter(Boolean).join("　");
   $("#kpStkL").textContent = S.invDay ? `庫存（${dateLabel(S.invDay.date)} 點貨）` : "庫存";
@@ -1691,6 +1741,7 @@ function keyOf(e) {
 }
 document.addEventListener("keydown", e => {
   if (!S.kp) return;
+  if (e.target && e.target.matches && e.target.matches("input,textarea,select")) return;   /* 在輸入框打字（設定單位、換算）時不要當成數字鍵 */
   const k = keyOf(e);
   let hit = true;
   if (/^[0-9.]$/.test(k)) document.querySelector(`#kp [data-k="${k}"]`)?.click();
