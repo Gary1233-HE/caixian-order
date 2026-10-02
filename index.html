@@ -1202,9 +1202,21 @@ setTimeout(() => {
   if (!S.ocfgLoaded && !ST.ord) { ST.ord = "等了 12 秒還沒有回應（資料庫可能還沒建立，或網路不通）"; showStatus() }
   if (!S.inv && !ST.inv && inv.mode === "fb") { ST.inv = "等了 12 秒還沒有回應"; showStatus() }
 }, 12000);
-inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); render() });
+inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); seedMushroom(); render() });
 $("#invSrc").textContent = "連線中…";
 /* 建立品項時讀不到點貨 → 讀到後自動補上連動 */
+/* 一次性：點貨的菇類全部帶入「霧峰菇」（沒有這家就新增），自動連動點貨 */
+function seedMushroom() {
+  if (!S.ocfg || !S.ocfg.sups || S.ocfg.mush1 || !invItems().length || window.__mushBusy) return;
+  const mush = invItems().filter(i => i.c === "菇類"); if (!mush.length) return;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg));
+  let x = cfg.sups.find(q => /霧峰菇/.test(q.name));
+  if (!x) { x = { id: "s" + Date.now().toString(36), name: "霧峰菇", items: [] }; cfg.sups.push(x) }
+  const t0 = Date.now().toString(36); let n = 0;
+  mush.forEach((i, k) => { if (x.items.some(it => (it.inv || []).includes(i.id))) return; x.items.push({ id: `o${t0}m${k}`, c: "菇類", n: i.n, o: [], u: String(i.u || "").split("/")[0] || "", inv: [i.id], manual: 1 }); n++ });
+  cfg.mush1 = 1; window.__mushBusy = 1;
+  store.saveOrdCfg(cfg).then(() => { window.__mushBusy = 0; if (n) toast(`已把點貨的菇類 ${n} 項帶入「霧峰菇」`, 3000) }).catch(e => { window.__mushBusy = 0; err(e) });
+}
 function relink() {
   if (!S.ocfg || !S.ocfg.sups || !invItems().length) return;
   const byName = {}; invItems().forEach(i => (byName[i.n] ||= []).push(i));
@@ -1228,7 +1240,7 @@ function relink() {
   if (n) store.saveOrdCfg(cfg).then(() => toast(`點貨品項有更新，已自動連動 ${n} 項`)).catch(err);
 }
 store.watchOrdCfg(c => {
-  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink();
+  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom();
   normWeights();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 7)) { migrate(); return }
