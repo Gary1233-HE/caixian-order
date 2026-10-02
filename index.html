@@ -452,6 +452,7 @@ select.in{appearance:auto}
 .obar{position:sticky;top:var(--tabs-top,96px);z-index:16;display:flex;gap:8px;align-items:center;padding:8px 12px 0;background:var(--catbg,var(--bg))}
 .obar input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:15px;background:#fff}
 .ofl{display:flex;gap:4px;flex:none}.ofl button{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12.5px;font-weight:700;background:#fff}.ofl button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.imp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.imp-grid .btn{flex-direction:column;padding:14px 6px;font-size:16px}.imp-grid .btn small{font-size:12px;font-weight:500;opacity:.8}
 .sub-cat{font-weight:900;font-size:14px;border-left:4px solid var(--cc);padding-left:8px;margin:12px 2px 6px}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
 .fab{position:fixed;z-index:35;display:flex;gap:8px}
@@ -1205,17 +1206,19 @@ setTimeout(() => {
 inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); seedMushroom(); render() });
 $("#invSrc").textContent = "連線中…";
 /* 建立品項時讀不到點貨 → 讀到後自動補上連動 */
-/* 一次性：點貨的菇類全部帶入「霧峰菇」（沒有這家就新增），自動連動點貨 */
+/* 菇類帶入：名字有「菇」的廠商，如果還沒有任何菇類品項，就把點貨的菇類全部帶入（自動連動點貨）
+   每家只做一次（x.mushDone）；同名的廠商有好幾家也都會補到 */
 function seedMushroom() {
-  if (!S.ocfg || !S.ocfg.sups || S.ocfg.mush1 || !invItems().length || window.__mushBusy) return;
+  if (!S.ocfg || !S.ocfg.sups || !invItems().length || window.__mushBusy) return;
   const mush = invItems().filter(i => i.c === "菇類"); if (!mush.length) return;
   const cfg = JSON.parse(JSON.stringify(S.ocfg));
-  let x = cfg.sups.find(q => /霧峰菇/.test(q.name));
-  if (!x) { x = { id: "s" + Date.now().toString(36), name: "霧峰菇", items: [] }; cfg.sups.push(x) }
+  let targets = cfg.sups.filter(q => /菇/.test(q.name) && !q.mushDone && !q.items.some(it => it.c === "菇類"));
+  if (!cfg.sups.some(q => /菇/.test(q.name)) && !cfg.mush1) { const x = { id: "s" + Date.now().toString(36), name: "霧峰菇", items: [] }; cfg.sups.push(x); targets = [x] }
+  if (!targets.length) { if (!cfg.mush1) { cfg.mush1 = 1; store.saveOrdCfg(cfg).catch(err) } return }
   const t0 = Date.now().toString(36); let n = 0;
-  mush.forEach((i, k) => { if (x.items.some(it => (it.inv || []).includes(i.id))) return; x.items.push({ id: `o${t0}m${k}`, c: "菇類", n: i.n, o: [], u: String(i.u || "").split("/")[0] || "", inv: [i.id], manual: 1 }); n++ });
+  targets.forEach((x, xi) => { mush.forEach((i, k) => { if (x.items.some(it => (it.inv || []).includes(i.id))) return; x.items.push({ id: `o${t0}m${xi}_${k}`, c: "菇類", n: i.n, o: [], u: String(i.u || "").split("/")[0] || "", inv: [i.id], manual: 1 }); n++ }); x.mushDone = 1 });
   cfg.mush1 = 1; window.__mushBusy = 1;
-  store.saveOrdCfg(cfg).then(() => { window.__mushBusy = 0; if (n) toast(`已把點貨的菇類 ${n} 項帶入「霧峰菇」`, 3000) }).catch(e => { window.__mushBusy = 0; err(e) });
+  store.saveOrdCfg(cfg).then(() => { window.__mushBusy = 0; if (n) toast(`已把點貨的菇類 ${mush.length} 項帶入「${targets.map(x => x.name).join("、")}」`, 3500) }).catch(e => { window.__mushBusy = 0; err(e) });
 }
 function relink() {
   if (!S.ocfg || !S.ocfg.sups || !invItems().length) return;
@@ -1415,6 +1418,15 @@ function renderTop() {
 
 function renderOrd() {
   const L = lines(), q = norm(S.oq || ""), of = S.of || "all";
+  /* 這家廠商還沒有品項：直接給「從點貨帶入」按鈕 */
+  if (!oItems().length) {
+    $("#tabs").innerHTML = ""; document.documentElement.style.setProperty("--catbg", "var(--bg)");
+    const cats = ((S.inv && S.inv.cats) || DEF_CATS).map(c => [c, invItems().filter(i => i.c === c).length]).filter(([, n]) => n);
+    $("#list").innerHTML = `<div class="panel" style="margin-top:14px"><h3>「${esc(sup().name)}」還沒有叫貨品項</h3>
+      <p class="muted" style="margin:0 0 10px">點一下，就把點貨 App 那一類的品項全部帶進來，並自動連動庫存</p>
+      <div class="imp-grid">${cats.map(([c, n]) => `<button class="btn${/菇/.test(c) && /菇/.test(sup().name) ? " okb" : ""}" data-impc="${esc(c)}">${esc(c)}<small>${n} 項</small></button>`).join("")}</div></div>`;
+    return;
+  }
   document.querySelectorAll("#ofl [data-of]").forEach(b => b.classList.toggle("on", b.dataset.of === of));
   const pass = it => (of === "all" || (of === "sug" && !hasQty(L[it.id]) && analyze(it).needAny) || (of === "ord" && hasQty(L[it.id])));
   /* 搜尋或篩選時：所有分類一起列 */
@@ -1455,6 +1467,14 @@ $("#ofl").addEventListener("click", e => { const b = e.target.closest("[data-of]
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; S.cat = b.dataset.cat; renderOrd(); window.scrollTo(0, 0) });
 $("#list").addEventListener("click", e => {
   if (e.target.closest("[data-fillcat]")) { fillSuggest(itemsOf(S.cat)); return }
+  const ic = e.target.closest("[data-impc]");
+  if (ic) {
+    const cat = ic.dataset.impc, cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup); if (!x) return;
+    const add = invItems().filter(i => i.c === cat && !x.items.some(it => (it.inv || []).includes(i.id))), t0 = Date.now().toString(36);
+    add.forEach((i, k) => x.items.push({ id: `o${t0}${k}`, c: cat, n: i.n, o: [], u: String(i.u || "").split("/")[0] || "", inv: [i.id], manual: 1 }));
+    if (/菇/.test(cat)) x.mushDone = 1;
+    store.saveOrdCfg(cfg).then(() => toast(`已帶入 ${cat} ${add.length} 項到 ${x.name}`)).catch(err); return;
+  }
   if (e.target.closest("[data-fillall]")) { const L = lines(), q = norm(S.oq || ""); fillSuggest(oItems().filter(it => (!q || norm(it.n).includes(q)))); return }
   const r = e.target.closest("[data-id]"); if (r) openKp(r.dataset.id);
 });
