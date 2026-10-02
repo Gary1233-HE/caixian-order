@@ -506,12 +506,16 @@ select.in{appearance:auto}
 .alt-r{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.alt-r span{flex:1;font-weight:700}.alt-r small{color:var(--muted);font-weight:500}
 .alt-add{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.alt-add select{padding:9px;min-width:0}.alt-add .btn{grid-column:1/-1}
 .pc-pr{display:flex;align-items:center;gap:6px;margin:-2px 0 8px}.pc-pr span{font-size:11px;color:var(--muted);white-space:nowrap}.pc-pr input{flex:1;min-width:0;padding:7px;font-size:13px}
+.push-ok{background:#E8F5EC;border:1.5px solid #9CCFAE;color:#1E6B3B;border-radius:10px;padding:9px 12px;font-size:13px;margin-top:10px}
+.pu-cost{font-family:var(--mono);font-size:17px;color:var(--ok)}.pu-done{padding:14px 4px;line-height:1.7}.pu-done ol{margin:8px 0 12px 20px;padding:0}.pu-done .btn{display:inline-block;width:auto;padding:12px 18px}
+.pu-err{background:#FFF6F4;border:1px solid #F0C4BE;color:var(--warn);border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:8px}
 .push-warn{background:#FFF3E0;border:1.5px solid #F2C58E;color:#8A4B00;border-radius:10px;padding:9px 12px;font-size:13px;margin-top:10px}
 .push-l{overflow:auto;max-height:46vh;margin-top:10px}.push-b{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:10px}.push-b .btn{width:auto;padding:13px 8px;font-size:14px}.push-b .hide{display:none}
 .pu-r{border-bottom:1px solid var(--line);padding:10px 2px}.pu-r.miss{background:#FFF6F4}.pu-r.big{background:#FFFAF0}
 .pu-c{display:flex;align-items:flex-start;gap:10px}.pu-c input{width:22px;height:22px;margin-top:2px}.pu-n b{font-size:16px}.pu-n small{display:block;color:var(--muted);font-size:12px}
 .pu-v{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 2px 32px;font-family:var(--mono);font-size:14px}.pu-v s{color:var(--muted)}.pu-v em{font-style:normal;font-size:12px;font-weight:900;margin-left:5px;padding:0 5px;border-radius:5px}.pu-v em.up{background:var(--warnbg);color:var(--warn)}.pu-v em.dn{background:var(--okbg);color:var(--ok)}
 .pu-s{margin:0 0 0 32px;font-size:11.5px;color:var(--muted)}.pu-s .bad,.pu-s.bad{color:var(--warn);font-weight:700}
+.pu-pick{width:calc(100% - 32px);margin:6px 0 4px 32px;padding:9px}
 .pu-aff{margin-top:10px;background:var(--bg);border-radius:10px;padding:8px 12px;font-size:13px}.pu-aff b{display:block;margin-bottom:4px}.pu-aff div{font-family:var(--mono)}
 .sub-cat{font-weight:900;font-size:14px;border-left:4px solid var(--cc);padding-left:8px;margin:12px 2px 6px}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
@@ -682,10 +686,10 @@ select.in{appearance:auto}
   <button class="btn okb" id="bulkOk" style="margin-top:8px">套用</button>
 </section>
 <section class="sheet" id="pushSheet" aria-label="送到報價">
-  <div class="sh-head"><div><b>送到採鮮報價</b><span id="pushSub"></span></div><button class="sh-x" id="pushClose" aria-label="關閉">×</button></div>
-  <div class="push-warn">⚠ 套用後，<b>客人看的報價頁會立刻變</b>（售價＝成本＋你設定的加價）。先確認下面的新售價。</div>
+  <div class="sh-head"><div><b>送到採鮮報價（待確認）</b><span id="pushSub"></span></div><button class="sh-x" id="pushClose" aria-label="關閉">×</button></div>
+  <div class="push-ok">✓ 這只會送到報價後台的<b>「待確認」</b>，<b>不會</b>改到客人看的報價。你在後台看過、按「發布」才會生效。</div>
   <div class="push-l" id="pushList"></div>
-  <div class="push-b"><button class="btn" id="pushUndo">還原上次</button><button class="btn okb" id="pushOk">套用勾選的</button></div>
+  <div class="push-b"><button class="btn" id="pushCopy">複製成本資料</button><button class="btn okb" id="pushOk">送到報價後台</button></div>
 </section>
 <div class="bigedit hide" id="askBox" role="dialog" aria-label="輸入">
   <div class="be-l" id="askLabel"></div>
@@ -944,44 +948,25 @@ function pb_cutPrice(item, all) {
 }
 
 let priceDb = null;
+/* 不直接改報價：成本先送到「待確認」（price_board/cost_pending），由報價後台看過、按「帶入」，再自己按「發布」 */
 const priceApi = (() => {
-  const REF = ["price_board", "current"], LOGREF = ["price_board", "order_cost_log"];
+  const REF = ["price_board", "current"], PEND = ["price_board", "cost_pending"];
   if (F) {
     const db = () => priceDb ||= F.getFirestore(A.initializeApp(PRICE_CONFIG, "price"));
     return {
       mode: "fb",
       get: async () => { const x = await F.getDoc(F.doc(db(), ...REF)); return x.exists() ? x.data() : null },
-      /* 在同一個交易裡重讀最新的報價資料，只改指定品項的 cost，其他欄位原封不動 */
-      apply: async (changes, by) => F.runTransaction(db(), async tx => {
-        const cur = await tx.get(F.doc(db(), ...REF)), lg = await tx.get(F.doc(db(), ...LOGREF));
-        if (!cur.exists()) throw new Error("雲端沒有報價資料");
-        const items = (cur.data().items || []).map(i => { const c = changes.find(x => x.id === i.id); return c ? { ...i, cost: c.to } : i });
-        tx.update(F.doc(db(), ...REF), { items, costFeedAt: new Date().toISOString() });
-        const entries = ((lg.exists() ? lg.data().entries : []) || []).slice(-29);
-        entries.push({ t: Date.now(), by: by || "", changes: changes.map(c => ({ id: c.id, name: c.name, from: c.from, to: c.to })) });
-        tx.set(F.doc(db(), ...LOGREF), { entries });
-      }),
-      lastLog: async () => { const x = await F.getDoc(F.doc(db(), ...LOGREF)); const e = x.exists() ? (x.data().entries || []) : []; return e.filter(z => !z.undone).pop() || null },
-      undo: async () => F.runTransaction(db(), async tx => {
-        const cur = await tx.get(F.doc(db(), ...REF)), lg = await tx.get(F.doc(db(), ...LOGREF));
-        const entries = (lg.exists() ? lg.data().entries : []) || [], k = entries.map(z => !z.undone).lastIndexOf(true); if (k < 0) throw new Error("沒有可以還原的紀錄");
-        const en = entries[k]; let n = 0, skip = 0;
-        const items = (cur.data().items || []).map(i => { const c = en.changes.find(x => x.id === i.id); if (!c) return i; if (Number(i.cost) === Number(c.to)) { n++; return { ...i, cost: c.from } } skip++; return i });
-        entries[k] = { ...en, undone: Date.now() };
-        tx.update(F.doc(db(), ...REF), { items, costFeedAt: new Date().toISOString() }); tx.set(F.doc(db(), ...LOGREF), { entries });
-        return { n, skip };
-      })
+      stage: async payload => F.setDoc(F.doc(db(), ...PEND), payload),
+      pending: async () => { const x = await F.getDoc(F.doc(db(), ...PEND)); return x.exists() ? x.data() : null }
     };
   }
-  /* 示範／本機模式：假的報價資料，方便測試 */
-  const K = "cxo-demo-priceboard", KL = "cxo-demo-pricelog";
+  const K = "cxo-demo-priceboard", KP = "cxo-demo-pricepending";
   const rd = k => { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } };
-  const board = () => rd(K) || { items: [{ id: "i1", cat: "c1", name: "修清高麗/KG", type: "fixed", markup: 20, cost: 35 }, { id: "i2", cat: "c1", name: "高麗約20KG", type: "fixed", markup: 160, cost: 600 }, { id: "i9", cat: "c4", name: "高麗截切", srcId: "i1", cutType: "whole", cutFee: 10, cost: 0 }, { id: "i4", cat: "c1", name: "油菜18KG", type: "fixed", markup: 100, cost: 400 }] };
   return {
-    mode: "demo", get: async () => board(),
-    apply: async (changes, by) => { const b = board(); b.items = b.items.map(i => { const c = changes.find(x => x.id === i.id); return c ? { ...i, cost: c.to } : i }); localStorage.setItem(K, JSON.stringify(b)); const lg = rd(KL) || []; lg.push({ t: Date.now(), by, changes: changes.map(c => ({ id: c.id, name: c.name, from: c.from, to: c.to })) }); localStorage.setItem(KL, JSON.stringify(lg)) },
-    lastLog: async () => (rd(KL) || []).filter(z => !z.undone).pop() || null,
-    undo: async () => { const lg = rd(KL) || [], k = lg.map(z => !z.undone).lastIndexOf(true); if (k < 0) throw new Error("沒有可以還原的紀錄"); const b = board(); let n = 0, skip = 0; b.items = b.items.map(i => { const c = lg[k].changes.find(x => x.id === i.id); if (!c) return i; if (Number(i.cost) === Number(c.to)) { n++; return { ...i, cost: c.from } } skip++; return i }); lg[k].undone = Date.now(); localStorage.setItem(K, JSON.stringify(b)); localStorage.setItem(KL, JSON.stringify(lg)); return { n, skip } }
+    mode: "demo",
+    get: async () => rd(K) || { items: [{ id: "i1", cat: "c1", name: "修清高麗/KG", type: "fixed", markup: 20, cost: 35 }, { id: "i2", cat: "c1", name: "高麗約20KG", type: "fixed", markup: 160, cost: 600 }] },
+    stage: async payload => localStorage.setItem(KP, JSON.stringify(payload)),
+    pending: async () => rd(KP)
   };
 })();
 /* ---- 點貨（唯讀） ---- */
@@ -2323,8 +2308,8 @@ function procCost(it, price, wt) {
     return { n: o.n, u: isKg ? "KG" : o.u, c, perKg: isKg ? c : (o.uw > 0 ? c / o.uw : null) };
   }) };
 }
-/* ===== 送到報價：預覽 → 勾選 → 套用 ===== */
-const PUSH = { rows: [], items: [], last: null };
+/* ===== 送到報價（待確認）：預覽 → 勾選 → 送出。不會改到客人看的報價 ===== */
+const PUSH = { rows: [], items: [], sent: null };
 const baseName = n => String(n || "").replace(/[/／].*$/, "").trim();
 function findPriceItem(items, name) {
   if (!name) return null;
@@ -2337,7 +2322,7 @@ function pushCandidates() {
     const up = unitPriceOf(it), e0 = lines()[it.id], ow = e0 && hasQty(e0) ? effWt(it, e0, qtyOpts(it, e0)[0]) : effWt(it, null, baseKeys(it)[0]);
     const W = ow ? ow.w : it.pc.w, pr = up && procCost(it, up.p, W); if (!pr) return;
     const src = it.pc.outs.filter(x => x.n && x.y > 0);
-    pr.outs.forEach((o, k) => { const so = src[k]; if (so && so.pr) out.push({ it, name: o.n, pr: so.pr, cost: Math.round(o.c), raw: o.c, u: o.u, basis: `${money(up.p)}/${it.u || "單位"}${up.src === "last" ? "（上次價格）" : ""}` }) });
+    pr.outs.forEach((o, k) => { const so = src[k]; if (so && so.pr) out.push({ key: `${it.n}/${o.name || o.n}`, it, name: o.n, pr: so.pr, cost: Math.round(o.c), raw: o.c, u: o.u, basis: `${money(up.p)}/${it.u || "單位"}${up.src === "last" ? "（上次價格）" : ""} → ${o.n} ${fmt(Math.round(o.c * 10) / 10)} 元/${o.u}` }) });
   });
   return out;
 }
@@ -2345,52 +2330,41 @@ async function openPush() {
   if (needMe()) return;
   const cand = pushCandidates();
   if (!cand.length) return toast("還沒有算得出的成本：先在上面填原料單價");
-  $("#pushSub").textContent = "讀取報價資料中…"; $("#pushList").innerHTML = ""; $("#pushSheet").classList.add("show"); $("#scrim").classList.add("show");
-  try {
-    const d = await priceApi.get(); if (!d || !d.items) throw new Error("讀不到報價資料");
-    PUSH.items = d.items;
-    const before = new Map(d.items.map(i => [i.id, pb_calcSell(i, d.items)]));
-    PUSH.rows = cand.map(c => {
-      const pi = findPriceItem(d.items, c.pr), old = pi ? Number(pi.cost) || 0 : null, chg = pi && old ? (c.cost - old) / old : null;
-      return { ...c, pi, old, chg, big: chg != null && Math.abs(chg) > 0.3, same: pi && c.cost === old, on: !!pi && c.cost !== old && !(chg != null && Math.abs(chg) > 0.3) };
-    });
-    renderPush(before);
-    PUSH.last = await priceApi.lastLog().catch(() => null);
-    $("#pushUndo").classList.toggle("hide", !PUSH.last);
-    if (PUSH.last) $("#pushUndo").textContent = `還原上次（${new Date(PUSH.last.t).toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" })} ${hm(PUSH.last.t)}，${PUSH.last.changes.length} 項）`;
-  } catch (e) { $("#pushSub").textContent = ""; $("#pushList").innerHTML = `<div class="empty">連不到報價系統：${esc(e.message || e)}</div>`; err(e) }
+  PUSH.sent = null; $("#pushSub").textContent = "讀取報價資料中…"; $("#pushList").innerHTML = ""; $("#pushSheet").classList.add("show"); $("#scrim").classList.add("show");
+  PUSH.items = [];
+  try { const d = await priceApi.get(); PUSH.items = (d && d.items) || [] } catch (e) { /* 讀不到也可以送，只是看不到舊成本 */ }
+  PUSH.rows = cand.map(c => { const pi = findPriceItem(PUSH.items, c.pr); return { ...c, pi, old: pi ? Number(pi.cost) || 0 : null, on: true } });
+  renderPush();
 }
-function pushNewSell(r) { const items = PUSH.items.map(i => i.id === r.pi.id ? { ...i, cost: r.cost } : i); return { items, sell: pb_calcSell(items.find(i => i.id === r.pi.id), items) } }
-function renderPush(before) {
-  before ||= new Map(PUSH.items.map(i => [i.id, pb_calcSell(i, PUSH.items)]));
-  $("#pushSub").textContent = `${PUSH.rows.length} 個成品　${priceApi.mode === "demo" ? "（示範資料）" : "連到 採鮮報價"}`;
-  const sel = PUSH.rows.filter(r => r.on && r.pi);
-  /* 勾選的全部一起套用後，哪些品項的售價會變（包含連動的截切品項） */
-  const items2 = PUSH.items.map(i => { const r = sel.find(x => x.pi.id === i.id); return r ? { ...i, cost: r.cost } : i });
-  const sellChanged = items2.map(i => ({ i, o: before.get(i.id), n: pb_calcSell(i, items2) })).filter(x => (x.o || 0) !== (x.n || 0));
-  $("#pushList").innerHTML = PUSH.rows.map((r, k) => `<div class="pu-r${r.pi ? "" : " miss"}${r.big ? " big" : ""}">
-      <label class="pu-c"><input type="checkbox" data-pk="${k}" ${r.on ? "checked" : ""} ${r.pi ? "" : "disabled"}><span class="pu-n"><b>${esc(r.name)}</b><small>→ 報價「${esc(r.pi ? r.pi.name : r.pr)}」</small></span></label>
-      ${r.pi ? `<div class="pu-v"><span>成本 <s>${fmt(r.old)}</s> → <b>${fmt(r.cost)}</b>${r.chg != null ? `<em class="${r.chg > 0 ? "up" : "dn"}">${r.chg > 0 ? "＋" : "－"}${Math.round(Math.abs(r.chg) * 100)}%</em>` : ""}</span>
-        <span>售價 ${fmt(before.get(r.pi.id) || 0)} → <b>${fmt(pushNewSell(r).sell || 0)}</b></span></div>
-        <div class="pu-s">${esc(r.basis)} → ${esc(r.name)} ${fmt(Math.round(r.raw * 10) / 10)} 元/${esc(r.u)}（報價用整數 ${fmt(r.cost)}）${r.same ? "　<b>成本沒變，不用更新</b>" : ""}${r.big ? "　<b class=\"bad\">跟目前差超過 30%，確認沒填錯再勾</b>" : ""}</div>`
-      : `<div class="pu-s bad">報價裡找不到「${esc(r.pr)}」。到「設定 → 加工成本」改成報價頁的品項名稱</div>`}
-    </div>`).join("") + (sellChanged.length ? `<div class="pu-aff"><b>套用後售價會變的品項</b>${sellChanged.map(x => `<div>${esc(x.i.name)}　${fmt(x.o || 0)} → <b>${fmt(x.n || 0)}</b></div>`).join("")}</div>` : "");
-  $("#pushOk").textContent = `套用勾選的（${sel.length} 項）`; $("#pushOk").disabled = !sel.length;
+function renderPush() {
+  $("#pushSub").textContent = `${PUSH.rows.length} 個成品　${priceApi.mode === "demo" ? "（示範）" : "送到 採鮮報價後台"}`;
+  const sel = PUSH.rows.filter(r => r.on);
+  $("#pushList").innerHTML = PUSH.sent ? `<div class="pu-done">✓ 已送到報價後台（待確認）<br><small>客人看的報價<b>沒有</b>變。接下來：</small>
+      <ol><li>打開採鮮報價後台</li><li>按上方「📥 叫貨成本」</li><li>確認對應的報價品項和新價格，按「帶入」</li><li>看過沒問題，再按「發布」</li></ol>
+      <a class="btn pri" href="https://gary1233-he.github.io/caixian-price/admin.html" target="_blank" rel="noopener">開啟報價後台</a></div>`
+    : PUSH.rows.map((r, k) => `<div class="pu-r">
+      <label class="pu-c"><input type="checkbox" data-pk="${k}" ${r.on ? "checked" : ""}><span class="pu-n"><b>${esc(r.name)}</b><small>新成本 <b class="pu-cost">${fmt(r.cost)}</b> 元/${esc(r.u)}</small></span></label>
+      <div class="pu-s">${esc(r.basis)}</div>
+      <div class="pu-s">${r.pi ? `報價裡目前「${esc(r.pi.name)}」成本 ${fmt(r.old)}` : `對應的報價品項，到報價後台再選（不用改名字）`}</div>
+    </div>`).join("");
+  $("#pushOk").textContent = PUSH.sent ? "完成" : `送到報價後台（${sel.length} 項）`; $("#pushOk").disabled = !PUSH.sent && !sel.length;
+  $("#pushCopy").classList.toggle("hide", !!PUSH.sent);
 }
 function closePush() { $("#pushSheet").classList.remove("show"); $("#scrim").classList.remove("show") }
+const pushPayload = () => ({ at: new Date().toISOString(), by: S.me || "", entries: PUSH.rows.filter(r => r.on).map(r => ({ key: r.key, name: r.name, hint: r.pr, cost: r.cost, raw: Math.round(r.raw * 10) / 10, unit: r.u, basis: r.basis })) });
 $("#pushList").addEventListener("change", e => { const k = e.target.dataset && e.target.dataset.pk; if (k == null) return; PUSH.rows[+k].on = e.target.checked; renderPush() });
 $("#pushClose").onclick = closePush;
 $("#pushOk").onclick = async () => {
-  const sel = PUSH.rows.filter(r => r.on && r.pi); if (!sel.length) return;
-  if (sel.some(r => r.big) && !confirm("有成本跟目前差超過 30% 的品項，確定要送出？")) return;
-  if (!confirm(`要把 ${sel.length} 個成本寫到採鮮報價嗎？\n客人看的報價頁會立刻改變。`)) return;
+  if (PUSH.sent) return closePush();
+  const pl = pushPayload(); if (!pl.entries.length) return;
   $("#pushOk").disabled = true;
-  try { await priceApi.apply(sel.map(r => ({ id: r.pi.id, name: r.pi.name, from: r.old, to: r.cost })), S.me); closePush(); toast(`已更新報價成本 ${sel.length} 項：${sel.map(r => `${r.pi.name} ${r.old}→${r.cost}`).join("、")}`, 4500) }
-  catch (e) { $("#pushOk").disabled = false; err(e) }
+  try { await priceApi.stage(pl); PUSH.sent = true; renderPush(); toast(`已送到報價後台（待確認）${pl.entries.length} 項，客人看的報價沒有變`, 4000) }
+  catch (e) { $("#pushOk").disabled = false; err(e); $("#pushList").insertAdjacentHTML("afterbegin", `<div class="pu-err">傳不到報價後台（${esc(e.message || e)}）。可以改用「複製成本資料」，到報價後台貼上。</div>`) }
 };
-$("#pushUndo").onclick = async () => {
-  if (!confirm("還原上一次送到報價的成本？\n（只還原還沒被你在報價後台改過的品項）")) return;
-  try { const r = await priceApi.undo(); closePush(); toast(`已還原 ${r.n} 項${r.skip ? `，${r.skip} 項因為報價後台已經改過所以沒動` : ""}`, 4000) } catch (e) { err(e) }
+$("#pushCopy").onclick = async () => {
+  const t = JSON.stringify(pushPayload());
+  try { await navigator.clipboard.writeText(t) } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() }
+  toast("已複製成本資料，到報價後台「📥 叫貨成本」貼上", 3500);
 };
 function procPanel() {
   const its = oItems().filter(i => i.pc && i.pc.w > 0);
@@ -2406,7 +2380,7 @@ function procPanel() {
       </table>${it.pc.ex ? `<p class="pc-ex">⚠ 出成率和包材是範例數字，請到「設定 → 加工成本」改成你們實際秤的</p>` : ""}</div>`;
   });
   const canPush = its.some(it => (it.pc.outs || []).some(o => o.pr));
-  return `<div class="panel"><h3>加工成本</h3>${rows.join("")}${canPush ? `<button class="btn pri" id="pushPrice" style="margin-top:10px">送到採鮮報價…</button><p class="muted" style="margin:6px 0 0;font-size:12px">先預覽新成本和新售價，確認才會寫入</p>` : ""}</div>`;
+  return `<div class="panel"><h3>加工成本</h3>${rows.join("")}${canPush ? `<button class="btn pri" id="pushPrice" style="margin-top:10px">送到採鮮報價（待確認）…</button><p class="muted" style="margin:6px 0 0;font-size:12px">只會送到報價後台的「待確認」，不會直接改客人看的報價</p>` : ""}</div>`;
 }
 /* ===== 到貨＋價格：一張表一次做完 =====
    每一列：品項｜叫｜實收（✓到齊）｜單價＋單件重量｜小計
