@@ -502,6 +502,17 @@ select.in{appearance:auto}
 .su-chips button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.su-chips button.on small{color:#cde}
 .su-in{width:100%;margin-top:10px;border:2px solid var(--line);border-radius:12px;padding:13px;font-size:20px;font-weight:700;background:#fff}.su-in:focus{border-color:var(--ink);outline:none}
 .su-ok{width:100%;margin-top:16px;background:var(--ink);color:#fff;border-radius:14px;padding:16px;font-size:18px;font-weight:900}
+.row.cov{background:#F3F8F4}.row .sug.cvd{font-size:12px;line-height:1.25;text-align:center;color:var(--ok);background:var(--okbg);border-radius:8px;padding:3px 7px}
+.alt-r{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}.alt-r span{flex:1;font-weight:700}.alt-r small{color:var(--muted);font-weight:500}
+.alt-add{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}.alt-add select{padding:9px;min-width:0}.alt-add .btn{grid-column:1/-1}
+.pc-pr{display:flex;align-items:center;gap:6px;margin:-2px 0 8px}.pc-pr span{font-size:11px;color:var(--muted);white-space:nowrap}.pc-pr input{flex:1;min-width:0;padding:7px;font-size:13px}
+.push-warn{background:#FFF3E0;border:1.5px solid #F2C58E;color:#8A4B00;border-radius:10px;padding:9px 12px;font-size:13px;margin-top:10px}
+.push-l{overflow:auto;max-height:46vh;margin-top:10px}.push-b{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:10px}.push-b .btn{width:auto;padding:13px 8px;font-size:14px}.push-b .hide{display:none}
+.pu-r{border-bottom:1px solid var(--line);padding:10px 2px}.pu-r.miss{background:#FFF6F4}.pu-r.big{background:#FFFAF0}
+.pu-c{display:flex;align-items:flex-start;gap:10px}.pu-c input{width:22px;height:22px;margin-top:2px}.pu-n b{font-size:16px}.pu-n small{display:block;color:var(--muted);font-size:12px}
+.pu-v{display:flex;flex-wrap:wrap;gap:4px 14px;margin:6px 0 2px 32px;font-family:var(--mono);font-size:14px}.pu-v s{color:var(--muted)}.pu-v em{font-style:normal;font-size:12px;font-weight:900;margin-left:5px;padding:0 5px;border-radius:5px}.pu-v em.up{background:var(--warnbg);color:var(--warn)}.pu-v em.dn{background:var(--okbg);color:var(--ok)}
+.pu-s{margin:0 0 0 32px;font-size:11.5px;color:var(--muted)}.pu-s .bad,.pu-s.bad{color:var(--warn);font-weight:700}
+.pu-aff{margin-top:10px;background:var(--bg);border-radius:10px;padding:8px 12px;font-size:13px}.pu-aff b{display:block;margin-bottom:4px}.pu-aff div{font-family:var(--mono)}
 .sub-cat{font-weight:900;font-size:14px;border-left:4px solid var(--cc);padding-left:8px;margin:12px 2px 6px}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
 .fab{position:fixed;z-index:35;display:flex;gap:8px}
@@ -669,6 +680,12 @@ select.in{appearance:auto}
   <div class="bulk-l" id="bulkList"></div>
   <div class="bulk-v"><input class="in" id="bulkIn" placeholder="廠商（選或打字）" autocomplete="off" data-lpignore="true"><div class="be-chips" id="bulkChips"></div></div>
   <button class="btn okb" id="bulkOk" style="margin-top:8px">套用</button>
+</section>
+<section class="sheet" id="pushSheet" aria-label="送到報價">
+  <div class="sh-head"><div><b>送到採鮮報價</b><span id="pushSub"></span></div><button class="sh-x" id="pushClose" aria-label="關閉">×</button></div>
+  <div class="push-warn">⚠ 套用後，<b>客人看的報價頁會立刻變</b>（售價＝成本＋你設定的加價）。先確認下面的新售價。</div>
+  <div class="push-l" id="pushList"></div>
+  <div class="push-b"><button class="btn" id="pushUndo">還原上次</button><button class="btn okb" id="pushOk">套用勾選的</button></div>
 </section>
 <div class="bigedit hide" id="askBox" role="dialog" aria-label="輸入">
   <div class="be-l" id="askLabel"></div>
@@ -857,6 +874,116 @@ function mergeInvDay(wh, mk) {
   });
   return out;
 }
+/* ---- 採鮮報價（caixian-price）：把加工成本送到報價的「成本」欄 ----
+   報價頁（客人看的）是用 成本＋加價 現場算售價，所以寫入成本＝客人看到的價格會跟著變。一定先預覽、確認才寫入。 */
+const PRICE_CONFIG = { apiKey: "AIzaSyDyIgF1T3qwVUdxTtfuo9SRwpiEQpfMaIA", authDomain: "caixian-price-619c4.firebaseapp.com", projectId: "caixian-price-619c4" };
+function pb_progressiveAddon(cost, rate, fixed) {
+  rate  = rate  || 0.30;
+  fixed = fixed || 100;
+  if (cost <= 330) return fixed;
+  const raw = cost * rate;
+  const base = Math.floor(raw / 100) * 100;
+  const ones = raw - base;
+  const targets = [0, 30, 50, 80, 100];
+  const closest = targets.reduce((a, b) => Math.abs(ones - a) <= Math.abs(ones - b) ? a : b);
+  return base + (closest === 100 ? 100 : closest);
+}
+
+function pb_retailProgressiveAddon(base) {
+  let rate;
+  if (base <= 25)       rate = 1.50;
+  else if (base <= 99)  rate = 1.45;
+  else if (base <= 199) rate = 1.40;
+  else                  rate = 1.35;
+  const raw = base * rate;
+  const b = Math.floor(raw / 10) * 10;
+  const ones = raw - b;
+  const targets = [0, 3, 5, 8, 10];
+  const closest = targets.reduce((a, t) => Math.abs(ones - a) <= Math.abs(ones - t) ? a : t);
+  return b + (closest === 10 ? 10 : closest);
+}
+
+function pb_retailProgressive13(base) {
+  const rate = base <= 25 ? 1.30 : 1.25;
+  const raw = base * rate;
+  const b = Math.floor(raw / 10) * 10;
+  const ones = raw - b;
+  const targets = [0, 3, 5, 8, 10];
+  const closest = targets.reduce((a, t) => Math.abs(ones - a) <= Math.abs(ones - t) ? a : t);
+  return b + (closest === 10 ? 10 : closest);
+}
+
+function pb_calcSell(item, all) {
+  if (item.cat === 'c4' && item.srcId) return pb_cutPrice(item, all);
+  const cost = Number(item.cost)||0;
+  if (!cost) return Number(item.price)||0;
+  if (item.type==='manual')      return Number(item.price)||0;
+  if (item.type==='fixed')       return cost + (Number(item.markup)||0);
+  if (item.type==='progressive')        return cost + pb_progressiveAddon(cost, 0.30, 100);
+  if (item.type==='progressive-20')     return cost + pb_progressiveAddon(cost, 0.20, 70);
+  if (item.type==='progressive-15')     return cost + pb_progressiveAddon(cost, 0.15, 50);
+  if (item.type==='retail-progressive') return pb_retailProgressiveAddon(cost);
+  if (item.type==='retail-13')          return pb_retailProgressive13(cost);
+  return Math.round(cost * (1 + (Number(item.markup)||0)/100));
+}
+
+function pb_cutPrice(item, all) {
+  const src = all.find(i => i.id === item.srcId);
+  if (!src) return 0;
+  if ((item.cutType||'whole') === 'whole') {
+    const sp = pb_calcSell(src, all);
+    return sp ? Math.round(sp + (Number(item.cutFee)||0)) : 0;
+  }
+  // 散切：src 可能是整件切或原料，直接用其售價
+  const base = pb_calcSell(src, all);
+  if (!base) return 0;
+  const w = Number(item.srcWeight)||1;
+  const y = Number(item.cutYield)||1;
+  const a = Number(item.cutAddon)||0;
+  return Math.round((base/w)/y + a);
+}
+
+let priceDb = null;
+const priceApi = (() => {
+  const REF = ["price_board", "current"], LOGREF = ["price_board", "order_cost_log"];
+  if (F) {
+    const db = () => priceDb ||= F.getFirestore(A.initializeApp(PRICE_CONFIG, "price"));
+    return {
+      mode: "fb",
+      get: async () => { const x = await F.getDoc(F.doc(db(), ...REF)); return x.exists() ? x.data() : null },
+      /* 在同一個交易裡重讀最新的報價資料，只改指定品項的 cost，其他欄位原封不動 */
+      apply: async (changes, by) => F.runTransaction(db(), async tx => {
+        const cur = await tx.get(F.doc(db(), ...REF)), lg = await tx.get(F.doc(db(), ...LOGREF));
+        if (!cur.exists()) throw new Error("雲端沒有報價資料");
+        const items = (cur.data().items || []).map(i => { const c = changes.find(x => x.id === i.id); return c ? { ...i, cost: c.to } : i });
+        tx.update(F.doc(db(), ...REF), { items, costFeedAt: new Date().toISOString() });
+        const entries = ((lg.exists() ? lg.data().entries : []) || []).slice(-29);
+        entries.push({ t: Date.now(), by: by || "", changes: changes.map(c => ({ id: c.id, name: c.name, from: c.from, to: c.to })) });
+        tx.set(F.doc(db(), ...LOGREF), { entries });
+      }),
+      lastLog: async () => { const x = await F.getDoc(F.doc(db(), ...LOGREF)); const e = x.exists() ? (x.data().entries || []) : []; return e.filter(z => !z.undone).pop() || null },
+      undo: async () => F.runTransaction(db(), async tx => {
+        const cur = await tx.get(F.doc(db(), ...REF)), lg = await tx.get(F.doc(db(), ...LOGREF));
+        const entries = (lg.exists() ? lg.data().entries : []) || [], k = entries.map(z => !z.undone).lastIndexOf(true); if (k < 0) throw new Error("沒有可以還原的紀錄");
+        const en = entries[k]; let n = 0, skip = 0;
+        const items = (cur.data().items || []).map(i => { const c = en.changes.find(x => x.id === i.id); if (!c) return i; if (Number(i.cost) === Number(c.to)) { n++; return { ...i, cost: c.from } } skip++; return i });
+        entries[k] = { ...en, undone: Date.now() };
+        tx.update(F.doc(db(), ...REF), { items, costFeedAt: new Date().toISOString() }); tx.set(F.doc(db(), ...LOGREF), { entries });
+        return { n, skip };
+      })
+    };
+  }
+  /* 示範／本機模式：假的報價資料，方便測試 */
+  const K = "cxo-demo-priceboard", KL = "cxo-demo-pricelog";
+  const rd = k => { try { return JSON.parse(localStorage.getItem(k)) } catch { return null } };
+  const board = () => rd(K) || { items: [{ id: "i1", cat: "c1", name: "修清高麗/KG", type: "fixed", markup: 20, cost: 35 }, { id: "i2", cat: "c1", name: "高麗約20KG", type: "fixed", markup: 160, cost: 600 }, { id: "i9", cat: "c4", name: "高麗截切", srcId: "i1", cutType: "whole", cutFee: 10, cost: 0 }, { id: "i4", cat: "c1", name: "油菜18KG", type: "fixed", markup: 100, cost: 400 }] };
+  return {
+    mode: "demo", get: async () => board(),
+    apply: async (changes, by) => { const b = board(); b.items = b.items.map(i => { const c = changes.find(x => x.id === i.id); return c ? { ...i, cost: c.to } : i }); localStorage.setItem(K, JSON.stringify(b)); const lg = rd(KL) || []; lg.push({ t: Date.now(), by, changes: changes.map(c => ({ id: c.id, name: c.name, from: c.from, to: c.to })) }); localStorage.setItem(KL, JSON.stringify(lg)) },
+    lastLog: async () => (rd(KL) || []).filter(z => !z.undone).pop() || null,
+    undo: async () => { const lg = rd(KL) || [], k = lg.map(z => !z.undone).lastIndexOf(true); if (k < 0) throw new Error("沒有可以還原的紀錄"); const b = board(); let n = 0, skip = 0; b.items = b.items.map(i => { const c = lg[k].changes.find(x => x.id === i.id); if (!c) return i; if (Number(i.cost) === Number(c.to)) { n++; return { ...i, cost: c.from } } skip++; return i }); lg[k].undone = Date.now(); localStorage.setItem(K, JSON.stringify(b)); localStorage.setItem(KL, JSON.stringify(lg)); return { n, skip } }
+  };
+})();
 /* ---- 點貨（唯讀） ---- */
 let inv;
 if (F) {
@@ -1033,7 +1160,7 @@ const COMMON_UNITS = ["件", "箱", "包", "袋", "把", "籃", "斤", "公斤",
    該分類的品項，每個廠商各填一個數量；有規格的品項用「規格·廠商」 */
 const DEF_VEND = { "葉菜類": ["阿凱", "大北園", "惠鮮", "其他"] };
 /* 加工成本預設：硬種 1件＝30KG，可做修清高麗或分裝 20KG 高麗籃裝（出成率是範例，秤過後請改） */
-const DEF_PC = { w: 30, ex: 1, outs: [{ n: "修清高麗", y: 83, u: "KG", uw: 0, add: 1 }, { n: "高麗籃裝", y: 97, u: "籃", uw: 20, add: 10 }] };
+const DEF_PC = { w: 30, ex: 1, outs: [{ n: "修清高麗", y: 83, u: "KG", uw: 0, add: 1, pr: "修清高麗/KG" }, { n: "高麗籃裝", y: 97, u: "籃", uw: 20, add: 10, pr: "高麗約20KG" }] };
 const DEF_NOVEND = ["初秋", "硬種", "包心白菜", "廣東A", "格藍芽"];   /* 西螺葉菜類裡先不分廠商的品項 */
 let vendCache = new WeakMap();
 function vendorsOf(it) {
@@ -1254,6 +1381,10 @@ function planFor(it, inv, e) {
 }
 /* 叫貨日當天沒有點貨：庫存只當參考，不給建議、不提醒 */
 const invStale = () => !S.invDay || S.invDay.date !== S.date;
+/* 通用品項：兩個叫貨品項可以互相替代（例如空心菜 件25kg 和 捆）。一邊缺貨、另一邊有叫，就不用再叫 */
+const altOf = it => (it.alt || []).map(id => oById(id)).filter(Boolean);
+function coveredBy(it) { if (hasQty(lines()[it.id])) return null; return altOf(it).find(a => hasQty(lines()[a.id])) || null }
+const altName = a => `${a.n}${a.u ? "（" + a.u + "）" : ""}`;
 function analyze(it) {
   const c = invCounts(), rows = [], sug = {}, stale = invStale();
   (it.inv || []).forEach(id => {
@@ -1265,7 +1396,8 @@ function analyze(it) {
   });
   const how = rows.some(r => r.how === "fc") ? "fc" : "safe";
   const convRow = rows.find(r => r.cm && r.need > 0) || null;
-  return { rows, sug, stale, how, linked: rows.length > 0, needAny: Object.keys(sug).length > 0, convRow };
+  const cov = coveredBy(it);   /* 通用品項那邊已經叫了：這邊不用叫 */
+  return { rows, sug: cov ? {} : sug, stale, how, linked: rows.length > 0, needAny: !cov && Object.keys(sug).length > 0, convRow: cov ? null : convRow, cov };
 }
 function stockHtml(a) {
   if (!a.linked) return `<span>沒有連動點貨</span>`;
@@ -1333,7 +1465,7 @@ store.watchOrdCfg(c => {
   S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom();
   normWeights();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
-  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 7)) { migrate(); return }
+  if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 9)) { migrate(); return }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length) {
     if (!S.sup || !sups().some(s => s.id === S.sup)) { let last = ""; try { last = localStorage.getItem("cxo-sup") || "" } catch {} S.sup = sups().some(s => s.id === last) ? last : sups()[0].id; openOrder() }
     renderSupSel();
@@ -1342,12 +1474,16 @@ store.watchOrdCfg(c => {
 });
 /* 舊設定自動修正：台青＝台灣蘆筍，不是青江菜 */
 function migrate() {
-  const cfg = JSON.parse(JSON.stringify(S.ocfg)), v = cfg.ver || 0; cfg.ver = 7;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), v = cfg.ver || 0; cfg.ver = 9;
   if (!cfg.people || !cfg.people.length) cfg.people = DEFAULT_PEOPLE.slice();
   const x = cfg.sups.find(s => s.id === "xiluo");
   if (v < 3) { const it = x && x.items.find(i => i.n === "台青");
     if (it) { const qj = invItems().filter(i => i.n === "青江菜").map(i => i.id); it.inv = (it.inv || []).filter(id => !qj.includes(id)); if (it.u === "捆") it.u = "" } }
   /* v6：初秋、硬種、包心白菜、廣東A、格藍芽 先不分廠商 */
+  /* v9：加工成本的成品對應報價品項（先接修清高麗、高麗籃裝） */
+  if (v < 9) cfg.sups.forEach(sp => sp.items.forEach(i => { if (i.pc && i.pc.outs) i.pc.outs.forEach(o => { if (!o.pr && o.n === "修清高麗") o.pr = "修清高麗/KG"; if (!o.pr && o.n === "高麗籃裝") o.pr = "高麗約20KG" }) }));
+  /* v8：空心菜（葉菜類 件）和空心菜（水菜類 捆）通用 */
+  if (v < 8 && x) { const a1 = x.items.find(i => i.n === "空心菜" && i.c === "葉菜類"), a2 = x.items.find(i => i.n === "空心菜" && i.c === "水菜類"); if (a1 && a2) { a1.alt = [...new Set([...(a1.alt || []), a2.id])]; a2.alt = [...new Set([...(a2.alt || []), a1.id])] } }
   /* v7：硬種加工成本預設 */
   if (v < 7 && x) x.items.forEach(i => { if (i.c === "葉菜類" && i.n === "硬種" && !i.pc) i.pc = JSON.parse(JSON.stringify(DEF_PC)) });
   if (v < 6 && x) x.items.forEach(i => { if (i.c === "葉菜類" && DEF_NOVEND.includes(i.n)) i.nv = 1 });
@@ -1367,7 +1503,8 @@ function ensureSeed() {
   const items = SEED_XILUO.map((r, k) => ({ id: "o" + String(k + 1).padStart(3, "0"), c: r[0], n: r[1], o: r[2], u: r[3], inv: r[4].map(resolve).filter(Boolean).map(i => i.id) }));
   items.forEach(i => { if (i.c === "葉菜類" && DEF_NOVEND.includes(i.n)) i.nv = 1 });
   items.forEach(i => { if (i.c === "葉菜類" && i.n === "硬種") i.pc = JSON.parse(JSON.stringify(DEF_PC)) });
-  const cfg = { ver: 7, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, vend: JSON.parse(JSON.stringify(DEF_VEND)), items }] };
+  { const a1 = items.find(i => i.n === "空心菜" && i.c === "葉菜類"), a2 = items.find(i => i.n === "空心菜" && i.c === "水菜類"); if (a1 && a2) { a1.alt = [a2.id]; a2.alt = [a1.id] } }
+  const cfg = { ver: 9, people: DEFAULT_PEOPLE.slice(), sups: [{ id: "xiluo", name: "西螺", cols: XILUO_COLS, vend: JSON.parse(JSON.stringify(DEF_VEND)), items }] };
   if (!invItems().length) cfg.needLink = true;
   store.saveOrdCfg(cfg).catch(e => { seeded = false; err(e) });
 }
@@ -1554,6 +1691,7 @@ function rowHtml(it, e) {
   const a = analyze(it), ordered = hasQty(e);
   let cls = "row", val = `<span class="dash">—</span>`;
   if (ordered) { cls += " set"; val = lineHtml(it, e) }
+  else if (a.cov) { cls += " cov"; val = `<span class="sug cvd">已叫${esc(String(a.cov.c || "").replace(/類$/, ""))}<br>${esc(lineText(a.cov, lines()[a.cov.id]))}</span>` }
   else if (a.needAny) { cls += " need"; val = `<span class="sug">${a.how === "fc" ? "預估" : "建議"} ${esc(sugText(it, a.sug))}</span>` }
   else if (a.convRow) { cls += " need"; val = `<span class="sug cvh">單位不同<br>先設換算</span>` }
   const multi = ordered && Object.values(e.vs).filter(v => v > 0).length > 1;
@@ -1665,7 +1803,8 @@ function renderKp() {
   $("#kpOpt").textContent = k.o && !isUnitOpt(k.o) ? k.o : "";
   $("#kpUnit").textContent = isUnitOpt(k.o) ? k.o : it.u || "";
   const m = $("#kpMsg");
-  if (!a.linked) { m.className = "kp-msg nl"; m.textContent = "這項沒有連動點貨，到「設定」可以連動" }
+  if (a.cov) { m.className = "kp-msg ok"; m.textContent = `已叫${String(a.cov.c || "").replace(/類$/, "")}（${a.cov.n} ${lineText(a.cov, lines()[a.cov.id])}），這邊不用再叫，缺貨也沒關係` }
+  else if (!a.linked) { m.className = "kp-msg nl"; m.textContent = "這項沒有連動點貨，到「設定」可以連動" }
   else if (!S.invDay) { m.className = "kp-msg nl"; m.textContent = "還沒有點貨紀錄，直接輸入數量" }
   else if (a.stale) { m.className = "kp-msg nl"; m.textContent = `沒有當天點貨，庫存是 ${dateLabel(S.invDay.date)} 的，只供參考` }
   else if (a.rows.every(r => r.e == null) && !a.rows.some(r => r.why)) { m.className = "kp-msg nl"; m.textContent = "今天還沒點到這項" }
@@ -1765,7 +1904,7 @@ function openPeople() {
   $("#ppList").innerHTML = ppl.map(p => `<button class="${p === S.me ? "on" : ""}" data-p="${esc(p)}">${esc(p)}</button>`).join("");
   openSheet("pp");
 }
-$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk() };
+$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush() };
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheets);
 $("#ppList").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; S.me = b.dataset.p; try { localStorage.setItem("caixian-order-me", S.me) } catch {} renderWho(); closeSheets() };
 
@@ -2184,6 +2323,75 @@ function procCost(it, price, wt) {
     return { n: o.n, u: isKg ? "KG" : o.u, c, perKg: isKg ? c : (o.uw > 0 ? c / o.uw : null) };
   }) };
 }
+/* ===== 送到報價：預覽 → 勾選 → 套用 ===== */
+const PUSH = { rows: [], items: [], last: null };
+const baseName = n => String(n || "").replace(/[/／].*$/, "").trim();
+function findPriceItem(items, name) {
+  if (!name) return null;
+  return items.find(i => i.name === name) || items.find(i => baseName(i.name) === baseName(name) && baseName(name)) || null;
+}
+/* 目前每個成品算出的成本（跟加工成本面板同一個算法） */
+function pushCandidates() {
+  const out = [];
+  oItems().filter(i => i.pc && i.pc.w > 0).forEach(it => {
+    const up = unitPriceOf(it), e0 = lines()[it.id], ow = e0 && hasQty(e0) ? effWt(it, e0, qtyOpts(it, e0)[0]) : effWt(it, null, baseKeys(it)[0]);
+    const W = ow ? ow.w : it.pc.w, pr = up && procCost(it, up.p, W); if (!pr) return;
+    const src = it.pc.outs.filter(x => x.n && x.y > 0);
+    pr.outs.forEach((o, k) => { const so = src[k]; if (so && so.pr) out.push({ it, name: o.n, pr: so.pr, cost: Math.round(o.c), raw: o.c, u: o.u, basis: `${money(up.p)}/${it.u || "單位"}${up.src === "last" ? "（上次價格）" : ""}` }) });
+  });
+  return out;
+}
+async function openPush() {
+  if (needMe()) return;
+  const cand = pushCandidates();
+  if (!cand.length) return toast("還沒有算得出的成本：先在上面填原料單價");
+  $("#pushSub").textContent = "讀取報價資料中…"; $("#pushList").innerHTML = ""; $("#pushSheet").classList.add("show"); $("#scrim").classList.add("show");
+  try {
+    const d = await priceApi.get(); if (!d || !d.items) throw new Error("讀不到報價資料");
+    PUSH.items = d.items;
+    const before = new Map(d.items.map(i => [i.id, pb_calcSell(i, d.items)]));
+    PUSH.rows = cand.map(c => {
+      const pi = findPriceItem(d.items, c.pr), old = pi ? Number(pi.cost) || 0 : null, chg = pi && old ? (c.cost - old) / old : null;
+      return { ...c, pi, old, chg, big: chg != null && Math.abs(chg) > 0.3, same: pi && c.cost === old, on: !!pi && c.cost !== old && !(chg != null && Math.abs(chg) > 0.3) };
+    });
+    renderPush(before);
+    PUSH.last = await priceApi.lastLog().catch(() => null);
+    $("#pushUndo").classList.toggle("hide", !PUSH.last);
+    if (PUSH.last) $("#pushUndo").textContent = `還原上次（${new Date(PUSH.last.t).toLocaleDateString("zh-TW", { month: "numeric", day: "numeric" })} ${hm(PUSH.last.t)}，${PUSH.last.changes.length} 項）`;
+  } catch (e) { $("#pushSub").textContent = ""; $("#pushList").innerHTML = `<div class="empty">連不到報價系統：${esc(e.message || e)}</div>`; err(e) }
+}
+function pushNewSell(r) { const items = PUSH.items.map(i => i.id === r.pi.id ? { ...i, cost: r.cost } : i); return { items, sell: pb_calcSell(items.find(i => i.id === r.pi.id), items) } }
+function renderPush(before) {
+  before ||= new Map(PUSH.items.map(i => [i.id, pb_calcSell(i, PUSH.items)]));
+  $("#pushSub").textContent = `${PUSH.rows.length} 個成品　${priceApi.mode === "demo" ? "（示範資料）" : "連到 採鮮報價"}`;
+  const sel = PUSH.rows.filter(r => r.on && r.pi);
+  /* 勾選的全部一起套用後，哪些品項的售價會變（包含連動的截切品項） */
+  const items2 = PUSH.items.map(i => { const r = sel.find(x => x.pi.id === i.id); return r ? { ...i, cost: r.cost } : i });
+  const sellChanged = items2.map(i => ({ i, o: before.get(i.id), n: pb_calcSell(i, items2) })).filter(x => (x.o || 0) !== (x.n || 0));
+  $("#pushList").innerHTML = PUSH.rows.map((r, k) => `<div class="pu-r${r.pi ? "" : " miss"}${r.big ? " big" : ""}">
+      <label class="pu-c"><input type="checkbox" data-pk="${k}" ${r.on ? "checked" : ""} ${r.pi ? "" : "disabled"}><span class="pu-n"><b>${esc(r.name)}</b><small>→ 報價「${esc(r.pi ? r.pi.name : r.pr)}」</small></span></label>
+      ${r.pi ? `<div class="pu-v"><span>成本 <s>${fmt(r.old)}</s> → <b>${fmt(r.cost)}</b>${r.chg != null ? `<em class="${r.chg > 0 ? "up" : "dn"}">${r.chg > 0 ? "＋" : "－"}${Math.round(Math.abs(r.chg) * 100)}%</em>` : ""}</span>
+        <span>售價 ${fmt(before.get(r.pi.id) || 0)} → <b>${fmt(pushNewSell(r).sell || 0)}</b></span></div>
+        <div class="pu-s">${esc(r.basis)} → ${esc(r.name)} ${fmt(Math.round(r.raw * 10) / 10)} 元/${esc(r.u)}（報價用整數 ${fmt(r.cost)}）${r.same ? "　<b>成本沒變，不用更新</b>" : ""}${r.big ? "　<b class=\"bad\">跟目前差超過 30%，確認沒填錯再勾</b>" : ""}</div>`
+      : `<div class="pu-s bad">報價裡找不到「${esc(r.pr)}」。到「設定 → 加工成本」改成報價頁的品項名稱</div>`}
+    </div>`).join("") + (sellChanged.length ? `<div class="pu-aff"><b>套用後售價會變的品項</b>${sellChanged.map(x => `<div>${esc(x.i.name)}　${fmt(x.o || 0)} → <b>${fmt(x.n || 0)}</b></div>`).join("")}</div>` : "");
+  $("#pushOk").textContent = `套用勾選的（${sel.length} 項）`; $("#pushOk").disabled = !sel.length;
+}
+function closePush() { $("#pushSheet").classList.remove("show"); $("#scrim").classList.remove("show") }
+$("#pushList").addEventListener("change", e => { const k = e.target.dataset && e.target.dataset.pk; if (k == null) return; PUSH.rows[+k].on = e.target.checked; renderPush() });
+$("#pushClose").onclick = closePush;
+$("#pushOk").onclick = async () => {
+  const sel = PUSH.rows.filter(r => r.on && r.pi); if (!sel.length) return;
+  if (sel.some(r => r.big) && !confirm("有成本跟目前差超過 30% 的品項，確定要送出？")) return;
+  if (!confirm(`要把 ${sel.length} 個成本寫到採鮮報價嗎？\n客人看的報價頁會立刻改變。`)) return;
+  $("#pushOk").disabled = true;
+  try { await priceApi.apply(sel.map(r => ({ id: r.pi.id, name: r.pi.name, from: r.old, to: r.cost })), S.me); closePush(); toast(`已更新報價成本 ${sel.length} 項：${sel.map(r => `${r.pi.name} ${r.old}→${r.cost}`).join("、")}`, 4500) }
+  catch (e) { $("#pushOk").disabled = false; err(e) }
+};
+$("#pushUndo").onclick = async () => {
+  if (!confirm("還原上一次送到報價的成本？\n（只還原還沒被你在報價後台改過的品項）")) return;
+  try { const r = await priceApi.undo(); closePush(); toast(`已還原 ${r.n} 項${r.skip ? `，${r.skip} 項因為報價後台已經改過所以沒動` : ""}`, 4000) } catch (e) { err(e) }
+};
 function procPanel() {
   const its = oItems().filter(i => i.pc && i.pc.w > 0);
   if (!its.length) return "";
@@ -2197,7 +2405,8 @@ function procPanel() {
       ${pr.outs.map((o, k) => { const src = it.pc.outs.filter(x => x.n && x.y > 0)[k]; return `<tr><td>${esc(o.n)}${src.u && !/^(kg|公斤)$/i.test(src.u) ? `<small>${fmt(src.uw)}KG/${esc(src.u)}</small>` : ""}</td><td class="r">${fmt(src.y)}%</td><td class="r"><b>${fmt(Math.round(o.c * 10) / 10)}</b><small>元/${esc(o.u)}</small>${o.u !== "KG" && o.perKg ? `<small style="display:block">＝${fmt(Math.round(o.perKg * 10) / 10)} 元/KG</small>` : ""}</td></tr>` }).join("")}
       </table>${it.pc.ex ? `<p class="pc-ex">⚠ 出成率和包材是範例數字，請到「設定 → 加工成本」改成你們實際秤的</p>` : ""}</div>`;
   });
-  return `<div class="panel"><h3>加工成本</h3>${rows.join("")}</div>`;
+  const canPush = its.some(it => (it.pc.outs || []).some(o => o.pr));
+  return `<div class="panel"><h3>加工成本</h3>${rows.join("")}${canPush ? `<button class="btn pri" id="pushPrice" style="margin-top:10px">送到採鮮報價…</button><p class="muted" style="margin:6px 0 0;font-size:12px">先預覽新成本和新售價，確認才會寫入</p>` : ""}</div>`;
 }
 /* ===== 到貨＋價格：一張表一次做完 =====
    每一列：品項｜叫｜實收（✓到齊）｜單價＋單件重量｜小計
@@ -2405,6 +2614,7 @@ $("#vSum").addEventListener("input", e => {
   noteTimer = setTimeout(() => { store.setNote(S.date, S.sup, v, S.me); stampEdit() }, 600);
 });
 $("#vSum").addEventListener("click", async e => {
+  if (e.target.closest("#pushPrice")) { openPush(); return }
   const sf = e.target.closest("[data-stkf]"); if (sf) { S.stkF = sf.dataset.stkf; renderSum(); return }
   const g = e.target.closest("[data-go]"); if (g) return goItem(g.dataset.go);
   if (e.target.closest("#fillAll")) return fillSuggest(oItems());
@@ -2748,7 +2958,7 @@ $("#vHist").addEventListener("click", e => {
 
 /* ---------- 設定 ---------- */
 /* 設定頁分區、可收合：品項｜廠商與文字｜成本｜人員與休市 */
-const SET_GROUPS = [["item", "品項", t => /叫貨品項|單位換算/.test(t)], ["vend", "廠商與文字", t => /^廠商|傳給廠商/.test(t)], ["cost", "加工成本", t => /加工成本/.test(t)], ["misc", "人員、休市與其他", () => true]];
+const SET_GROUPS = [["item", "品項", t => /叫貨品項|單位換算|通用品項/.test(t)], ["vend", "廠商與文字", t => /^廠商|傳給廠商/.test(t)], ["cost", "加工成本", t => /加工成本/.test(t)], ["misc", "人員、休市與其他", () => true]];
 function groupSettings() {
   const root = $("#vSet"), panels = [...root.querySelectorAll(":scope > .panel")]; if (!panels.length) return;
   S.sgOpen ||= {}; if (S.draft) S.sgOpen.item = true;
@@ -2767,15 +2977,22 @@ function renderSet() {
   <div class="panel"><h3>人員</h3>
     <div class="chips">${people().map(p => `<span class="chip">${esc(p)}${people().length > 1 ? ` <button data-delp="${esc(p)}" aria-label="移除${esc(p)}" style="color:var(--warn);font-weight:900;padding:0 2px">×</button>` : ""}</span>`).join("")}<button class="chip" data-addp="1">＋ 新增</button></div>
   </div>
+  <datalist id="prDL">${(S.priceNames || []).map(n => `<option value="${esc(n)}">`).join("")}</datalist>
   <div class="panel"><h3>加工成本 <span class="c">${esc(sup().name)}</span></h3>
     <p class="muted" style="margin:0 0 8px">原料叫回來會再加工或分裝的品項，填一次就好；總覽填當天單價後自動算成品成本。出成率＝做完的重量 ÷ 原料重量。</p>
     ${oItems().filter(i => i.pc).map(it => `<div class="pc-e" data-pcid="${it.id}">
       <div class="pc-eh"><b>${esc(it.n)}</b><span>1${esc(it.u || "單位")}＝</span><input class="in" type="number" inputmode="decimal" step="0.1" data-pcw value="${fmt(it.pc.w || 0)}"><span>KG</span><button class="btn sm warn" data-pcdel>移除</button></div>
       <div class="pc-row pc-lab"><span>成品名稱</span><span>出成率%</span><span>單位</span><span>每單位KG</span><span>包材人工</span><span></span></div>
-      ${(it.pc.outs || []).map((o, k) => `<div class="pc-row" data-k="${k}"><input class="in" data-f="n" value="${esc(o.n)}" placeholder="例：修清高麗"><input class="in" type="number" inputmode="decimal" data-f="y" value="${o.y ?? ""}" placeholder="83"><input class="in" data-f="u" value="${esc(o.u || "KG")}" placeholder="KG"><input class="in" type="number" inputmode="decimal" data-f="uw" value="${/^(kg|公斤)$/i.test(o.u || "KG") ? "" : (o.uw ?? "")}" placeholder="—"${/^(kg|公斤)$/i.test(o.u || "KG") ? " disabled" : ""}><input class="in" type="number" inputmode="decimal" data-f="add" value="${o.add ?? ""}" placeholder="0"><button class="btn sm" data-pcrm aria-label="刪除這個成品">✕</button></div>`).join("")}
+      ${(it.pc.outs || []).map((o, k) => `<div class="pc-row" data-k="${k}"><input class="in" data-f="n" value="${esc(o.n)}" placeholder="例：修清高麗"><input class="in" type="number" inputmode="decimal" data-f="y" value="${o.y ?? ""}" placeholder="83"><input class="in" data-f="u" value="${esc(o.u || "KG")}" placeholder="KG"><input class="in" type="number" inputmode="decimal" data-f="uw" value="${/^(kg|公斤)$/i.test(o.u || "KG") ? "" : (o.uw ?? "")}" placeholder="—"${/^(kg|公斤)$/i.test(o.u || "KG") ? " disabled" : ""}><input class="in" type="number" inputmode="decimal" data-f="add" value="${o.add ?? ""}" placeholder="0"><button class="btn sm" data-pcrm aria-label="刪除這個成品">✕</button></div>
+        <div class="pc-pr" data-k="${k}"><span>送到報價的品項</span><input class="in" data-f="pr" list="prDL" value="${esc(o.pr || "")}" placeholder="報價品項名稱，例如 ${esc(o.n === "高麗籃裝" ? "高麗約20KG" : "修清高麗/KG")}（不送就空著）"></div>`).join("")}
       <button class="btn sm" data-pcadd style="margin-top:6px">＋ 新增成品</button>
     </div>`).join("") || `<p class="muted">還沒有設定</p>`}
     <div style="display:flex;gap:8px;margin-top:10px"><select class="in" id="pcNew" style="flex:1"><option value="">選一個品項加入…</option>${catsOf().map(c => `<optgroup label="${esc(c)}">${itemsOf(c).filter(i => !i.pc).map(i => `<option value="${i.id}">${esc(i.n)}</option>`).join("")}</optgroup>`).join("")}</select><button class="btn sm" id="pcAddItem" style="padding:10px 14px">加入</button></div>
+  </div>
+  <div class="panel"><h3>通用品項</h3>
+    <p class="muted" style="margin:0 0 8px">兩個品項可以互相替代時（例如空心菜 件25kg 和 捆），設成通用：其中一邊叫了，另一邊就不用叫，缺貨也不會提醒。</p>
+    ${(() => { const seen = new Set(), pairs = []; oItems().forEach(it => altOf(it).forEach(b => { const k = [it.id, b.id].sort().join("|"); if (!seen.has(k)) { seen.add(k); pairs.push([it, b]) } })); return pairs.length ? pairs.map(([a, b]) => `<div class="alt-r"><span>${esc(altName(a))}<small>（${esc(a.c)}）</small> ＝ ${esc(altName(b))}<small>（${esc(b.c)}）</small></span><button class="btn sm warn" data-altdel="${a.id}|${b.id}">取消</button></div>`).join("") : `<p class="muted">還沒有設定</p>` })()}
+    <div class="alt-add"><select class="in" id="altA"><option value="">選品項 A…</option>${oItems().map(i => `<option value="${i.id}">${esc(i.n)}（${esc(i.c)}${i.u ? " " + esc(i.u) : ""}）</option>`).join("")}</select><select class="in" id="altB"><option value="">選品項 B…</option>${oItems().map(i => `<option value="${i.id}">${esc(i.n)}（${esc(i.c)}${i.u ? " " + esc(i.u) : ""}）</option>`).join("")}</select><button class="btn sm" id="altAdd">設成通用</button></div>
   </div>
   ${(() => { const todo = oItems().flatMap(it => (it.inv || []).map(id => invById(id)).filter(Boolean).filter(inv => convMissing(it, inv)).map(inv => ({ it, inv })));
     return todo.length ? `<div class="panel cvp"><h3>單位換算 <span class="c o">${todo.length}</span></h3>
@@ -2827,6 +3044,7 @@ function renderSet() {
     ・叫貨日沒有點貨時，會用最近一次的點貨紀錄，上方會標「不是當天」<br>
     ・下訂頁「複製給這家」會記錄已複製；之後有改數量會提醒再複製</p></div>`;
   groupSettings();
+  if (!S.priceNames && !S.priceLoading) { S.priceLoading = true; priceApi.get().then(d => { S.priceNames = ((d && d.items) || []).map(i => i.name).filter(Boolean); S.priceLoading = false; const dl = document.getElementById("prDL"); if (dl) dl.innerHTML = S.priceNames.map(n => `<option value="${esc(n)}">`).join("") }).catch(() => { S.priceLoading = false; S.priceNames = [] }) }
 }
 function draftItem(id) { return S.draft.items.find(i => i.id === id) }
 $("#vSet").addEventListener("click", async e => {
@@ -2842,6 +3060,17 @@ $("#vSet").addEventListener("click", async e => {
   }
   if (t.closest("#supRen")) { const name = await askText("廠商名稱", sup().name); if (!name) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.sups.find(x => x.id === S.sup).name = name; if (S.draft) S.draft.name = name; await store.saveOrdCfg(cfg).catch(err); return }
   if (t.closest("#supDel")) { if (!confirm(`刪除「${sup().name}」和它的叫貨品項？（過去的叫貨紀錄會保留）`)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.sups = cfg.sups.filter(x => x.id !== S.sup); S.draft = null; S.sup = cfg.sups[0].id; await store.saveOrdCfg(cfg).catch(err); renderSupSel(); openOrder(); return }
+  if (t.closest("#pushPrice")) { openPush(); return }
+  if (t.closest("#altAdd")) {
+    const a = $("#altA").value, b = $("#altB").value; if (!a || !b || a === b) return toast("選兩個不同的品項");
+    const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), A = x.items.find(i => i.id === a), B = x.items.find(i => i.id === b);
+    A.alt = [...new Set([...(A.alt || []), b])]; B.alt = [...new Set([...(B.alt || []), a])];
+    await store.saveOrdCfg(cfg).then(() => toast("已設成通用")).catch(err); return;
+  }
+  const ad = t.closest("[data-altdel]");
+  if (ad) { const [a, b] = ad.dataset.altdel.split("|"); const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup);
+    [[a, b], [b, a]].forEach(([p, q]) => { const it = x.items.find(i => i.id === p); if (it && it.alt) { it.alt = it.alt.filter(z => z !== q); if (!it.alt.length) delete it.alt } });
+    await store.saveOrdCfg(cfg).then(() => toast("已取消通用")).catch(err); return }
   if (t.closest("#addHol")) { const v = $("#holIn").value; if (!v) return toast("先選日期"); const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup); x.hol = [...new Set([...(x.hol || []), v])].sort(); await store.saveOrdCfg(cfg).catch(err); return }
   const dh = t.closest("[data-delhol]"); if (dh) { const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup); x.hol = (x.hol || []).filter(d => d !== dh.dataset.delhol); await store.saveOrdCfg(cfg).catch(err); return }
   if (t.closest("#addClosed")) { const v = $("#closedIn").value; if (!v) return toast("先選日期"); if (closedList().includes(v)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.closed = [...closedList(), v].sort(); await store.saveOrdCfg(cfg).catch(err); return }
@@ -2906,7 +3135,7 @@ $("#vSet").addEventListener("change", async e => {
       if (!row) return;
       const o = it.pc.outs[+row.dataset.k]; if (!o) return;
       const f = e.target.dataset.f, v = e.target.value.trim();
-      if (f === "n" || f === "u") o[f] = v; else o[f] = v === "" ? 0 : Math.max(0, +v || 0);
+      if (f === "n" || f === "u" || f === "pr") o[f] = v; else o[f] = v === "" ? 0 : Math.max(0, +v || 0);
       if (f === "u" && /^(kg|公斤)$/i.test(v || "KG")) o.uw = 0;
     });
   }
