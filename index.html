@@ -316,6 +316,33 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 .al-note{font-size:11px;color:var(--muted);margin:2px 0 0 2px}
 .al.add{background:#F3F8F4;border-radius:10px;padding:6px}
 .al-add{margin-top:6px;font-size:13px;font-weight:700;color:#2F6FD6;padding:4px 0}
+/* ===== 下訂頁新版型 ===== */
+.cbar{position:sticky;top:var(--tabs-top,96px);z-index:16;background:var(--bg);padding:8px 2px 6px;margin:0 -2px}
+.cbar-r{display:flex;gap:8px;align-items:center}
+.cbar-r input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px;background:#fff}
+.seg.cv{display:flex;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px}.seg.cv button{padding:7px 10px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted)}.seg.cv button.on{background:var(--ink);color:#fff}
+.cchips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;scrollbar-width:none}.cchips::-webkit-scrollbar{display:none}
+.cc{flex:none;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:700;background:#fff}.cc b{font-family:var(--mono);margin-left:5px}
+.cc.o b{color:var(--low)}.cc.b b{color:var(--warn)}.cc.zero b{color:var(--muted)}.cc.on{background:var(--ink);color:#fff;border-color:var(--ink)}.cc.on b{color:var(--citrus)}.cc.clr{color:#2F6FD6;border-color:#C9D8F4}
+.vg{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}.vg.fin{opacity:.85}.vg.none{border-color:#F2C58E}
+.vg-h{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg)}.vg.none .vg-h{background:#FFF3E0}
+.vg-t{flex:1;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px}.vg-t b{font-size:18px;font-weight:900}.vg-n{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.vg-s{font-family:var(--mono);font-weight:900;font-size:14px}.vg-s small{font-family:var(--sans);font-weight:500;font-size:11px;color:var(--low);margin-left:4px}
+.cdot{width:10px;height:10px;border-radius:3px;align-self:center}
+.vg-b{display:flex;gap:6px;flex:none}.vg-b .btn{width:auto;padding:8px 12px}
+.vcp2{font-size:11.5px;padding:3px 12px;color:var(--muted)}.vcp2.ok{color:var(--ok);font-weight:700}.vcp2.chg{color:var(--warn);font-weight:700}
+.r2{border-top:1px solid var(--line)}.r2.ok .r2n b,.r2.ok .q2{color:var(--muted);text-decoration:line-through}
+.r2l{display:flex;align-items:center;gap:8px;padding:8px 10px}
+.r2 .cbx{width:32px;height:32px;border-radius:8px;flex:none}
+.r2n{flex:1;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px;cursor:pointer;line-height:1.3}.r2n b{font-size:15.5px}
+.r2n .spec{font-size:11px;font-weight:700;background:var(--bg);border-radius:5px;padding:0 5px}.q2{font-family:var(--mono);font-weight:700;font-size:14px}
+.vtag{font-size:11.5px;font-weight:700;background:#E8EFFC;color:#2F6FD6;border-radius:6px;padding:0 6px}.vtag.none{background:#FFF3E0;color:#B7630A}
+.r2p input{width:64px;border:1px solid var(--line);border-radius:8px;padding:8px 5px;text-align:right;font-family:var(--mono);font-weight:700;font-size:14px;background:#fff}
+.r2p input.inh{color:#8A93A0;background:var(--bg);font-weight:500}.r2p input::placeholder{color:#B5BCC6;font-weight:400}
+.r2m{flex:none;width:30px;height:32px;color:var(--muted);font-size:16px}
+.r2w{padding:0 12px 6px 50px;font-size:12px;color:var(--warn);font-weight:700}
+.r2d{padding:2px 12px 10px 50px;background:#FAFBFC}
+.gdone{display:block;width:100%;text-align:left;padding:9px 12px;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ok);background:var(--okbg)}
 .cart-top{display:flex;align-items:center;gap:10px}.cart-top div{flex:1}.cart-top small{display:block;font-size:12px;color:var(--muted)}.cart-top b{font-family:var(--mono);font-size:26px;margin-right:8px}
 .cg-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}.cg-h>div{flex:1}.cg-h b{font-size:18px;display:block}.cg-h small{font-size:12px;color:var(--muted)}.cg-h .btn{width:auto}
 .cr{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
@@ -1750,8 +1777,15 @@ function cartItems() {
       const lv = (last[key] && last[key].v) || "";
       allocs.forEach(a => { if (!a.v && lv && allocs.length === 1) { a.v = lv; a.inh = 1 } });
       allocs.forEach(a => { const l = last[`${it.id}|${pk(vkey(spec, a.v))}`] || last[`${it.id}|${pk(a.k)}`] || last[key]; a.lp = l && l.p != null ? l.p : null; const wk = a.v ? vkey(spec, a.v) : a.k, ew = effWt(it, e, wk); a.w = ew ? ew.w : null; a.winh = !!ew && ew.src !== "today"; a.wk = wk });
-      const c = ck[key] || ck[it.id];
-      out.push({ key, id: it.id, it, spec, cat, n: it.n, lab: spec && !isUnitOpt(spec) ? spec : "", u: unitLabel(it, spec), allocs, tot, t, ck: c, st: !c ? "no" : (!c.q || c.q === t || c.q === lineText(it, e)) ? "ok" : "chg" });
+      const lab = spec && !isUnitOpt(spec) ? spec : "", multi = allocs.length > 1;
+      /* 下訂打勾記在每一家：只分一家的沿用舊的 key；分給好幾家的，每家各自打勾 */
+      allocs.forEach(a => {
+        a.ak = multi ? `${key}@${a.v || ""}` : key; a.at = partText(it, lab ? "" : spec, a.q);
+        const c = multi ? ck[a.ak] : (ck[key] || ck[it.id]); a.ck = c || null;
+        a.st = !c ? "no" : multi ? (!c.q || c.q === a.at ? "ok" : "chg") : (!c.q || c.q === t || c.q === lineText(it, e) ? "ok" : "chg");
+      });
+      const st = allocs.every(a => a.st === "ok") ? "ok" : allocs.some(a => a.st === "chg") ? "chg" : "no";
+      out.push({ key, id: it.id, it, spec, cat, n: it.n, lab, u: unitLabel(it, spec), allocs, tot, t, ck: allocs[0].ck, st });
     });
   }));
   return out;
@@ -1785,14 +1819,25 @@ function rememberVendor(r, v) {
 }
 function setCk(rows, on) {
   rows.forEach(r => {
-    if (on && r.st !== "ok") { store.setCk(S.date, S.sup, r.key, { by: S.me, t: Date.now(), q: r.t }); if (r.allocs.some(a => a.inh)) setAllocs(r, r.allocs) }
-    if (!on && r.ck) { store.setCk(S.date, S.sup, r.key, null); if (S.ord.ck && S.ord.ck[r.id]) store.setCk(S.date, S.sup, r.id, null) }
+    const multi = r.allocs.length > 1;
+    if (on && r.st !== "ok") { r.allocs.forEach(a => { if (a.st !== "ok") store.setCk(S.date, S.sup, a.ak, { by: S.me, t: Date.now(), q: multi ? a.at : r.t }) }); if (r.allocs.some(a => a.inh)) setAllocs(r, r.allocs) }
+    if (!on) { r.allocs.forEach(a => { if (a.ck) store.setCk(S.date, S.sup, a.ak, null) }); if (S.ord.ck && S.ord.ck[r.id]) store.setCk(S.date, S.sup, r.id, null) }
   });
+}
+/* 只打勾／取消其中幾家：pairs = [{ r, ai }] */
+function setCkAllocs(pairs, on) {
+  const need = new Set();
+  pairs.forEach(({ r, ai }) => {
+    const a = r.allocs[ai], multi = r.allocs.length > 1;
+    if (on && a.st !== "ok") { store.setCk(S.date, S.sup, a.ak, { by: S.me, t: Date.now(), q: multi ? a.at : r.t }); if (a.inh) need.add(r) }
+    if (!on && a.ck) { store.setCk(S.date, S.sup, a.ak, null); if (!multi && S.ord.ck && S.ord.ck[r.id]) store.setCk(S.date, S.sup, r.id, null) }
+  });
+  need.forEach(r => setAllocs(r, r.allocs));
 }
 /* 依廠商整理：{ 廠商: [{ r, q }] } */
 function byVendorCart() {
   const m = new Map();
-  cartItems().forEach(r => r.allocs.forEach(a => { const v = a.v || ""; if (!m.has(v)) m.set(v, []); m.get(v).push({ r, q: a.q }) }));
+  cartItems().forEach(r => r.allocs.forEach((a, ai) => { const v = a.v || ""; if (!m.has(v)) m.set(v, []); m.get(v).push({ r, a, ai, q: a.q }) }));
   return [...m].sort((a, b) => (a[0] ? 1 : 0) - (b[0] ? 1 : 0));
 }
 /* 傳給廠商的文字：開頭幾行（車到時間、車號、停車位置）在設定裡改，空一行再接品項 */
@@ -1808,47 +1853,102 @@ function vendorText(v, list) {
   const head = msgHead();
   return [...(head ? [head, ""] : []), ...list.map(({ r, q }) => `${r.n}${r.lab ? " " + r.lab : ""}　${partText(r.it, r.lab ? "" : r.spec, q)}`)].join("\n");
 }
+/* ===== 下訂頁：依廠商（像購物車）或依分類；搜尋、篩選；訂好的收起來；每列一行 ===== */
+function cartEntries(rs) { return rs.flatMap(r => r.allocs.map((a, ai) => ({ r, a, ai }))) }
+function entryPass(en) {
+  const { r, a } = en, q = norm(S.cq || ""), f = S.cf || "";
+  if (q && !norm(r.n + " " + r.lab + " " + (a.v || "")).includes(q)) return false;
+  if (f === "no") return a.st !== "ok";
+  if (f === "nov") return !a.v;
+  if (f === "nop") return a.p == null;
+  if (f === "chg") return a.st === "chg";
+  return true;
+}
+function crowHtml(en, mode) {
+  const { r, a, ai } = en, multi = r.allocs.length > 1, id = `${r.key}#${ai}`, open = !!(S.cOpen && S.cOpen[id]);
+  const qtyT = partText(r.it, r.lab ? "" : r.spec, a.q), L = lines()[r.id], inh = (L.pi || {})[pk(a.k)];
+  const tag = a.v ? (mode === "cat" ? `<span class="vtag" data-tog="${esc(id)}">${esc(a.v)}</span>` : "") : `<span class="vtag none" data-togv="${esc(id)}">選廠商</span>`;
+  const warn = priceWarn(r.id, a.k, a.p, inh);
+  return `<div class="r2 ${a.st}${open ? " open" : ""}">
+    <div class="r2l">
+      <button class="cbx" data-cka="${esc(id)}" aria-label="已下訂">${a.st === "ok" ? "✓" : a.st === "chg" ? "!" : ""}</button>
+      <div class="r2n" data-tog="${esc(id)}"><b>${esc(r.n)}</b>${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}<span class="q2">${esc(qtyT)}</span>${tag}</div>
+      <span class="r2p"><input class="apin${inh ? " inh" : ""}" id="pr_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.p == null ? "" : fmt(a.p)}" placeholder="${a.lp != null ? fmt(a.lp) : "單價"}" aria-label="${esc(r.n)} 單價"></span>
+      <button class="r2m" data-tog="${esc(id)}" aria-label="展開">${open ? "▴" : "⋯"}</button>
+    </div>
+    ${a.st === "chg" ? `<div class="r2w">原本訂「${esc(a.ck.q)}」，數量有改，要再確認</div>` : ""}${warn ? `<div class="r2w">${warn}</div>` : ""}
+    ${open ? `<div class="r2d">
+      <div class="al">
+        <input class="vin${a.inh ? " inh" : ""}" id="vd_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" value="${esc(a.v)}" placeholder="選廠商或打字" autocomplete="off" aria-label="${esc(r.n)} 廠商">
+        ${multi ? `<input class="aq" id="qt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" value="${fmt(a.q)}" aria-label="數量"><small>${esc(r.u || "")}</small>` : ""}
+        ${unitKg(r.u) ? `<span class="apw aw"><small>1${esc(r.u)}＝${fmt(unitKg(r.u))}公斤</small></span>` : `<span class="apw aw"><input class="awin${a.winh ? " inh" : ""}" id="wt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.w == null ? "" : fmt(a.w)}" placeholder="每件KG" aria-label="${esc(r.n)} 每件重量"><small>KG/${esc(r.u || "件")}</small></span>`}
+        ${multi ? `<button class="ax" data-arm="${esc(r.key)}" data-ai="${ai}" aria-label="移除這家">✕</button>` : ""}
+      </div>${a.inh ? `<div class="al-note">延用上次的廠商</div>` : ""}
+      ${ai === r.allocs.length - 1 ? (S.cartSplit === r.key ? `<div class="al add"><input class="vin" id="vdNew" placeholder="另一家廠商" autocomplete="off" data-lpignore="true"><input class="aq" id="qtNew" inputmode="decimal" placeholder="數量" autocomplete="off"><small>${esc(r.u || "")}</small><button class="btn sm okb" data-addok="${esc(r.key)}">加入</button><button class="ax" data-addno="1">✕</button></div>` : `<button class="al-add" data-split="${esc(r.key)}">＋ 分給另一家</button>`) : ""}
+      <button class="al-add" data-go="${r.id}" style="margin-left:14px">到叫貨頁改數量 ›</button>
+    </div>` : ""}
+  </div>`;
+}
 function renderCart() {
   const el = $("#vCart");
   const ae = document.activeElement, keep = ae && ae.id && el.contains(ae) && ae.tagName === "INPUT" ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
   const rs = cartItems();
   if (!rs.length) { el.innerHTML = `<div class="empty">還沒有叫貨品項。到「叫貨」輸入數量後，這裡會變成下訂清單。</div>`; return }
-  const ok = rs.filter(r => r.st === "ok").length, chg = rs.filter(r => r.st === "chg").length, done = ok === rs.length;
-  const bv = byVendorCart();
-  let cat = "";
-  el.innerHTML = `<datalist id="vendDL">${vendList().map(v => `<option value="${esc(v)}">`).join("")}</datalist>
-  <div class="panel ${done ? "fin" : ""} cart-top"><div><small>已下訂</small><b>${ok} / ${rs.length}</b>${chg ? `<span class="c o">${chg} 項數量有改</span>` : ""}</div>
-    ${bulkRows().length ? `<button class="btn sm pri" id="bulkOpen">一次指定廠商</button>` : ""}${done ? `<button class="btn sm" id="cAllNo">全部取消</button>` : `<button class="btn sm okb" id="cAllOk">全部已下訂</button>`}</div>
-  ${(() => { const vc = (S.ord && S.ord.vcopy) || {}, named = bv.filter(([v]) => v), un = bv.find(([v]) => !v);
-    const st = ([v, list]) => { const c = vc[v]; return !c ? "no" : c.q === vendorText(v, list) ? "ok" : "chg" };
-    const copied = named.filter(g => st(g) === "ok").length, chg = named.filter(g => st(g) === "chg").length;
-    return `<div class="panel vpanel${S.vOpen ? " open" : ""}"><button class="vp-h" id="vToggle"><b>依廠商</b><span class="c">${named.length} 家</span><span class="c ${copied === named.length && named.length ? "ok" : "o"}">已複製 ${copied}/${named.length}</span>${chg ? `<span class="c bad">${chg} 家有改</span>` : ""}${un ? `<span class="c o">未指定 ${un[1].length}</span>` : ""}<span class="vp-ar">${S.vOpen ? "▴" : "▾"}</span></button>
-    ${S.vOpen ? `<div class="vsum">${bv.map(([v, list], i) => { const n = list.length, okn = list.filter(x => x.r.st === "ok").length, c = vc[v], cs = v ? st([v, list]) : "";
-      return `<div class="vs-r${v ? "" : " none"}"><div><b>${v ? esc(v) : "未指定廠商"}</b><small>${n} 項${v ? `・已訂 ${okn}` : ""}${cs === "ok" ? `<span class="vcp ok">✓ 已複製 ${esc(c.by || "")} ${hm(c.t)}</span>` : cs === "chg" ? `<span class="vcp chg">複製後有改，要再複製</span>` : v ? `<span class="vcp">還沒複製</span>` : ""}</small></div>${v ? `<button class="btn sm${cs === "ok" ? "" : " pri"}" data-vcopy="${i}">${cs === "ok" ? "再複製" : "複製給這家"}</button>${okn < n ? `<button class="btn sm okb" data-vok="${i}">這家全訂</button>` : ""}` : `<button class="btn sm pri" id="bulkOpen">一次指定廠商</button>`}</div>` }).join("")}</div>` : ""}</div>` })()}
-  <p class="muted" style="margin:0 2px 8px">打勾＝已下訂。廠商可以選或打字（新名字自動新增），同一品項可以「＋分給另一家」。知道價格就順便填；不知道就留空，之後在「到貨」頁補。</p>
-  <div class="panel">${rs.map((r, ri) => { const h = r.cat !== cat ? `<div class="c-cat" style="--cc:${catColor(r.cat)}">${esc(r.cat)}</div>` : ""; cat = r.cat;
-    const multi = r.allocs.length > 1;
-    return h + `<div class="cr ${r.st}">
-      <button class="cbx" data-cck="${esc(r.key)}" aria-label="已下訂">${r.st === "ok" ? "✓" : r.st === "chg" ? "!" : ""}</button>
-      <div class="cmain">
-        <div class="cl1"><span class="cn" data-go="${r.id}">${esc(r.n)}${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}</span><span class="cq">${esc(partText(r.it, r.lab ? "" : r.spec, r.tot))}</span>
-          ${r.st === "chg" ? `<small class="cchg">原本 ${esc(r.ck.q)}</small>` : r.ck ? `<small class="muted" style="margin-left:auto">${esc(r.ck.by || "")} ${hm(r.ck.t)}</small>` : ""}</div>
-        ${r.allocs.map((a, ai) => `<div class="al">
-          <input class="vin${a.inh ? " inh" : ""}" id="vd_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" value="${esc(a.v)}" placeholder="選廠商或打字" autocomplete="off" aria-label="${esc(r.n)} 廠商">
-          ${multi ? `<input class="aq" id="qt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" value="${fmt(a.q)}" aria-label="數量"><small>${esc(r.u || "")}</small>` : ""}
-          <span class="apw"><input class="apin${(lines()[r.id].pi || {})[pk(a.k)] ? " inh" : ""}" id="pr_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.p == null ? "" : fmt(a.p)}" placeholder="${a.lp != null ? fmt(a.lp) : "單價"}" aria-label="${esc(r.n)} 單價"><small>/${esc(r.u || "件")}</small></span>
-          ${unitKg(r.u) ? `<span class="apw aw"><small>1${esc(r.u)}＝${fmt(unitKg(r.u))}公斤</small></span>` : `<span class="apw aw"><input class="awin${a.winh ? " inh" : ""}" id="wt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.w == null ? "" : fmt(a.w)}" placeholder="每件KG" aria-label="${esc(r.n)} 每件重量"><small>KG/${esc(r.u || "件")}</small></span>`}
-          ${multi ? `<button class="ax" data-arm="${esc(r.key)}" data-ai="${ai}" aria-label="移除這家">✕</button>` : ""}
-        </div>${a.inh ? `<div class="al-note">延用上次的廠商</div>` : ""}${priceWarn(r.id, a.k, a.p, (lines()[r.id].pi || {})[pk(a.k)])}`).join("")}
-        ${S.cartSplit === r.key ? `<div class="al add"><input class="vin" id="vdNew" placeholder="另一家廠商" autocomplete="off" data-lpignore="true"><input class="aq" id="qtNew" inputmode="decimal" placeholder="數量" autocomplete="off"><small>${esc(r.u || "")}</small><button class="btn sm okb" data-addok="${esc(r.key)}">加入</button><button class="ax" data-addno="1">✕</button></div>`
-          : `<button class="al-add" data-split="${esc(r.key)}">＋ 分給另一家</button>`}
-      </div></div>` }).join("")}</div>`;
+  S.cOpen ||= {}; S.cDone ||= {};
+  const mode = S.cv === "cat" ? "cat" : "vend", ents = cartEntries(rs);
+  const ok = rs.filter(r => r.st === "ok").length, chgN = rs.filter(r => r.st === "chg").length, done = ok === rs.length;
+  const cnt = { no: ents.filter(e => e.a.st !== "ok").length, nov: ents.filter(e => !e.a.v).length, nop: ents.filter(e => e.a.p == null).length, chg: ents.filter(e => e.a.st === "chg").length };
+  const f = S.cf || "", shown = ents.filter(entryPass), bvFull = byVendorCart(), vc = (S.ord && S.ord.vcopy) || {};
+  const chip = (k, label, n, cls) => `<button class="cc ${cls}${f === k ? " on" : ""}${n ? "" : " zero"}" data-cf="${k}">${label}<b>${n}</b></button>`;
+  const rowsOf = (list, gk) => {
+    const pend = list.filter(e => e.a.st !== "ok"), dn = list.filter(e => e.a.st === "ok");
+    const showDone = f || S.cDone[gk];
+    return pend.map(e => crowHtml(e, mode)).join("") +
+      (dn.length ? (f ? dn.map(e => crowHtml(e, mode)).join("") : `<button class="gdone" data-gdone="${esc(gk)}">✓ 已訂 ${dn.length} 項 ${S.cDone[gk] ? "▴" : "▾"}</button>${S.cDone[gk] ? dn.map(e => crowHtml(e, mode)).join("") : ""}`) : "") + (!pend.length && !dn.length ? "" : "");
+  };
+  let groups = "";
+  if (mode === "vend") {
+    const order = bvFull.map(([v]) => v).sort((x, y) => (x ? 1 : 0) - (y ? 1 : 0) || 0);
+    const meta = v => { const all = (bvFull.find(g => g[0] === v) || [v, []])[1]; return { all, pend: all.filter(x => x.a.st !== "ok").length } };
+    const vs = [...new Set(order)].sort((x, y) => (!x ? -1 : !y ? 1 : (meta(x).pend === 0) - (meta(y).pend === 0)));
+    groups = vs.map(v => {
+      const list = shown.filter(e => (e.a.v || "") === v); if (!list.length) return "";
+      const { all, pend } = meta(v), n = all.length, okn = n - pend, sum = all.reduce((t, x) => t + (x.a.p != null ? x.a.p * x.a.q : 0), 0), np = all.filter(x => x.a.p == null).length;
+      const c = vc[v], txt = v ? vendorText(v, all) : "", cs = v ? (!c ? "no" : c.q === txt ? "ok" : "chg") : "";
+      return `<div class="vg${pend === 0 ? " fin" : ""}${v ? "" : " none"}">
+        <div class="vg-h"><div class="vg-t"><b>${v ? esc(v) : "未指定廠商"}</b><span class="vg-n">${okn}/${n} 已訂</span>${v ? `<span class="vg-s">${money(sum)}${np ? `<small>＋${np}筆未定價</small>` : ""}</span>` : ""}</div>
+          <div class="vg-b">${v ? `<button class="btn sm${cs === "ok" ? "" : " pri"}" data-vcopy="${esc(v)}">${cs === "ok" ? "再複製" : "複製"}</button>${pend ? `<button class="btn sm okb" data-vok="${esc(v)}">全訂</button>` : ""}` : `<button class="btn sm pri" id="bulkOpen">一次指定廠商</button>`}</div></div>
+        ${v ? `<div class="vcp2 ${cs}">${cs === "ok" ? `✓ 已複製 ${esc(c.by || "")} ${hm(c.t)}` : cs === "chg" ? "複製後有改，要再複製" : "還沒複製給這家"}</div>` : `<div class="vcp2 chg">這些還沒指定廠商：點「選廠商」，或用「一次指定廠商」</div>`}
+        ${rowsOf(list, "v:" + v)}</div>`;
+    }).join("");
+  } else {
+    groups = catsOf().map(cat => {
+      const list = shown.filter(e => e.r.cat === cat); if (!list.length) return "";
+      const all = ents.filter(e => e.r.cat === cat), okn = all.filter(e => e.a.st === "ok").length;
+      return `<div class="vg"><div class="vg-h"><div class="vg-t"><span class="cdot" style="background:${catColor(cat)}"></span><b>${esc(cat)}</b><span class="vg-n">${okn}/${all.length} 已訂</span></div></div>${rowsOf(list, "c:" + cat)}</div>`;
+    }).join("");
+  }
+  el.innerHTML = `<div class="panel ${done ? "fin" : ""} cart-top"><div><small>已下訂</small><b>${ok} / ${rs.length}</b>${chgN ? `<span class="c o">${chgN} 項數量有改</span>` : ""}</div>
+    ${done ? `<button class="btn sm" id="cAllNo">全部取消</button>` : `<button class="btn sm okb" id="cAllOk">全部已下訂</button>`}</div>
+  <div class="cbar">
+    <div class="cbar-r"><input type="search" id="cq" placeholder="搜尋品項或廠商" value="${esc(S.cq || "")}" autocomplete="off"><div class="seg cv"><button data-cv="vend" class="${mode === "vend" ? "on" : ""}">依廠商</button><button data-cv="cat" class="${mode === "cat" ? "on" : ""}">依分類</button></div></div>
+    <div class="cchips">${chip("no", "未訂", cnt.no, "o")}${chip("nov", "沒廠商", cnt.nov, "o")}${chip("nop", "沒價格", cnt.nop, "o")}${chip("chg", "數量有改", cnt.chg, "b")}${f ? `<button class="cc clr" data-cf="">看全部</button>` : ""}</div>
+  </div>
+  <p class="muted" style="margin:2px 2px 8px">點品名或「⋯」展開改廠商、重量、分給另一家。打勾後會收到「已訂」，點一下可以再打開。價格不知道可以先空著，之後在「到貨」頁補。</p>
+  ${groups || `<div class="empty">沒有符合的品項</div>`}`;
   if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; S.refocus = true; t.focus(); S.refocus = false; try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
 }
 $("#vCart").addEventListener("click", async e => {
   const t = e.target, rs = () => cartItems(), byKey = k => cartItems().find(x => x.key === k);
   const go = t.closest("[data-go]"); if (go) return goItem(go.dataset.go);
-  const cb = t.closest("[data-cck]"); if (cb) { if (needMe()) return; const r = byKey(cb.dataset.cck); if (r) setCk([r], r.st !== "ok"); return }
+  const cka = t.closest("[data-cka]");
+  if (cka) { if (needMe()) return; const id = cka.dataset.cka, k = id.lastIndexOf("#"), r = byKey(id.slice(0, k)), ai = +id.slice(k + 1); if (r && r.allocs[ai]) setCkAllocs([{ r, ai }], r.allocs[ai].st !== "ok"); return }
+  const tg = t.closest("[data-tog],[data-togv]");
+  if (tg) { const id = tg.dataset.tog || tg.dataset.togv; S.cOpen ||= {}; const wasOpen = !!S.cOpen[id]; S.cOpen[id] = tg.dataset.togv ? true : !wasOpen; renderCart();
+    if (tg.dataset.togv) setTimeout(() => { const k = id.lastIndexOf("#"), n = document.getElementById(`vd_${id.slice(0, k)}_${id.slice(k + 1)}`); if (n) n.focus() }, 40); return }
+  const cvb = t.closest("[data-cv]"); if (cvb) { S.cv = cvb.dataset.cv; renderCart(); return }
+  const cfb = t.closest("[data-cf]"); if (cfb) { S.cf = S.cf === cfb.dataset.cf ? "" : cfb.dataset.cf; renderCart(); return }
+  const gd = t.closest("[data-gdone]"); if (gd) { S.cDone ||= {}; S.cDone[gd.dataset.gdone] = !S.cDone[gd.dataset.gdone]; renderCart(); return }
   const sp = t.closest("[data-split]"); if (sp) { S.cartSplit = sp.dataset.split; renderCart(); setTimeout(() => { const n = document.getElementById("vdNew"); if (n) n.focus() }, 30); return }
   if (t.closest("[data-addno]")) { S.cartSplit = null; renderCart(); return }
   const ad = t.closest("[data-addok]");
@@ -1866,14 +1966,14 @@ $("#vCart").addEventListener("click", async e => {
   const rm = t.closest("[data-arm]");
   if (rm) { const r = byKey(rm.dataset.arm), k = +rm.dataset.ai; if (!r) return; const al = r.allocs.map(a => ({ v: a.v, q: a.q })); const [x] = al.splice(k, 1); al[0].q += x.q; setAllocs(r, al); return }
   const vc = t.closest("[data-vcopy]");
-  if (vc) { const g = byVendorCart()[+vc.dataset.vcopy]; if (!g) return; const [v, list] = g, txt = vendorText(v, list); try { await navigator.clipboard.writeText(txt) } catch { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() }
+  if (vc) { const g = byVendorCart().find(x => x[0] === vc.dataset.vcopy); if (!g) return; const [v, list] = g, txt = vendorText(v, list); try { await navigator.clipboard.writeText(txt) } catch { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() }
     store.setVcopy(S.date, S.sup, v, { by: S.me, t: Date.now(), q: txt }); return toast(`已複製給 ${v} 的叫貨文字`) }
-  if (t.closest("#vToggle")) { S.vOpen = !S.vOpen; renderCart(); return }
   if (t.closest("#bulkOpen")) { openBulk(); return }
-  const vk = t.closest("[data-vok]"); if (vk) { if (needMe()) return; const g = byVendorCart()[+vk.dataset.vok]; if (!g) return; const list = g[1]; setCk([...new Set(list.map(x => x.r))], true); return }
+  const vk = t.closest("[data-vok]"); if (vk) { if (needMe()) return; const g = byVendorCart().find(x => x[0] === vk.dataset.vok); if (!g) return; setCkAllocs(g[1].map(x => ({ r: x.r, ai: x.ai })), true); return }
   if (t.closest("#cAllOk")) { if (needMe()) return; setCk(rs(), true); return toast("全部標記已下訂") }
   if (t.closest("#cAllNo")) { if (!confirm("取消全部的下訂確認？")) return; setCk(rs(), false); return }
 });
+$("#vCart").addEventListener("input", e => { if (e.target.id === "cq") { S.cq = e.target.value; renderCart() } });
 $("#vCart").addEventListener("change", e => {
   const t = e.target; if (!t.dataset || t.dataset.ri == null) return;
   const r = cartItems().find(x => x.key === t.dataset.ri); if (!r) return;
@@ -1925,10 +2025,11 @@ $("#bulkOk").onclick = () => {
 const CB = { el: null };
 /* 畫面重畫後（別支手機存檔）原本的格子會被換掉，用 id 找回最新的那一格 */
 const cbLive = () => { if (!CB.el) return null; if (document.contains(CB.el)) return CB.el; const n = CB.el.id && document.getElementById(CB.el.id); if (n) { n.value = $("#cbIn").value; n.classList.add("be-on"); CB.el = n } return CB.el };
-const cbFields = () => [...document.querySelectorAll("#vCart input")];
+const cbFields = () => [...document.querySelectorAll("#vCart input")].filter(x => x.id !== "cq");
 function cbLabel(el) {
-  const cr = el.closest(".cr"), nm = cr ? cr.querySelector(".cn").textContent.trim() : "";
-  const al = el.closest(".al"), vend = al && !al.classList.contains("add") ? (al.querySelector(".vin") || {}).value || "" : "";
+  const cr = el.closest(".r2"), nm = cr && cr.querySelector(".r2n b") ? cr.querySelector(".r2n b").textContent.trim() : "";
+  const vt = cr ? cr.querySelector(".vtag:not(.none)") : null, vi = cr ? cr.querySelector(".vin:not(#vdNew)") : null;
+  const vend = (vi && vi.value) || (vt ? vt.textContent.trim() : "") || (cr && cr.closest(".vg") && !cr.closest(".vg").classList.contains("none") ? (cr.closest(".vg").querySelector(".vg-t b") || {}).textContent || "" : "");
   if (el.id === "vdNew") return `${nm}　分給另一家：廠商`;
   if (el.id === "qtNew") return `${nm}　分給另一家：數量`;
   if (el.classList.contains("vin")) return `${nm}　廠商`;
@@ -1957,16 +2058,19 @@ function cbMove(d) {
   if (!CB.el) return;
   cbLive();
   if (CB.el.id === "qtNew" && d > 0) { const btn = document.querySelector("[data-addok]"); CB.el = null; $("#cartEdit").classList.add("hide"); if (btn) btn.click(); return }
-  const all = cbFields(), i = all.indexOf(CB.el), nx = all[i + d], nid = nx && nx.id;
+  const all = cbFields(), i = all.indexOf(CB.el);
+  /* 廠商填完 → 同一列的單價（單價在上面那一行，順序跟畫面不一樣，所以特別處理） */
+  const rowPrice = d > 0 && CB.el.classList && CB.el.classList.contains("vin") && CB.el.id !== "vdNew" && CB.el.closest(".r2") ? CB.el.closest(".r2").querySelector(".apin") : null;
+  const nx = rowPrice || all[i + d], nid = nx && nx.id;
   cbCommit(); CB.el = null;
   setTimeout(() => { const n = nid && document.getElementById(nid); if (n) cbOpen(n); else cbClose() }, 30);
 }
-$("#vCart").addEventListener("focusin", e => { if (S.refocus) return; const t = e.target; if (t.matches("input") && t !== CB.el) { t.blur(); cbOpen(t) } });
+$("#vCart").addEventListener("focusin", e => { if (S.refocus) return; const t = e.target; if (t.matches("input") && t.id !== "cq" && t !== CB.el) { t.blur(); cbOpen(t) } });
 $("#cbIn").addEventListener("input", e => { if (!cbLive()) return; CB.el.value = e.target.value; cbChips() });
 $("#cbIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); cbMove(1) } else if (e.key === "Escape") cbClose() });
 $("#cbChips").addEventListener("click", e => { const b = e.target.closest("[data-cbv]"); if (!b || !CB.el) return; $("#cbIn").value = CB.el.value = b.dataset.cbv; cbMove(1) });
 $("#cbPrev").onclick = () => cbMove(-1); $("#cbNext").onclick = () => cbMove(1); $("#cbOk").onclick = cbClose;
-document.addEventListener("pointerdown", e => { if (CB.el && !e.target.closest("#cartEdit") && !e.target.closest("#vCart input")) cbClose() });
+document.addEventListener("pointerdown", e => { if (CB.el && !e.target.closest("#cartEdit") && !e.target.closest("#vCart input:not(#cq)")) cbClose() });
 /* ===== 到貨核對：每個規格／廠商一列，填實收數量 ===== */
 function rvRows() {
   const L = lines(), out = [];
