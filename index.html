@@ -584,6 +584,11 @@ select.in{appearance:auto}
   .pf td.h{font-weight:400;text-align:center;background:#eee;font-size:calc(var(--fq) * .85);color:#333;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pf td.h.hc{font-size:var(--fc);font-weight:700;color:#000;letter-spacing:.05em}
   .pf td.gap{border:0}
+  .pf td.pair{padding:0;height:var(--rh)}
+  .pf .pp{display:flex;height:var(--rh)}
+  .pf .ph{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:1mm;padding:0 1.2mm;font-size:var(--fn);white-space:nowrap;overflow:hidden}
+  .pf .ph + .ph{border-left:1px solid #000}
+  .pf .hq{font-size:var(--fq);font-weight:700}.pf .hq.e{font-size:.74em;font-weight:400;color:#999}
   .pf td.tq{text-align:left;padding:0 1mm;font-size:var(--fq)}
   .pf td.tq.c{text-align:center;padding:0 .5mm}
   .pf td.n.sm{font-size:calc(var(--fn) * .88);letter-spacing:-.03em}
@@ -2783,11 +2788,17 @@ function itemCells(it, e) {
 const cellText = c => (c.v ? (c.h ? c.h + " " : "") + c.v : c.h || "");
 /* 列印／Excel：跟紙本西螺採購單一樣，列出全部品項，有叫的填上數量
    每個品項兩格；分廠商或規格超過兩個時往下多一列 */
-function sheetGrid() {
+function sheetGrid(pairing) {
   const L = lines(), R = {};
   catsOf().forEach(cat => {
-    const out = [];
-    itemsOf(cat).forEach(it => { const cs = itemCells(it, L[it.id]); for (let i = 0; i < Math.max(cs.length, 1); i += 2) out.push({ n: i ? "" : it.n, q: [cs[i] || {}, cs[i + 1] || {}], cat, on: hasQty(L[it.id]), cont: i > 0 }) });
+    let out = [];
+    itemsOf(cat).forEach(it => {
+      const e = L[it.id], cs = itemCells(it, e), single = cs.length <= 2 && !(cs[1] && (cs[1].v || cs[1].h)) && !hasVend(it, e) && !(it.o || []).length && qtyOpts(it, e).length <= 1;
+      const txt = (cs[0] && cs[0].v) || "";
+      for (let i = 0; i < Math.max(cs.length, 1); i += 2) out.push({ n: i ? "" : it.n, q: [cs[i] || {}, cs[i + 1] || {}], cat, on: hasQty(e), cont: i > 0, simple: single && i === 0 && it.n.length <= 5 && txt.length <= 5 });
+    });
+    /* 列印：單格的簡單品項兩個併成一列（像紙本的「韭菜 把，韭黃 包」），列數少了，字才能放大 */
+    if (pairing) { const m = []; for (let i = 0; i < out.length; i++) { const a = out[i], b = out[i + 1]; if (a.simple && b && b.simple) { m.push({ pair: [a, b], cat, on: a.on || b.on }); i++ } else m.push(a) } out = m }
     if (out.length) R[cat] = out;
   });
   const used = catsOf().filter(c => R[c]);
@@ -2806,12 +2817,12 @@ function sheetGrid() {
   return cols.map(col => col.flatMap(c => [{ h: c, cat: c }, ...R[c]]));
 }
 function printSheet() {
-  const g = sheetGrid(), rows = Math.max(0, ...g.map(c => c.length));
+  const g = sheetGrid(true), rows = Math.max(0, ...g.map(c => c.length));
   /* 依列數算列高和字級，保證整張塞進一張 A4（上 1.5、下 1 公分 → 可用 272mm，扣掉標題和備註）*/
   /* 保守一點算：就算瀏覽器用自己的邊界、或紙張被設成 Letter，也塞得進一頁 */
-  const avail = 250 - 13 - 20, rh0 = avail / Math.max(rows, 1), rh = Math.max(3.6, Math.min(7.4, rh0));
+  const avail = 262 - 13 - 18, rh0 = avail / Math.max(rows, 1), rh = Math.max(3.6, Math.min(8, rh0));
   const zoom = rh0 < 3.6 ? rh0 / 3.6 : 1;   /* 列數多到連最小字級都放不下時，整張等比例縮小 */
-  const fn = Math.min(13, rh * 1.85), fq = Math.min(14, rh * 2.05), fc = Math.min(14.5, rh * 2.0);
+  const fn = Math.min(13.5, rh * 2.0), fq = Math.min(14.5, rh * 2.15), fc = Math.min(15, rh * 2.1);
   const sz = `" style="--rh:${rh.toFixed(2)}mm;--fn:${fn.toFixed(1)}pt;--fq:${fq.toFixed(1)}pt;--fc:${fc.toFixed(1)}pt`;
   let h = `<div class="pf-h"><b>採鮮農產行　${esc(sup().name)}採購單</b><span>${S.date.replace(/-/g, " / ")}　${dateLabel(S.date).slice(-3)}　叫 ${ordStats().ordered.length} 項</span></div><table class="pf ${sz}"><colgroup>${g.map((_, i) => `<col style="width:12.5%"><col style="width:10%"><col style="width:10%">${i < g.length - 1 ? `<col style="width:.75%">` : ""}`).join("")}</colgroup>`;
   for (let r = 0; r < rows; r++) {
@@ -2819,6 +2830,7 @@ function printSheet() {
       const x = col[r], gap = i < g.length - 1 ? `<td class="gap"></td>` : "";
       if (!x) return `<td class="n"></td><td class="q tq"></td><td class="q tq"></td>${gap}`;   /* 空欄補滿，方便手寫 */
       if (x.h) return `<td class="h hc" style="border-top:2px solid ${catColor(x.cat)}">${esc(x.h)}</td><td class="h">數量</td><td class="h">數量</td>${gap}`;
+      if (x.pair) { const half = z => { const c = z.q[0]; return `<div class="ph"><span class="hn${z.on ? " on" : ""}">${esc(z.n)}</span>${c.v ? `<span class="hq">${esc(c.v)}</span>` : `<span class="hq e">${esc(c.h || "")}</span>`}</div>` }; return `<td class="pair" colspan="3"><div class="pp">${half(x.pair[0])}${half(x.pair[1])}</div></td>${gap}` }
       const qc = c => { const w = (c.v || "").length + (c.v ? (c.h || "").length * .7 : 0); return `<td class="q tq${c.v ? " c" : ""}${w > 6.5 ? " xs" : w > 5 ? " sm" : ""}">${c.v ? `${c.h ? `<i>${esc(c.h)}</i>` : ""}${esc(c.v)}` : c.h ? `<i class="e">${esc(c.h)}</i>` : ""}</td>` };
       return `<td class="n${x.n.length > 4 ? " sm" : ""}${x.on ? " on" : ""}">${esc(x.n)}</td>${qc(x.q[0])}${qc(x.q[1])}${gap}`;
     }).join("") + "</tr>";
