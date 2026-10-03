@@ -50,7 +50,7 @@ input,textarea,select{font:inherit;color:inherit}
 .sent-flag.s{background:#5BD88A;color:var(--ink)}.sent-flag.m{background:#FFB65C;color:var(--ink)}
 
 /* tabs */
-.tabs{position:sticky;top:calc(var(--tabs-top,96px) + 44px);z-index:15;display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:var(--catbg,var(--bg));scrollbar-width:none;border-bottom:1px solid rgba(0,0,0,.08)}
+.tabs{position:sticky;top:calc(var(--tabs-top,96px) + 90px);z-index:15;display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:var(--catbg,var(--bg));scrollbar-width:none;border-bottom:1px solid rgba(0,0,0,.08)}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex:none;border-radius:10px;padding:7px 12px 6px;background:var(--ct);border:1px solid rgba(0,0,0,.08);text-align:left;position:relative;overflow:hidden}
 .tab::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)}
@@ -289,6 +289,9 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 .sgrp>summary b{font-size:17px;font-weight:900;flex:none}.sgrp>summary .sg-n{flex:1;min-width:0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sgrp>summary::after{content:"▾";color:var(--muted)}.sgrp[open]>summary::after{content:"▴"}
 .sgrp>.panel{margin:0 10px 10px;border-color:var(--line)}
+.pay-sf{display:flex;gap:6px;overflow-x:auto;margin:6px 0 4px;scrollbar-width:none}.pay-sf::-webkit-scrollbar{display:none}
+.pay-sf button{flex:none;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:700;background:#fff}.pay-sf button b{font-family:var(--mono);margin-left:6px;color:var(--low)}.pay-sf button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.pay-sf button.on b{color:var(--citrus)}
+.pay-sup{display:flex;align-items:baseline;gap:10px;margin:16px 4px 4px;padding-bottom:4px;border-bottom:2px solid var(--ink)}.pay-sup b{font-size:18px;font-weight:900}.pay-sup span{font-size:12px;color:var(--muted);font-family:var(--mono)}.pay-sup.sm{border-bottom:1px solid var(--line);margin:10px 0 4px}.pay-sup.sm b{font-size:14px}
 .pay-wk{display:flex;gap:8px;margin:6px 0 2px}.pay-wk span{flex:1;background:var(--bg);border-radius:8px;padding:5px 8px;font-size:12px}.pay-wk b{font-family:var(--mono);font-size:14px;margin-left:4px}.pay-wk small{display:block;color:var(--muted);font-size:10.5px}
 .vpanel{padding:0}
 .vp-h{display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%;text-align:left;padding:14px}
@@ -323,8 +326,9 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 .seg.cv{display:flex;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px}.seg.cv button{padding:7px 10px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted)}.seg.cv button.on{background:var(--ink);color:#fff}
 .cchips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;scrollbar-width:none}.cchips::-webkit-scrollbar{display:none}
 .cc{flex:none;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:700;background:#fff}.cc b{font-family:var(--mono);margin-left:5px}
-.cc.o b{color:var(--low)}.cc.b b{color:var(--warn)}.cc.zero b{color:var(--muted)}.cc.on{background:var(--ink);color:#fff;border-color:var(--ink)}.cc.on b{color:var(--citrus)}.cc.clr{color:#2F6FD6;border-color:#C9D8F4}
+.cc.g b{color:var(--ok)}.cc.o b{color:var(--low)}.cc.b b{color:var(--warn)}.cc.zero b{color:var(--muted)}.cc.on{background:var(--ink);color:#fff;border-color:var(--ink)}.cc.on b{color:var(--citrus)}.cc.clr{color:#2F6FD6;border-color:#C9D8F4}
 .vg{background:var(--paper);border:1px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}.vg.fin{opacity:.85}.vg.none{border-color:#F2C58E}
+.vg-div{margin:16px 4px 2px;font-size:13px;font-weight:900;color:var(--ok);border-bottom:2px solid #BFE3CB;padding-bottom:3px}
 .vg-h{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg)}.vg.none .vg-h{background:#FFF3E0}
 .vg-t{flex:1;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px}.vg-t b{font-size:18px;font-weight:900}.vg-n{font-family:var(--mono);font-size:12px;color:var(--muted)}
 .vg-s{font-family:var(--mono);font-weight:900;font-size:14px}.vg-s small{font-family:var(--sans);font-weight:500;font-size:11px;color:var(--low);margin-left:4px}
@@ -332,17 +336,29 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 .vg-b{display:flex;gap:6px;flex:none}.vg-b .btn{width:auto;padding:8px 12px}
 .vcp2{font-size:11.5px;padding:3px 12px;color:var(--muted)}.vcp2.ok{color:var(--ok);font-weight:700}.vcp2.chg{color:var(--warn);font-weight:700}
 .r2{border-top:1px solid var(--line)}.r2.ok .r2n b,.r2.ok .q2{color:var(--muted);text-decoration:line-through}
-.r2l{display:flex;align-items:center;gap:8px;padding:8px 10px}
-.r2 .cbx{width:32px;height:32px;border-radius:8px;flex:none}
-.r2n{flex:1;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:0 6px;cursor:pointer;line-height:1.3}.r2n b{font-size:15.5px}
-.r2n .spec{font-size:11px;font-weight:700;background:var(--bg);border-radius:5px;padding:0 5px}.q2{font-family:var(--mono);font-weight:700;font-size:14px}
-.vtag{font-size:11.5px;font-weight:700;background:#E8EFFC;color:#2F6FD6;border-radius:6px;padding:0 6px}.vtag.none{background:#FFF3E0;color:#B7630A}
-.r2p input{width:64px;border:1px solid var(--line);border-radius:8px;padding:8px 5px;text-align:right;font-family:var(--mono);font-weight:700;font-size:14px;background:#fff}
+.r2l{display:flex;align-items:center;gap:10px;padding:12px 10px}
+.r2 .cbx{width:42px;height:42px;border-radius:10px;flex:none;font-size:22px}
+.r2n{flex:1;min-width:0;display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;cursor:pointer;line-height:1.3}.r2n b{font-size:18px}
+.r2n .spec{font-size:13px;font-weight:700;background:var(--bg);border-radius:6px;padding:0 7px}.q2{font-family:var(--mono);font-weight:700;font-size:17px}
+.vtag{font-size:14px;font-weight:700;background:#E8EFFC;color:#2F6FD6;border-radius:7px;padding:1px 9px}.vtag.none{background:#FFF3E0;color:#B7630A}
+.r2p input{width:84px;border:1.5px solid var(--line);border-radius:10px;padding:11px 7px;text-align:right;font-family:var(--mono);font-weight:700;font-size:18px;background:#fff}
+.r2d .vin{font-size:18px;padding:13px 12px;font-weight:700;cursor:pointer;background:#fff}.r2d .awin{font-size:17px;padding:11px 8px;width:78px}
+.r2a{display:flex;gap:8px;margin-top:10px}.r2a .btn{width:auto;padding:13px 16px;font-size:16px}.r2a .btn.sp{flex:1;background:#E8EFFC;color:#2F6FD6;border-color:#C9D8F4;font-weight:900}
+.sp-sheet{max-height:88vh;display:flex;flex-direction:column}.sp-sum{margin:10px 2px 6px;font-size:16px}.sp-sum b{font-family:var(--mono);font-size:20px}.sp-sum .o{color:var(--low);font-weight:900}.sp-sum .bad{color:var(--warn);font-weight:900}.sp-sum .ok{color:var(--ok);font-weight:900}
+.sp-list{overflow:auto;flex:1;min-height:120px}
+.sp-r{display:flex;align-items:center;gap:8px;padding:10px 4px;border-bottom:1px solid var(--line)}.sp-r.on{background:#F3F8F4}.sp-r.sug{background:#FFFAF0}
+.sp-n{flex:1;min-width:0}.sp-n b{font-size:19px}.sp-n small{display:block;font-size:11px;font-weight:700;color:#1E8A4C}
+.sp-m{width:48px;height:48px;border-radius:12px;background:var(--bg);font-size:26px;font-weight:900}.sp-m:disabled{opacity:.3}
+.sp-q{min-width:56px;height:48px;border-radius:12px;border:2px solid var(--ink);background:#fff;font-family:var(--mono);font-size:20px;font-weight:900}
+.sp-all{height:48px;padding:0 10px;border-radius:12px;border:1px solid var(--line);font-size:14px;font-weight:700;background:#fff;color:var(--muted)}
+.sp-b{display:grid;grid-template-columns:1fr 1.6fr;gap:8px;margin-top:10px}.sp-b .btn{width:auto;padding:15px 8px;font-size:17px}
 .r2p input.inh{color:#8A93A0;background:var(--bg);font-weight:500}.r2p input::placeholder{color:#B5BCC6;font-weight:400}
 .r2m{flex:none;width:30px;height:32px;color:var(--muted);font-size:16px}
 .r2w{padding:0 12px 6px 50px;font-size:12px;color:var(--warn);font-weight:700}
 .r2d{padding:2px 12px 10px 50px;background:#FAFBFC}
-.gdone{display:block;width:100%;text-align:left;padding:9px 12px;border-top:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ok);background:var(--okbg)}
+.gdone{display:flex;align-items:center;gap:8px;padding:0 12px 0 0;border-top:1px solid var(--line);background:var(--okbg)}
+.gdone button:first-child{flex:1;text-align:left;padding:9px 12px;font-size:13px;font-weight:700;color:var(--ok)}
+.gdone .gu{font-size:12px;font-weight:700;color:var(--warn);border:1px solid #F0C4BE;border-radius:8px;padding:5px 9px;background:#fff}
 .cart-top{display:flex;align-items:center;gap:10px}.cart-top div{flex:1}.cart-top small{display:block;font-size:12px;color:var(--muted)}.cart-top b{font-family:var(--mono);font-size:26px;margin-right:8px}
 .cg-h{display:flex;align-items:center;gap:6px;margin-bottom:4px}.cg-h>div{flex:1}.cg-h b{font-size:18px;display:block}.cg-h small{font-size:12px;color:var(--muted)}.cg-h .btn{width:auto}
 .cr{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
@@ -467,7 +483,11 @@ select.in{appearance:auto}
 .bigedit{position:fixed;left:0;right:0;top:0;z-index:60;background:#fff;padding:calc(var(--safe-t) + 12px) 14px 12px;box-shadow:0 8px 24px rgba(0,0,0,.25);border-bottom:3px solid var(--citrus)}
 .bigedit .be-l{font-size:14px;font-weight:700;color:var(--muted);margin:0 auto 6px;max-width:560px}
 .bigedit input{display:block;width:100%;max-width:560px;margin:0 auto;font-size:28px;font-weight:700;padding:12px 14px;border:2px solid var(--ink);border-radius:12px;background:#fff}
-.bigedit .be-chips{display:flex;flex-wrap:wrap;gap:6px;max-width:560px;margin:8px auto 0;max-height:132px;overflow:auto}
+.bigedit .be-chips{display:flex;flex-wrap:wrap;gap:8px;max-width:560px;margin:8px auto 0;max-height:132px;overflow:auto}
+.bigedit.vend .be-chips{max-height:46vh}
+.bigedit.vend .be-chips button{font-size:19px;padding:14px 18px;border-radius:12px}
+.bigedit .be-chips button.cur{background:var(--ink);color:#fff;border-color:var(--ink)}
+.bigedit .be-chips button.fv{background:#E6F7EC;border-color:#7DB892}.bigedit .be-chips button small{display:block;font-size:10.5px;color:#1E8A4C;font-weight:700}
 .bigedit .be-chips:empty{display:none}
 .bigedit .be-chips button{border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:16px;font-weight:700;background:var(--bg)}
 .bigedit .be-chips button.new{background:#E8EFFC;color:#2F6FD6;border-color:#C9D8F4}
@@ -483,6 +503,9 @@ select.in{appearance:auto}
 .flow .fs.on{background:var(--citrus);color:var(--ink)}.flow .fs.on b{color:var(--ink)}
 .inv-line .dq{display:flex;gap:3px;flex:none}.inv-line .dq button{font-size:11.5px;color:#fff;background:rgba(255,255,255,.12);border-radius:6px;padding:2px 7px}.inv-line .dq button.on{background:#fff;color:var(--ink);font-weight:900}
 .closed{background:var(--warn);color:#fff;border-radius:5px;padding:0 6px;font-weight:900}
+.obar{flex-wrap:wrap;row-gap:6px}
+.obar-b{flex:1 1 100%;display:flex;gap:8px}.obar-b button{flex:1;border:1.5px dashed #B9C0CA;border-radius:10px;padding:7px 8px;font-size:13px;font-weight:800;background:#fff;color:var(--ink);position:relative}
+.obar-b #newItemBtn{border-color:#7DB892;color:#1E6B3B;background:#F1FAF4}.obar-b .nd{position:absolute;top:4px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--low)}
 .obar{position:sticky;top:var(--tabs-top,96px);z-index:16;display:flex;gap:8px;align-items:center;padding:8px 12px 0;background:var(--catbg,var(--bg))}
 .obar input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;font-size:15px;background:#fff}
 .ofl{display:flex;gap:4px;flex:none}.ofl button{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12.5px;font-weight:700;background:#fff}.ofl button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -517,6 +540,8 @@ select.in{appearance:auto}
 .pu-s{margin:0 0 0 32px;font-size:11.5px;color:var(--muted)}.pu-s .bad,.pu-s.bad{color:var(--warn);font-weight:700}
 .pu-pick{width:calc(100% - 32px);margin:6px 0 4px 32px;padding:9px}
 .pu-aff{margin-top:10px;background:var(--bg);border-radius:10px;padding:8px 12px;font-size:13px}.pu-aff b{display:block;margin-bottom:4px}.pu-aff div{font-family:var(--mono)}
+.cnote{display:block;width:100%;text-align:left;background:#FFF8E1;border:1.5px solid #F2D675;border-radius:12px;padding:10px 12px;margin-bottom:8px;white-space:pre-wrap;font-size:14px;line-height:1.5}.cnote b{display:block;font-size:12px;color:#8A6A00;margin-bottom:2px}.cnote small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
+.ni-b{padding-top:6px}.ni-b .su-in{margin-top:0}
 .sub-cat{font-weight:900;font-size:14px;border-left:4px solid var(--cc);padding-left:8px;margin:12px 2px 6px}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
 .fab{position:fixed;z-index:35;display:flex;gap:8px}
@@ -591,7 +616,7 @@ select.in{appearance:auto}
 </header>
 
 <div id="status" class="hide" style="padding:0 12px;max-width:760px;margin:0 auto"></div>
-<div id="vOrd"><div class="obar"><input type="search" id="oq" placeholder="搜尋品項" autocomplete="off"><div class="ofl" id="ofl"><button data-of="all" class="on">全部</button><button data-of="sug">建議要叫</button><button data-of="ord">已叫</button></div></div><div class="tabs" id="tabs"></div><main id="list"></main></div>
+<div id="vOrd"><div class="obar"><input type="search" id="oq" placeholder="搜尋品項" autocomplete="off"><div class="ofl" id="ofl"><button data-of="all" class="on">全部</button><button data-of="sug">建議要叫</button><button data-of="ord">已叫</button></div><div class="obar-b"><button id="newItemBtn">＋ 清單沒有的品項</button><button id="noteBtn">📝 備註<i id="noteDot" class="nd hide"></i></button></div></div><div class="tabs" id="tabs"></div><main id="list"></main></div>
 <main id="vCart" class="hide"></main>
 <main id="vSum" class="hide"></main>
 <main id="vPay" class="hide"></main>
@@ -685,11 +710,32 @@ select.in{appearance:auto}
   <div class="bulk-v"><input class="in" id="bulkIn" placeholder="廠商（選或打字）" autocomplete="off" data-lpignore="true"><div class="be-chips" id="bulkChips"></div></div>
   <button class="btn okb" id="bulkOk" style="margin-top:8px">套用</button>
 </section>
+<section class="sheet" id="noteSheet" aria-label="叫貨備註">
+  <div class="sh-head"><div><b>叫貨備註</b><span id="noteSub"></span></div><button class="sh-x" id="noteClose" aria-label="關閉">×</button></div>
+  <p class="muted" style="margin:8px 0">到貨時間、要交代的事。會印在採購單最下面，複製給廠商的文字最後也會附上。</p>
+  <textarea class="note" id="noteS" placeholder="例如：明天早上要先到、小薑中1件" style="min-height:120px"></textarea>
+</section>
+<section class="sheet" id="niSheet" aria-label="清單沒有的品項">
+  <div class="sh-head"><div><b>叫貨清單沒有的品項</b><span>加進來後，叫貨、下訂、到貨、付款、列印都會一起處理</span></div><button class="sh-x" id="niClose" aria-label="關閉">×</button></div>
+  <div class="ni-b">
+    <input class="su-in" id="niName" placeholder="品名，例如 茼蒿" autocomplete="off" enterkeyhint="next">
+    <div class="su-l">單位（必填）</div><div class="su-chips" id="niChips"></div>
+    <input class="su-in" id="niUnit" placeholder="或自己打單位，例如 箱" autocomplete="off" enterkeyhint="next">
+    <div class="su-l">放在哪一類</div><select class="in" id="niCat" style="width:100%;padding:12px;font-size:16px"></select>
+    <button class="su-ok" id="niOk">加入並開始叫貨</button>
+  </div>
+</section>
 <section class="sheet" id="pushSheet" aria-label="送到報價">
   <div class="sh-head"><div><b>送到採鮮報價（待確認）</b><span id="pushSub"></span></div><button class="sh-x" id="pushClose" aria-label="關閉">×</button></div>
   <div class="push-ok">✓ 這只會送到報價後台的<b>「待確認」</b>，<b>不會</b>改到客人看的報價。你在後台看過、按「發布」才會生效。</div>
   <div class="push-l" id="pushList"></div>
   <div class="push-b"><button class="btn" id="pushCopy">複製成本資料</button><button class="btn okb" id="pushOk">送到報價後台</button></div>
+</section>
+<section class="sheet sp-sheet" id="splitSheet" aria-label="分給廠商">
+  <div class="sh-head"><div><b id="spTitle">分給廠商</b><span id="spSub"></span></div><button class="sh-x" id="spClose" aria-label="關閉">×</button></div>
+  <div class="sp-sum" id="spSum"></div>
+  <div class="sp-list" id="spList"></div>
+  <div class="sp-b"><button class="btn" id="spReset">清除重分</button><button class="btn okb" id="spOk">套用</button></div>
 </section>
 <div class="bigedit hide" id="askBox" role="dialog" aria-label="輸入">
   <div class="be-l" id="askLabel"></div>
@@ -1598,7 +1644,7 @@ function renderFlow() {
   let pay = "—", payDone = false;
   if (S.payOrders && S.ord && S.date >= payStart()) {
     const L = ledger(), today = orderDues(S.ord); let due = 0, paid = 0, miss = 0;
-    Object.keys(today).forEach(pe => { const x = L[pe], d = x && x.days.find(q => q.date === S.date); due += today[pe].a; miss += today[pe].miss; if (d) paid += d.paid });
+    Object.keys(today).forEach(pe => { const x = L[akey(S.sup, pe)], d = x && x.days.find(q => q.date === S.date); due += today[pe].a; miss += today[pe].miss; if (d) paid += d.paid });
     pay = due ? `${money(paid)}/${money(due)}` : (miss ? "未定價" : "—"); payDone = due > 0 && paid >= due && !miss;
   }
   const seg = (v, label, val, done, cur) => `<button class="fs${S.view === v ? " on" : ""}${done ? " done" : ""}" data-v="${v}"><small>${label}</small><b>${val}</b></button>`;
@@ -1620,6 +1666,7 @@ function renderTop() {
       : `${S.date === today() ? "今天" : dateLabel(S.date)}點貨進行中，已點 <b>${n}</b> / ${tot} 項`;
   }
   $("#invSrc").innerHTML = src;
+  renderNoteDot();
   const cs = st.ordered.length ? ckStat() : null;
   $("#ordCnt").textContent = `叫 ${st.ordered.length} 項${cs && cs.n ? `・訂 ${cs.ok}/${cs.n}` : ""}`;
   document.querySelectorAll(".inv-line .dq [data-dq]").forEach(b => b.classList.toggle("on", addDays(today(), +b.dataset.dq) === S.date));
@@ -1655,7 +1702,7 @@ function renderOrd() {
     const rs = oItems().filter(it => (!q || norm(it.n).includes(q)) && pass(it));
     const sugN = rs.filter(i => !hasQty(L[i.id]) && analyze(i).needAny).length;
     $("#list").innerHTML = `<div class="cat-h"><h2>${q ? `搜尋「${esc(S.oq)}」` : { sug: "建議要叫", ord: "已叫" }[of]}</h2><span class="muted">${rs.length} 項</span>${sugN && of !== "ord" ? `<button class="act sg" data-fillall="1">帶入建議 ${sugN} 項</button>` : ""}</div>
-      ${rs.length ? catsOf().map(cat => { const g = rs.filter(i => i.c === cat); return g.length ? `<div class="sub-cat" style="--cc:${catColor(cat)}">${esc(cat)}</div><div class="rows">${g.map(i => rowHtml(i, L[i.id])).join("")}</div>` : "" }).join("") : `<div class="empty">沒有符合的品項</div>`}`;
+      ${rs.length ? catsOf().map(cat => { const g = rs.filter(i => i.c === cat); return g.length ? `<div class="sub-cat" style="--cc:${catColor(cat)}">${esc(cat)}</div><div class="rows">${g.map(i => rowHtml(i, L[i.id])).join("")}</div>` : "" }).join("") : `<div class="empty">沒有符合的品項${q ? `<br><button class="btn okb" data-newitem="${esc(S.oq)}" style="width:auto;margin-top:12px;padding:12px 18px">＋ 新增「${esc(S.oq)}」並叫貨</button>` : ""}</div>`}`;
     return;
   }
   document.documentElement.style.setProperty("--catbg", catTint(S.cat));
@@ -1689,6 +1736,7 @@ $("#ofl").addEventListener("click", e => { const b = e.target.closest("[data-of]
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; S.cat = b.dataset.cat; renderOrd(); window.scrollTo(0, 0) });
 $("#list").addEventListener("click", e => {
   if (e.target.closest("[data-fillcat]")) { fillSuggest(itemsOf(S.cat)); return }
+  const nit = e.target.closest("[data-newitem]"); if (nit) { openNewItem(nit.dataset.newitem); return }
   const ic = e.target.closest("[data-impc]");
   if (ic) {
     const cat = ic.dataset.impc, cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup); if (!x) return;
@@ -1889,7 +1937,7 @@ function openPeople() {
   $("#ppList").innerHTML = ppl.map(p => `<button class="${p === S.me ? "on" : ""}" data-p="${esc(p)}">${esc(p)}</button>`).join("");
   openSheet("pp");
 }
-$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush() };
+$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush(); closeNote(); closeNewItem(); $("#splitSheet").classList.remove("show") };
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheets);
 $("#ppList").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; S.me = b.dataset.p; try { localStorage.setItem("caixian-order-me", S.me) } catch {} renderWho(); closeSheets() };
 
@@ -1935,6 +1983,19 @@ function orderText() {
    廠商存在數量的 key 裡（「規格·廠商」），價格之後在總覽依每家分開填
    沒選廠商的，預設延用這個品項上次的廠商
    ck[品項|規格] = { by, t, q }；q 是打勾時的數量，之後數量被改要重新確認 */
+/* 這個品項最近常跟哪幾家叫（越近權重越大，約 2 週減半），沒有紀錄就用價格紀錄裡出現過的 */
+function vendRank(it) {
+  const sc = {}, key = `vr|${it.id}`; S.fcCache ||= {}; if (key in S.fcCache) return S.fcCache[key];
+  ((S.hist && S.hist.ords) || []).forEach(o => {
+    if (o.sup !== S.sup || o.date >= S.date || !o.lines || !o.lines[it.id] || !o.lines[it.id].vs) return;
+    const w = Math.exp(-Math.max(0, (new Date(S.date + "T00:00") - new Date(o.date + "T00:00")) / 864e5) / 14);
+    Object.entries(o.lines[it.id].vs).forEach(([k, q]) => { if (q > 0) { const v = splitKey(it, k).vend; if (v) sc[v] = (sc[v] || 0) + w } });
+  });
+  Object.entries(S.last || {}).forEach(([k, v]) => { if (k.startsWith(it.id + "|") && v && v.v) sc[v.v] = (sc[v.v] || 0) + 0.2 });
+  const r = Object.keys(sc).sort((a, b) => sc[b] - sc[a]);
+  return S.hist ? (S.fcCache[key] = r) : r;
+}
+const vendOrder = (it, first = []) => [...new Set([...first.filter(Boolean), ...(it ? vendRank(it) : []), ...vendList()])];
 function vendList() {
   const sp = sup(); if (sp.vendFixed) return sp.vendList || [];
   const set = new Set(sp.vendList || []);
@@ -2025,8 +2086,8 @@ const carTime = (d = S.date) => isHoliday(d) ? carCfg().we : carCfg().wd;
 function msgHeadRaw() { let h = (sup().msgHead != null ? sup().msgHead : DEF_MSG_HEAD); if (!h.includes("{時間}")) h = h.replace(/下午\s*2\s*點\s*30|下午\s*1\s*點/, "{時間}"); return h.trim() }
 const msgHead = (d = S.date) => msgHeadRaw().replace(/\{時間\}/g, carTime(d));
 function vendorText(v, list) {
-  const head = msgHead();
-  return [...(head ? [head, ""] : []), ...list.map(({ r, q }) => `${r.n}${r.lab ? " " + r.lab : ""}　${partText(r.it, r.lab ? "" : r.spec, q)}`)].join("\n");
+  const head = msgHead(), note = noteVal().trim();
+  return [...(head ? [head, ""] : []), ...list.map(({ r, q }) => `${r.n}${r.lab ? " " + r.lab : ""}　${partText(r.it, r.lab ? "" : r.spec, q)}`), ...(note ? ["", `備註：${note}`] : [])].join("\n");
 }
 /* ===== 下訂頁：依廠商（像購物車）或依分類；搜尋、篩選；訂好的收起來；每列一行 ===== */
 function cartEntries(rs) { return rs.flatMap(r => r.allocs.map((a, ai) => ({ r, a, ai }))) }
@@ -2034,6 +2095,7 @@ function entryPass(en) {
   const { r, a } = en, q = norm(S.cq || ""), f = S.cf || "";
   if (q && !norm(r.n + " " + r.lab + " " + (a.v || "")).includes(q)) return false;
   if (f === "no") return a.st !== "ok";
+  if (f === "ok") return a.st === "ok";
   if (f === "nov") return !a.v;
   if (f === "nop") return a.p == null;
   if (f === "chg") return a.st === "chg";
@@ -2054,45 +2116,46 @@ function crowHtml(en, mode) {
     ${a.st === "chg" ? `<div class="r2w">原本訂「${esc(a.ck.q)}」，數量有改，要再確認</div>` : ""}${warn ? `<div class="r2w">${warn}</div>` : ""}
     ${open ? `<div class="r2d">
       <div class="al">
-        <input class="vin${a.inh ? " inh" : ""}" id="vd_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" value="${esc(a.v)}" placeholder="選廠商或打字" autocomplete="off" aria-label="${esc(r.n)} 廠商">
-        ${multi ? `<input class="aq" id="qt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" value="${fmt(a.q)}" aria-label="數量"><small>${esc(r.u || "")}</small>` : ""}
+        <input class="vin${a.inh ? " inh" : ""}" id="vd_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" value="${esc(a.v)}" placeholder="點一下，選廠商" autocomplete="off" aria-label="${esc(r.n)} 廠商" readonly>
         ${unitKg(r.u) ? `<span class="apw aw"><small>1${esc(r.u)}＝${fmt(unitKg(r.u))}公斤</small></span>` : `<span class="apw aw"><input class="awin${a.winh ? " inh" : ""}" id="wt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.w == null ? "" : fmt(a.w)}" placeholder="每件KG" aria-label="${esc(r.n)} 每件重量"><small>KG/${esc(r.u || "件")}</small></span>`}
-        ${multi ? `<button class="ax" data-arm="${esc(r.key)}" data-ai="${ai}" aria-label="移除這家">✕</button>` : ""}
       </div>${a.inh ? `<div class="al-note">延用上次的廠商</div>` : ""}
-      ${ai === r.allocs.length - 1 ? (S.cartSplit === r.key ? `<div class="al add"><input class="vin" id="vdNew" placeholder="另一家廠商" autocomplete="off" data-lpignore="true"><input class="aq" id="qtNew" inputmode="decimal" placeholder="數量" autocomplete="off"><small>${esc(r.u || "")}</small><button class="btn sm okb" data-addok="${esc(r.key)}">加入</button><button class="ax" data-addno="1">✕</button></div>` : `<button class="al-add" data-split="${esc(r.key)}">＋ 分給另一家</button>`) : ""}
-      <button class="al-add" data-go="${r.id}" style="margin-left:14px">到叫貨頁改數量 ›</button>
+      ${multi ? `<div class="al-note">這項分給 ${r.allocs.length} 家：${r.allocs.map(x => `${esc(x.v || "未指定")} ${fmt(x.q)}${esc(r.u || "")}`).join("、")}</div>` : ""}
+      <div class="r2a"><button class="btn sp" data-split="${esc(r.key)}">${multi ? "調整分給哪幾家" : "分給多家廠商"}…</button><button class="btn" data-go="${r.id}">改數量</button></div>
     </div>` : ""}
   </div>`;
 }
 function renderCart() {
-  const el = $("#vCart");
+  const el = $("#vCart"), sy = window.scrollY;
   const ae = document.activeElement, keep = ae && ae.id && el.contains(ae) && ae.tagName === "INPUT" ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
   const rs = cartItems();
   if (!rs.length) { el.innerHTML = `<div class="empty">還沒有叫貨品項。到「叫貨」輸入數量後，這裡會變成下訂清單。</div>`; return }
   S.cOpen ||= {}; S.cDone ||= {};
   const mode = S.cv === "cat" ? "cat" : "vend", ents = cartEntries(rs);
   const ok = rs.filter(r => r.st === "ok").length, chgN = rs.filter(r => r.st === "chg").length, done = ok === rs.length;
-  const cnt = { no: ents.filter(e => e.a.st !== "ok").length, nov: ents.filter(e => !e.a.v).length, nop: ents.filter(e => e.a.p == null).length, chg: ents.filter(e => e.a.st === "chg").length };
+  const cnt = { ok: ents.filter(e => e.a.st === "ok").length, no: ents.filter(e => e.a.st !== "ok").length, nov: ents.filter(e => !e.a.v).length, nop: ents.filter(e => e.a.p == null).length, chg: ents.filter(e => e.a.st === "chg").length };
   const f = S.cf || "", shown = ents.filter(entryPass), bvFull = byVendorCart(), vc = (S.ord && S.ord.vcopy) || {};
   const chip = (k, label, n, cls) => `<button class="cc ${cls}${f === k ? " on" : ""}${n ? "" : " zero"}" data-cf="${k}">${label}<b>${n}</b></button>`;
   const rowsOf = (list, gk) => {
     const pend = list.filter(e => e.a.st !== "ok"), dn = list.filter(e => e.a.st === "ok");
-    const showDone = f || S.cDone[gk];
+    /* 這一組全部訂完了就直接展開給你看；還有沒訂的，已訂的先收起來 */
+    const open = S.cDone[gk] !== undefined ? S.cDone[gk] : pend.length === 0;
     return pend.map(e => crowHtml(e, mode)).join("") +
-      (dn.length ? (f ? dn.map(e => crowHtml(e, mode)).join("") : `<button class="gdone" data-gdone="${esc(gk)}">✓ 已訂 ${dn.length} 項 ${S.cDone[gk] ? "▴" : "▾"}</button>${S.cDone[gk] ? dn.map(e => crowHtml(e, mode)).join("") : ""}`) : "") + (!pend.length && !dn.length ? "" : "");
+      (dn.length ? (f ? dn.map(e => crowHtml(e, mode)).join("") : `<div class="gdone"><button data-gdone="${esc(gk)}" data-open="${open ? 1 : 0}">✓ 已訂 ${dn.length} 項 ${open ? "▴" : "▾"}</button><button class="gu" data-undo="${esc(gk)}">取消這 ${dn.length} 項</button></div>${open ? dn.map(e => crowHtml(e, mode)).join("") : ""}`) : "");
   };
   let groups = "";
   if (mode === "vend") {
     const order = bvFull.map(([v]) => v).sort((x, y) => (x ? 1 : 0) - (y ? 1 : 0) || 0);
     const meta = v => { const all = (bvFull.find(g => g[0] === v) || [v, []])[1]; return { all, pend: all.filter(x => x.a.st !== "ok").length } };
     const vs = [...new Set(order)].sort((x, y) => (!x ? -1 : !y ? 1 : (meta(x).pend === 0) - (meta(y).pend === 0)));
+    let sawFin = false;
     groups = vs.map(v => {
       const list = shown.filter(e => (e.a.v || "") === v); if (!list.length) return "";
       const { all, pend } = meta(v), n = all.length, okn = n - pend, sum = all.reduce((t, x) => t + (x.a.p != null ? x.a.p * x.a.q : 0), 0), np = all.filter(x => x.a.p == null).length;
       const c = vc[v], txt = v ? vendorText(v, all) : "", cs = v ? (!c ? "no" : c.q === txt ? "ok" : "chg") : "";
-      return `<div class="vg${pend === 0 ? " fin" : ""}${v ? "" : " none"}">
+      const div = pend === 0 && v && !sawFin && !f ? (sawFin = true, `<div class="vg-div">✓ 已訂完成的廠商</div>`) : "";
+      return div + `<div class="vg${pend === 0 ? " fin" : ""}${v ? "" : " none"}">
         <div class="vg-h"><div class="vg-t"><b>${v ? esc(v) : "未指定廠商"}</b><span class="vg-n">${okn}/${n} 已訂</span>${v ? `<span class="vg-s">${money(sum)}${np ? `<small>＋${np}筆未定價</small>` : ""}</span>` : ""}</div>
-          <div class="vg-b">${v ? `<button class="btn sm${cs === "ok" ? "" : " pri"}" data-vcopy="${esc(v)}">${cs === "ok" ? "再複製" : "複製"}</button>${pend ? `<button class="btn sm okb" data-vok="${esc(v)}">全訂</button>` : ""}` : `<button class="btn sm pri" id="bulkOpen">一次指定廠商</button>`}</div></div>
+          <div class="vg-b">${v ? `<button class="btn sm${cs === "ok" ? "" : " pri"}" data-vcopy="${esc(v)}">${cs === "ok" ? "再複製" : "複製"}</button>${pend ? `<button class="btn sm okb" data-vok="${esc(v)}">全訂</button>` : `<button class="btn sm warn" data-vundo="${esc(v)}">取消全訂</button>`}` : `<button class="btn sm pri" id="bulkOpen">一次指定廠商</button>`}</div></div>
         ${v ? `<div class="vcp2 ${cs}">${cs === "ok" ? `✓ 已複製 ${esc(c.by || "")} ${hm(c.t)}` : cs === "chg" ? "複製後有改，要再複製" : "還沒複製給這家"}</div>` : `<div class="vcp2 chg">這些還沒指定廠商：點「選廠商」，或用「一次指定廠商」</div>`}
         ${rowsOf(list, "v:" + v)}</div>`;
     }).join("");
@@ -2103,15 +2166,16 @@ function renderCart() {
       return `<div class="vg"><div class="vg-h"><div class="vg-t"><span class="cdot" style="background:${catColor(cat)}"></span><b>${esc(cat)}</b><span class="vg-n">${okn}/${all.length} 已訂</span></div></div>${rowsOf(list, "c:" + cat)}</div>`;
     }).join("");
   }
-  el.innerHTML = `<div class="panel ${done ? "fin" : ""} cart-top"><div><small>已下訂</small><b>${ok} / ${rs.length}</b>${chgN ? `<span class="c o">${chgN} 項數量有改</span>` : ""}</div>
+  el.innerHTML = `${noteVal().trim() ? `<button class="cnote" id="cNote"><b>📝 備註</b>${esc(noteVal())}<small>點一下編輯，會附在複製給廠商的文字最後</small></button>` : ""}<div class="panel ${done ? "fin" : ""} cart-top"><div><small>已下訂</small><b>${ok} / ${rs.length}</b>${chgN ? `<span class="c o">${chgN} 項數量有改</span>` : ""}</div>
     ${done ? `<button class="btn sm" id="cAllNo">全部取消</button>` : `<button class="btn sm okb" id="cAllOk">全部已下訂</button>`}</div>
   <div class="cbar">
     <div class="cbar-r"><input type="search" id="cq" placeholder="搜尋品項或廠商" value="${esc(S.cq || "")}" autocomplete="off"><div class="seg cv"><button data-cv="vend" class="${mode === "vend" ? "on" : ""}">依廠商</button><button data-cv="cat" class="${mode === "cat" ? "on" : ""}">依分類</button></div></div>
-    <div class="cchips">${chip("no", "未訂", cnt.no, "o")}${chip("nov", "沒廠商", cnt.nov, "o")}${chip("nop", "沒價格", cnt.nop, "o")}${chip("chg", "數量有改", cnt.chg, "b")}${f ? `<button class="cc clr" data-cf="">看全部</button>` : ""}</div>
+    <div class="cchips">${chip("no", "未訂", cnt.no, "o")}${chip("ok", "已訂", cnt.ok, "g")}${chip("nov", "沒廠商", cnt.nov, "o")}${chip("nop", "沒價格", cnt.nop, "o")}${chip("chg", "數量有改", cnt.chg, "b")}${f ? `<button class="cc clr" data-cf="">看全部</button>` : ""}</div>
   </div>
   <p class="muted" style="margin:2px 2px 8px">點品名或「⋯」展開改廠商、重量、分給另一家。打勾後會收到「已訂」，點一下可以再打開。價格不知道可以先空著，之後在「到貨」頁補。</p>
   ${groups || `<div class="empty">沒有符合的品項</div>`}`;
-  if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; S.refocus = true; t.focus(); S.refocus = false; try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
+  if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; S.refocus = true; t.focus({ preventScroll: true }); S.refocus = false; try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
+  if (Math.abs(window.scrollY - sy) > 2) window.scrollTo(0, sy);   /* 重畫後回到原本的位置 */
 }
 $("#vCart").addEventListener("click", async e => {
   const t = e.target, rs = () => cartItems(), byKey = k => cartItems().find(x => x.key === k);
@@ -2123,8 +2187,8 @@ $("#vCart").addEventListener("click", async e => {
     if (tg.dataset.togv) setTimeout(() => { const k = id.lastIndexOf("#"), n = document.getElementById(`vd_${id.slice(0, k)}_${id.slice(k + 1)}`); if (n) n.focus() }, 40); return }
   const cvb = t.closest("[data-cv]"); if (cvb) { S.cv = cvb.dataset.cv; renderCart(); return }
   const cfb = t.closest("[data-cf]"); if (cfb) { S.cf = S.cf === cfb.dataset.cf ? "" : cfb.dataset.cf; renderCart(); return }
-  const gd = t.closest("[data-gdone]"); if (gd) { S.cDone ||= {}; S.cDone[gd.dataset.gdone] = !S.cDone[gd.dataset.gdone]; renderCart(); return }
-  const sp = t.closest("[data-split]"); if (sp) { S.cartSplit = sp.dataset.split; renderCart(); setTimeout(() => { const n = document.getElementById("vdNew"); if (n) n.focus() }, 30); return }
+  const gd = t.closest("[data-gdone]"); if (gd) { S.cDone ||= {}; S.cDone[gd.dataset.gdone] = gd.dataset.open !== "1"; renderCart(); return }
+  const sp = t.closest("[data-split]"); if (sp) { openSplit(sp.dataset.split); return }
   if (t.closest("[data-addno]")) { S.cartSplit = null; renderCart(); return }
   const ad = t.closest("[data-addok]");
   if (ad) {
@@ -2144,6 +2208,11 @@ $("#vCart").addEventListener("click", async e => {
   if (vc) { const g = byVendorCart().find(x => x[0] === vc.dataset.vcopy); if (!g) return; const [v, list] = g, txt = vendorText(v, list); try { await navigator.clipboard.writeText(txt) } catch { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() }
     store.setVcopy(S.date, S.sup, v, { by: S.me, t: Date.now(), q: txt }); return toast(`已複製給 ${v} 的叫貨文字`) }
   if (t.closest("#bulkOpen")) { openBulk(); return }
+  if (t.closest("#cNote")) { openNote(); return }
+  const vu = t.closest("[data-vundo]");
+  if (vu) { const g = byVendorCart().find(x => x[0] === vu.dataset.vundo); if (!g) return; if (!confirm(`取消「${vu.dataset.vundo}」的全部下訂打勾？（${g[1].length} 項）`)) return; setCkAllocs(g[1].map(x => ({ r: x.r, ai: x.ai })), false); return }
+  const un = t.closest("[data-undo]");
+  if (un) { const gk = un.dataset.undo; const list = cartEntries(cartItems()).filter(en => en.a.st === "ok" && (gk.startsWith("v:") ? (en.a.v || "") === gk.slice(2) : en.r.cat === gk.slice(2))); if (!list.length) return; if (!confirm(`取消這 ${list.length} 項的下訂打勾？`)) return; setCkAllocs(list.map(en => ({ r: en.r, ai: en.ai })), false); return }
   const vk = t.closest("[data-vok]"); if (vk) { if (needMe()) return; const g = byVendorCart().find(x => x[0] === vk.dataset.vok); if (!g) return; setCkAllocs(g[1].map(x => ({ r: x.r, ai: x.ai })), true); return }
   if (t.closest("#cAllOk")) { if (needMe()) return; setCk(rs(), true); return toast("全部標記已下訂") }
   if (t.closest("#cAllNo")) { if (!confirm("取消全部的下訂確認？")) return; setCk(rs(), false); return }
@@ -2176,6 +2245,50 @@ $("#vCart").addEventListener("change", e => {
   else if (t.classList.contains("aq")) { const q = +t.value; if (!(q >= 0)) return toast("數量格式不對"); al[k].q = q }
   setAllocs(r, al);
 });
+/* ===== 分給多家廠商：全部廠商一次列出來，用 − ＋ 調數量，不用打字 ===== */
+const SP = { key: "", total: 0, q: {}, order: [], top: "", unit: "" };
+function openSplit(key) {
+  const r = cartItems().find(x => x.key === key); if (!r) return;
+  SP.key = key; SP.total = r.tot; SP.q = {}; SP.unit = r.u || "";
+  r.allocs.forEach(a => { if (a.v) SP.q[a.v] = (SP.q[a.v] || 0) + a.q });
+  const cur = Object.keys(SP.q), rank = vendRank(r.it);
+  SP.top = rank.find(v => !cur.includes(v)) || "";   /* 另一家：最常叫的那家，直接排在目前這家下面 */
+  SP.order = [...new Set([...cur, SP.top, ...rank, ...vendList()])].filter(Boolean);
+  $("#spTitle").textContent = `${r.n}${r.lab ? " " + r.lab : ""}　共 ${fmt(r.tot)}${r.u || ""}`;
+  $("#spSub").textContent = "把數量分給廠商，沒分的會留在「未指定」";
+  renderSplit(); $("#splitSheet").classList.add("show"); $("#scrim").classList.add("show");
+}
+const spUsed = () => Object.values(SP.q).reduce((n, x) => n + x, 0);
+function renderSplit() {
+  const used = spUsed(), left = Math.round((SP.total - used) * 100) / 100;
+  $("#spSum").innerHTML = `已分 <b>${fmt(Math.round(used * 100) / 100)}</b> / 共 ${fmt(SP.total)}${esc(SP.unit)}　${left > 0 ? `<span class="o">未分 ${fmt(left)}</span>` : left < 0 ? `<span class="bad">多分了 ${fmt(-left)}</span>` : `<span class="ok">剛好分完 ✓</span>`}`;
+  $("#spList").innerHTML = SP.order.map(v => { const q = SP.q[v] || 0;
+    return `<div class="sp-r${q > 0 ? " on" : ""}${v === SP.top && !q ? " sug" : ""}"><div class="sp-n"><b>${esc(v)}</b>${v === SP.top ? `<small>常叫</small>` : ""}</div>
+      <button class="sp-m" data-sp="-" data-v="${esc(v)}" ${q > 0 ? "" : "disabled"} aria-label="減一">−</button>
+      <button class="sp-q" data-sp="q" data-v="${esc(v)}">${fmt(q)}</button>
+      <button class="sp-m" data-sp="+" data-v="${esc(v)}" aria-label="加一">＋</button>
+      <button class="sp-all" data-sp="all" data-v="${esc(v)}">全部</button></div>` }).join("");
+  $("#spOk").disabled = left < 0;
+}
+$("#spList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-sp]"); if (!b) return; const v = b.dataset.v, k = b.dataset.sp, q = SP.q[v] || 0;
+  const left = SP.total - spUsed();
+  if (k === "+") { if (left >= 1 - 1e-9) SP.q[v] = q + 1; else if (left > 1e-9) SP.q[v] = q + left; else { const d = Object.keys(SP.q).filter(x => x !== v && SP.q[x] > 0).sort((a, c) => SP.q[c] - SP.q[a])[0]; if (d) { SP.q[d] -= 1; SP.q[v] = q + 1; if (SP.q[d] <= 0) delete SP.q[d] } } }   /* 都分完了再按＋，從數量最多的那家挪一個過來 */
+  else if (k === "-") { SP.q[v] = Math.max(0, q - 1); if (!SP.q[v]) delete SP.q[v] }
+  else if (k === "all") { SP.q = { [v]: SP.total } }
+  else if (k === "q") { const t = await askText(`${v} 分幾${SP.unit}？`, String(q || "")); const n = Math.round(+String(t).replace(/[,，]/g, "") * 100) / 100; if (t !== "" && n >= 0) { SP.q[v] = n; if (!n) delete SP.q[v] } }
+  renderSplit();
+});
+$("#spReset").onclick = () => { SP.q = {}; renderSplit() };
+$("#spClose").onclick = () => { $("#splitSheet").classList.remove("show"); $("#scrim").classList.remove("show") };
+$("#spOk").onclick = () => {
+  const r = cartItems().find(x => x.key === SP.key); if (!r) return;
+  const left = Math.round((SP.total - spUsed()) * 100) / 100; if (left < 0) return toast("分的比總數多，先調一下");
+  const al = Object.entries(SP.q).filter(([, q]) => q > 0).map(([v, q]) => ({ v, q }));
+  if (left > 0) al.push({ v: "", q: left });
+  $("#splitSheet").classList.remove("show"); $("#scrim").classList.remove("show");
+  setAllocs(r, al); toast(al.length > 1 ? `已分給 ${al.filter(x => x.v).length} 家` : "已指定廠商");
+};
 /* ===== 下訂頁：一次指定廠商 ===== */
 function bulkRows() { return cartItems().filter(r => r.allocs.some(a => !a.v || a.inh)) }
 function openBulk() {
@@ -2213,19 +2326,24 @@ function cbLabel(el) {
   if (el.classList.contains("awin")) return `${nm}${vend ? " " + vend : ""}　每件重量（KG，沒改就延用上次）`;
   return nm;
 }
+function cbItem() { const el = CB.el, cr = el && el.closest ? el.closest(".r2") : null, k = el && el.dataset && el.dataset.ri; const r = k ? cartItems().find(x => x.key === k) : null; return r ? r.it : null }
 function cbChips() {
   const box = $("#cbChips"); if (!CB.el || !(CB.el.classList.contains("vin"))) { box.innerHTML = ""; return }
-  const q = norm($("#cbIn").value), list = vendList().filter(v => !q || norm(v).includes(q)).slice(0, 16);
-  box.innerHTML = list.map(v => `<button data-cbv="${esc(v)}">${esc(v)}</button>`).join("") + (q && !vendList().some(v => norm(v) === q) ? `<button class="new" data-cbv="${esc($("#cbIn").value.trim())}">＋ 新增「${esc($("#cbIn").value.trim())}」</button>` : "");
+  const q = norm($("#cbIn").value), it = cbItem(), top = it ? vendRank(it)[0] : "";
+  const list = vendOrder(it).filter(v => !q || norm(v).includes(q));   /* 全部廠商都列出來，不用打字找 */
+  const curV = CB.el.value;
+  box.innerHTML = list.map(v => `<button data-cbv="${esc(v)}" class="${v === top ? "fv" : ""}${v === curV ? " cur" : ""}">${v === curV ? "✓ " : ""}${esc(v)}${v === top ? "<small>常叫</small>" : ""}</button>`).join("") + (q && !vendList().some(v => norm(v) === q) ? `<button class="new" data-cbv="${esc($("#cbIn").value.trim())}">＋ 新增「${esc($("#cbIn").value.trim())}」</button>` : "");
 }
 function cbOpen(el) {
-  CB.el = el; const b = $("#cbIn"), num = !el.classList.contains("vin");
-  b.inputMode = num ? "decimal" : "text"; b.placeholder = el.placeholder || ""; b.value = el.value;
+  CB.el = el; const b = $("#cbIn"), isV = el.classList.contains("vin"), num = !isV;
+  b.inputMode = num ? "decimal" : "text";
+  /* 選廠商：輸入框先留空，才會列出全部廠商；目前的廠商寫在提示裡，打字才篩選 */
+  b.placeholder = isV ? (el.value ? `目前：${el.value}　點下面的廠商換掉，或打字搜尋` : "點下面的廠商，或打字搜尋") : (el.placeholder || ""); b.value = isV ? "" : el.value;
   $("#cbLabel").textContent = cbLabel(el);
   document.querySelectorAll("#vCart input.be-on").forEach(x => x.classList.remove("be-on")); el.classList.add("be-on");
-  $("#cartEdit").classList.remove("hide"); cbChips();
-  el.scrollIntoView({ block: "center", behavior: "smooth" });
-  setTimeout(() => { b.focus(); b.select() }, 0);
+  $("#cartEdit").classList.toggle("vend", isV); $("#cartEdit").classList.remove("hide"); cbChips();
+  /* 不再捲動頁面（會跳來跳去）；填廠商時先不叫出鍵盤，直接點廠商按鈕就好，要搜尋再點輸入框 */
+  if (isV) { b.blur() } else setTimeout(() => { b.focus(); b.select() }, 0);
 }
 function cbCommit() { cbLive(); if (CB.el) { CB.el.classList.remove("be-on"); if (CB.el.id !== "vdNew" && CB.el.id !== "qtNew") CB.el.dispatchEvent(new Event("change", { bubbles: true })) } }
 function cbClose() { cbCommit(); CB.el = null; $("#cartEdit").classList.add("hide"); $("#cbIn").blur() }
@@ -2241,7 +2359,8 @@ function cbMove(d) {
   setTimeout(() => { const n = nid && document.getElementById(nid); if (n) cbOpen(n); else cbClose() }, 30);
 }
 $("#vCart").addEventListener("focusin", e => { if (S.refocus) return; const t = e.target; if (t.matches("input") && t.id !== "cq" && t !== CB.el) { t.blur(); cbOpen(t) } });
-$("#cbIn").addEventListener("input", e => { if (!cbLive()) return; CB.el.value = e.target.value; cbChips() });
+$("#cbIn").addEventListener("input", e => { if (!cbLive()) return; if (!(CB.el.classList.contains("vin") && !e.target.value)) CB.el.value = e.target.value; cbChips() });
+$("#cbIn").addEventListener("focus", () => { if (CB.el && CB.el.classList.contains("vin")) $("#cbIn").select() });
 $("#cbIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); cbMove(1) } else if (e.key === "Escape") cbClose() });
 $("#cbChips").addEventListener("click", e => { const b = e.target.closest("[data-cbv]"); if (!b || !CB.el) return; $("#cbIn").value = CB.el.value = b.dataset.cbv; cbMove(1) });
 $("#cbPrev").onclick = () => cbMove(-1); $("#cbNext").onclick = () => cbMove(1); $("#cbOk").onclick = cbClose;
@@ -2489,7 +2608,7 @@ function renderSum() {
 const L0 = () => lines();
 const st0 = () => ordStats();
 /* 單件重量（KG）：這張單有填就用；沒填就延用上次填的 */
-const wtOf = (e, o) => (e && e.wt && e.wt[pk(o)] != null ? e.wt[pk(o)] : null);
+function wtOf(e, o) { return e && e.wt && e.wt[pk(o)] != null ? e.wt[pk(o)] : null }   /* 用 function 宣告：載入時如果馬上畫面更新（本機模式），也不會因為還沒初始化而出錯 */
 /* 規格後面寫重量（例如「漂亮10kg」）＝規格名「漂亮」＋單件重量 10KG，存在品項的 ow */
 /* 單位本身就是重量：斤（台斤）＝0.6 公斤、公斤＝1。這種品項不用填每件重量，成本直接算 */
 function unitKg(u) { u = String(u || "").trim(); if (/^(台斤|斤)$/.test(u)) return 0.6; if (/^(公斤|kg|KG|Kg)$/.test(u)) return 1; return null }
@@ -2743,6 +2862,38 @@ function exportXlsx() {
   XLSX.writeFile(wb, `${sup().name}採購單${S.date.replace(/-/g, "")}.xlsx`);
 }
 
+/* ===== 叫貨備註、清單沒有的品項 ===== */
+function noteVal() { return (S.ord && S.ord.note) || "" }   /* function 宣告：載入時畫面更新比較早，也不會出錯 */
+function renderNoteDot() { const d = $("#noteDot"); if (d) d.classList.toggle("hide", !noteVal().trim()); const b = $("#noteBtn"); if (b) b.firstChild.nodeValue = noteVal().trim() ? "📝 備註（有）" : "📝 備註" }
+function openNote() { $("#noteSub").textContent = `${sup().name}　${dateLabel(S.date)}`; $("#noteS").value = noteVal(); $("#noteSheet").classList.add("show"); $("#scrim").classList.add("show"); setTimeout(() => $("#noteS").focus(), 250) }
+function closeNote() { $("#noteSheet").classList.remove("show"); $("#scrim").classList.remove("show"); renderNoteDot() }
+let note2T; $("#noteS").addEventListener("input", e => { clearTimeout(note2T); const v = e.target.value; note2T = setTimeout(() => { store.setNote(S.date, S.sup, v, S.me); stampEdit() }, 500) });
+$("#noteClose").onclick = closeNote; $("#noteBtn").onclick = openNote;
+function openNewItem(name) {
+  if (needMe()) return;
+  $("#niName").value = name || ""; $("#niUnit").value = "";
+  $("#niChips").innerHTML = COMMON_UNITS.map(u => `<button data-ni="${esc(u)}">${esc(u)}</button>`).join("");
+  $("#niCat").innerHTML = ["臨時品項", ...catsOf().filter(c => c !== "臨時品項")].map(c => `<option>${esc(c)}</option>`).join("");
+  $("#niSheet").classList.add("show"); $("#scrim").classList.add("show"); setTimeout(() => $(name ? "#niUnit" : "#niName").focus(), 250);
+}
+function closeNewItem() { $("#niSheet").classList.remove("show"); $("#scrim").classList.remove("show") }
+$("#newItemBtn").onclick = () => openNewItem("");
+$("#niClose").onclick = closeNewItem;
+$("#niChips").onclick = e => { const b = e.target.closest("[data-ni]"); if (!b) return; $("#niUnit").value = b.dataset.ni; document.querySelectorAll("#niChips button").forEach(x => x.classList.toggle("on", x === b)) };
+$("#niUnit").addEventListener("input", () => document.querySelectorAll("#niChips button").forEach(x => x.classList.toggle("on", x.dataset.ni === $("#niUnit").value.trim())));
+$("#niName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#niUnit").focus() } });
+$("#niUnit").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#niOk").click() } });
+$("#niOk").onclick = async () => {
+  const name = $("#niName").value.trim(), u = $("#niUnit").value.trim(), cat = $("#niCat").value || "臨時品項";
+  if (!name) { toast("先打品名"); $("#niName").focus(); return }
+  if (!u) { toast("先選或輸入單位"); $("#niUnit").focus(); return }
+  const dup = oItems().find(i => norm(i.n) === norm(name));
+  if (dup) { closeNewItem(); S.oq = ""; S.of = "all"; S.cat = dup.c; setView("Ord"); toast(`清單裡已經有「${dup.n}」，直接叫貨`); setTimeout(() => openKp(dup.id), 200); return }
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), id = "t" + Date.now().toString(36);
+  x.items.push({ id, c: cat, n: name, o: [], u, tmp: 1 });
+  await store.saveOrdCfg(cfg).catch(err);
+  const t0 = Date.now(); const go = () => { if (oById(id) || Date.now() - t0 > 4000) { closeNewItem(); S.oq = ""; if ($("#oq")) $("#oq").value = ""; S.of = "all"; S.cat = cat; setView("Ord"); toast(`已加入「${name}」（${cat}），輸入數量`); openKp(id) } else setTimeout(go, 150) }; go();
+};
 /* ===== 輸入視窗（取代 prompt；LINE 內建瀏覽器會擋 prompt，導致無法輸入）===== */
 function askText(label, def = "") {
   return new Promise(res => {
@@ -2765,8 +2916,12 @@ const PAY_M = { daily: "每天現金", weekly: "週結", bank: "匯款" };
 const DEF_PAY_START = "2026-10-01";
 const payStart = () => (S.ocfg && S.ocfg.payStart) || DEF_PAY_START;
 function payeeOf(sp, vend) { return vend ? (vend === "其他" ? `${sp.name}其他廠商` : vend) : sp.name }
-function payeeCfg(n) { return ((S.ocfg && S.ocfg.payees) || {})[n] || {} }
-function payeeMode(n) { return payeeCfg(n).m || "daily" }
+/* 帳戶 = 叫貨廠商（西螺、霧峰菇…）＋付款對象。不同叫貨廠商的帳完全分開，就算付款對象同名也不會合在一起 */
+const akey = (supId, pe) => `${supId}::${pe}`;
+const akSplit = ak => { const i = String(ak).indexOf("::"); return { sup: String(ak).slice(0, i), pe: String(ak).slice(i + 2) } };
+const supName = id => { const x = sups().find(q => q.id === id); return x ? x.name : "（已刪除的廠商）" };
+function payeeCfg(ak) { const P = (S.ocfg && S.ocfg.payees) || {}; return P[ak] || P[akSplit(ak).pe] || {} }   /* 舊資料只用名字當 key，找不到新 key 就退回舊的 */
+function payeeMode(ak) { return payeeCfg(ak).m || "daily" }
 /* 一張叫貨單 → { 付款對象: { a 金額, miss 沒單價筆數 } } */
 function orderDues(o) {
   const sp = sups().find(q => q.id === o.sup), out = {};
@@ -2793,8 +2948,13 @@ function ledger() {
   const os = (S.payOrders || []).filter(o => o.date >= st && !(o.date === S.date && o.sup === S.sup));
   if (S.ord && S.date >= st) os.push({ ...S.ord, date: S.date, sup: S.sup });
   const L = {};
-  os.forEach(o => Object.entries(orderDues(o)).forEach(([pe, d]) => { const x = (L[pe] ||= { days: [], paid: 0, pays: [] }); x.days.push({ date: o.date, a: d.a, miss: d.miss }) }));
-  (S.pays || []).filter(p => p.date >= st || (p.for && p.for >= st)).forEach(p => { const x = (L[p.pe] ||= { days: [], paid: 0, pays: [] }); x.paid += (+p.amt || 0) + (+p.adj || 0); x.pays.push(p) });
+  os.forEach(o => Object.entries(orderDues(o)).forEach(([pe, d]) => { const x = (L[akey(o.sup, pe)] ||= { days: [], paid: 0, pays: [], sup: o.sup, name: pe }); x.days.push({ date: o.date, a: d.a, miss: d.miss }) }));
+  const supIds = sups().map(q => q.id);
+  (S.pays || []).filter(p => p.date >= st || (p.for && p.for >= st)).forEach(p => {
+    /* 新的付款有記叫貨廠商；舊的沒有，就找有這個付款對象的叫貨廠商（找不到用第一家） */
+    const k = p.sup ? akey(p.sup, p.pe) : (supIds.map(id => akey(id, p.pe)).find(z => L[z]) || akey(supIds[0] || "", p.pe));
+    const x = (L[k] ||= { days: [], paid: 0, pays: [], sup: p.sup || supIds[0] || "", name: p.pe }); x.paid += (+p.amt || 0) + (+p.adj || 0); x.pays.push(p);
+  });
   Object.entries(L).forEach(([pe, x]) => {
     x.days.sort((a, b) => a.date.localeCompare(b.date));
     x.days.forEach(d => { d.paid = 0 });
@@ -2811,7 +2971,7 @@ function ledger() {
     x.left = x.days.reduce((n, d) => n + d.left, 0);
     x.credit = Math.max(0, pool);   /* 多付 */
     x.miss = x.days.reduce((n, d) => n + d.miss, 0);
-    x.pe = pe; x.m = payeeMode(pe);
+    x.ak = pe; x.pe = x.name; x.m = payeeMode(pe);
   });
   return L;
 }
@@ -2820,44 +2980,48 @@ function payTodayPanel() {
   if (!S.payOrders || S.date < payStart()) return "";
   const L = ledger(), today = S.ord ? orderDues(S.ord) : {};
   const pes = Object.keys(today); if (!pes.length) return "";
-  return `<div class="panel"><h3>這張單的付款</h3>
-    ${pes.map(pe => { const d = today[pe], x = L[pe], day = x && x.days.find(q => q.date === S.date) || { left: d.a, paid: 0 };
+  return `<div class="panel"><h3>這張單的付款 <span class="c">${esc(sup().name)}</span></h3>
+    ${pes.map(pe => { const ak = akey(S.sup, pe), d = today[pe], x = L[ak], day = x && x.days.find(q => q.date === S.date) || { left: d.a, paid: 0 };
       const st = d.miss ? `<span class="rv-t over">金額未定 ${d.miss} 筆</span>` : day.left <= 0 ? `<span class="rv-t ok">已付</span>` : day.paid > 0 ? `<span class="rv-t over">還欠 ${money(day.left)}</span>` : `<span class="rv-t bad">未付</span>`;
-      return `<div class="pt-r"><div class="pt-n"><b>${esc(pe)}</b><small>${PAY_M[payeeMode(pe)]}</small></div><div class="pt-a">${money(d.a)}</div>${st}${day.left > 0 && !d.miss ? `<button class="btn sm ${payeeMode(pe) === "daily" ? "okb" : ""}" data-pay="${esc(pe)}" data-amt="${day.left}" data-for="${S.date}">${payeeMode(pe) === "bank" ? "記匯款" : "付現金"}</button>` : ""}</div>` }).join("")}
+      return `<div class="pt-r"><div class="pt-n"><b>${esc(pe)}</b><small>${PAY_M[payeeMode(ak)]}</small></div><div class="pt-a">${money(d.a)}</div>${st}${day.left > 0 && !d.miss ? `<button class="btn sm ${payeeMode(ak) === "daily" ? "okb" : ""}" data-pay="${esc(ak)}" data-amt="${day.left}" data-for="${S.date}">${payeeMode(ak) === "bank" ? "記匯款" : "付現金"}</button>` : ""}</div>` }).join("")}
     <p class="muted" style="margin:8px 0 0">週結、匯款的廠商也可以到「付款」頁一次付多天</p></div>`;
 }
 /* ---- 付款頁 ---- */
 function renderPay() {
   if (!S.payOrders) { if (!S.payLoading) loadPayData(); $("#vPay").innerHTML = `<div class="empty">讀取帳款中…</div>`; return }
-  const L = ledger(), list = Object.values(L).sort((a, b) => (b.left > 0) - (a.left > 0) || b.left - a.left);
-  const tot = list.reduce((n, x) => n + x.left, 0);
-  const pays = (S.pays || []).slice().sort((a, b) => (b.date + (b.t || 0)).localeCompare(a.date + (a.t || 0)));
-  const open = S.payOpen || "";
-  $("#vPay").innerHTML = `
-  <div class="panel pay-top"><div><small>全部未付（${dateLabel(payStart()).replace(/（.）/, "")} 起）</small><b>${money(tot)}</b></div><button class="btn sm" id="payXlsx">匯出付款紀錄</button><button class="btn sm" id="payReload">重新整理</button></div>
-  ${list.length ? list.map(x => { const un = x.days.filter(d => d.left > 0 || d.miss);
+  const L = ledger(), all = Object.values(L).sort((a, b) => (b.left > 0) - (a.left > 0) || b.left - a.left);
+  const fs = S.paySup && all.some(x => x.sup === S.paySup) ? S.paySup : "", list = fs ? all.filter(x => x.sup === fs) : all;
+  const tot = list.reduce((n, x) => n + x.left, 0), open = S.payOpen || "";
+  const supIds = [...new Set([...sups().map(q => q.id), ...all.map(x => x.sup)])].filter(id => all.some(x => x.sup === id));
+  const card = x => { const un = x.days.filter(d => d.left > 0 || d.miss);
     return `<div class="panel pay-c${x.left <= 0 && !x.miss ? " fin" : ""}">
       <div class="pay-h"><div><b>${esc(x.pe)}</b><span class="pm pm-${x.m}">${PAY_M[x.m]}</span></div>
         <div class="pay-l"><small>未付</small><b class="${x.left > 0 ? "neg" : ""}">${money(x.left)}</b></div></div>
       <div class="pay-wk">${(() => { const t = today(), wd = (new Date(t + "T00:00").getDay() + 6) % 7, mon = addDays(t, -wd), lmon = addDays(mon, -7), sum = (a, b) => x.days.filter(d => d.date >= a && d.date <= b).reduce((n, d) => n + d.a, 0);
         return `<span>本週 <b>${money(sum(mon, addDays(mon, 6)))}</b><small>${dateLabel(mon).replace(/（.）/, "")}–${dateLabel(addDays(mon, 6)).replace(/（.）/, "")}</small></span><span>上週 <b>${money(sum(lmon, addDays(lmon, 6)))}</b><small>${dateLabel(lmon).replace(/（.）/, "")}–${dateLabel(addDays(lmon, 6)).replace(/（.）/, "")}</small></span>` })()}</div>
       <div class="pay-s">應付 ${money(x.due)}　已付 ${money(x.paid)}${x.credit ? `　<b style="color:var(--ok)">多付 ${money(x.credit)}</b>` : ""}${x.miss ? `　<b style="color:var(--low)">${x.miss} 筆沒單價</b>` : ""}</div>
-      ${un.length ? `<div class="pay-d">${un.slice(0, open === x.pe ? 999 : 6).map(d => `<span class="chip${d.miss ? " o" : ""}">${dateLabel(d.date).replace(/（.）/, "")} ${d.miss ? "金額未定" : money(d.left)}${d.paid > 0 && d.left > 0 ? "（部分）" : ""}</span>`).join("")}${un.length > 6 && open !== x.pe ? `<button class="chip" data-open="${esc(x.pe)}">還有 ${un.length - 6} 天</button>` : ""}</div>` : ""}
-      <div class="pay-b">${x.left > 0 ? `<button class="btn ${x.m === "bank" ? "pri" : "okb"}" data-pay="${esc(x.pe)}" data-amt="${x.left}">${x.m === "bank" ? "記錄匯款" : x.m === "weekly" ? "付週帳" : "付現金"} ${money(x.left)}</button>` : ""}<button class="btn" data-pay="${esc(x.pe)}" data-amt="">其他金額</button></div>
-      ${x.pays.length ? `<div class="pay-hist">${x.pays.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, open === x.pe ? 999 : 3).map(p => payRow(p)).join("")}</div>` : ""}
-    </div>` }).join("") : `<div class="empty">還沒有帳款。叫貨單填了單價後，這裡會自動算出要付每家多少錢。</div>`}
+      ${un.length ? `<div class="pay-d">${un.slice(0, open === x.ak ? 999 : 6).map(d => `<span class="chip${d.miss ? " o" : ""}">${dateLabel(d.date).replace(/（.）/, "")} ${d.miss ? "金額未定" : money(d.left)}${d.paid > 0 && d.left > 0 ? "（部分）" : ""}</span>`).join("")}${un.length > 6 && open !== x.ak ? `<button class="chip" data-open="${esc(x.ak)}">還有 ${un.length - 6} 天</button>` : ""}</div>` : ""}
+      <div class="pay-b">${x.left > 0 ? `<button class="btn ${x.m === "bank" ? "pri" : "okb"}" data-pay="${esc(x.ak)}" data-amt="${x.left}">${x.m === "bank" ? "記錄匯款" : x.m === "weekly" ? "付週帳" : "付現金"} ${money(x.left)}</button>` : ""}<button class="btn" data-pay="${esc(x.ak)}" data-amt="">其他金額</button></div>
+      ${x.pays.length ? `<div class="pay-hist">${x.pays.slice().sort((a, b) => b.date.localeCompare(a.date)).slice(0, open === x.ak ? 999 : 3).map(p => payRow(p)).join("")}</div>` : ""}
+    </div>` };
+  $("#vPay").innerHTML = `
+  <div class="panel pay-top"><div><small>${fs ? esc(supName(fs)) + " " : "全部"}未付（${dateLabel(payStart()).replace(/（.）/, "")} 起）</small><b>${money(tot)}</b></div><button class="btn sm" id="payXlsx">匯出付款紀錄</button><button class="btn sm" id="payReload">重新整理</button></div>
+  ${supIds.length > 1 ? `<div class="pay-sf"><button data-psup="" class="${fs ? "" : "on"}">全部</button>${supIds.map(id => `<button data-psup="${esc(id)}" class="${fs === id ? "on" : ""}">${esc(supName(id))}<b>${money(all.filter(x => x.sup === id).reduce((n, x) => n + x.left, 0))}</b></button>`).join("")}</div>` : ""}
+  ${list.length ? supIds.filter(id => !fs || id === fs).map(id => { const g = list.filter(x => x.sup === id); if (!g.length) return "";
+    return `<div class="pay-sup"><b>${esc(supName(id))}</b><span>${g.length} 家　未付 ${money(g.reduce((n, x) => n + x.left, 0))}</span></div>${g.map(card).join("")}` }).join("") : `<div class="empty">還沒有帳款。叫貨單填了單價後，這裡會自動算出要付每家多少錢。</div>`}
   <div class="panel"><h3>帳款起算日</h3><p class="muted" style="margin:0 0 8px">這天以前的叫貨和付款都不算進帳款</p>
     <div style="display:flex;gap:8px"><input type="date" class="in" id="payStartIn" value="${payStart()}" style="flex:1"><button class="btn sm" id="payStartOk" style="padding:10px 14px">套用</button></div></div>
-  <div class="panel"><h3>付款方式設定</h3><p class="muted" style="margin:0 0 8px">每家預設用哪種方式付，會決定按鈕的文字和提醒</p>
-    ${list.map(x => `<div class="pmset"><span>${esc(x.pe)}</span><div class="seg">${Object.entries(PAY_M).map(([k, v]) => `<button class="${x.m === k ? "on" : ""}" data-pm="${esc(x.pe)}" data-mv="${k}">${v}</button>`).join("")}</div></div>`).join("") || `<p class="muted">有帳款後才會出現</p>`}
+  <div class="panel"><h3>付款方式設定</h3><p class="muted" style="margin:0 0 8px">每家預設用哪種方式付，會決定按鈕的文字和提醒。各叫貨廠商分開設定</p>
+    ${supIds.map(id => { const g = all.filter(x => x.sup === id); return g.length ? `<div class="pay-sup sm"><b>${esc(supName(id))}</b></div>` + g.map(x => `<div class="pmset"><span>${esc(x.pe)}</span><div class="seg">${Object.entries(PAY_M).map(([k, v]) => `<button class="${x.m === k ? "on" : ""}" data-pm="${esc(x.ak)}" data-mv="${k}">${v}</button>`).join("")}</div></div>`).join("") : "" }).join("") || `<p class="muted">有帳款後才會出現</p>`}
   </div>`;
 }
 function payRow(p) { return `<div class="py-r"><span class="d">${dateLabel(p.date).replace(/（.）/, "")}</span><span class="m">${p.m === "bank" ? "匯款" : "現金"}</span><span class="w">${esc(p.by || "")}${p.note ? `・${esc(p.note)}` : ""}${p.adj ? `・抹零${money(p.adj)}` : ""}</span><b>${money(p.amt)}</b><button class="x" data-delpay="${p.id}" aria-label="刪除這筆付款">✕</button></div>` }
 /* ---- 付款表單 ---- */
-function openPay(pe, amt, forDate) {
+function openPay(ak, amt, forDate) {
   if (needMe()) return;
-  S.py = { pe, due: +amt || 0, forDate: forDate || "", m: payeeMode(pe) === "bank" ? "bank" : "cash", by: S.me };
-  $("#pyTitle").textContent = `付給 ${pe}`;
+  const { sup: ps, pe } = akSplit(ak);
+  S.py = { ak, pe, sup: ps, due: +amt || 0, forDate: forDate || "", m: payeeMode(ak) === "bank" ? "bank" : "cash", by: S.me };
+  $("#pyTitle").textContent = `付給 ${pe}（${supName(ps)}）`;
   $("#pySub").textContent = amt ? `${forDate ? dateLabel(forDate) + " " : ""}未付 ${money(amt)}` : "輸入這次付的金額";
   $("#pyAmt").value = amt ? String(amt) : "";
   $("#pyDate").value = today(); $("#pyNote").value = forDate ? `${dateLabel(forDate).replace(/（.）/, "")} 貨款` : "";
@@ -2880,13 +3044,14 @@ $("#pyOk").onclick = () => {
   const p = S.py, v = Math.round(+$("#pyAmt").value.replace(/[,$，]/g, "") * 100) / 100;
   if (!(v > 0)) return toast("請輸入金額");
   const adj = $("#pyAdj").checked && !$("#pyAdjW").classList.contains("hide") ? Math.round((p.due - v) * 100) / 100 : 0;
-  const rec = { id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), pe: p.pe, amt: v, m: p.m, by: p.by || S.me, date: $("#pyDate").value || today(), t: Date.now(), note: $("#pyNote").value.trim(), ...(adj ? { adj } : {}), ...(p.forDate ? { for: p.forDate } : {}) };
+  const rec = { id: "p" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), pe: p.pe, sup: p.sup, amt: v, m: p.m, by: p.by || S.me, date: $("#pyDate").value || today(), t: Date.now(), note: $("#pyNote").value.trim(), ...(adj ? { adj } : {}), ...(p.forDate ? { for: p.forDate } : {}) };
   store.addPay(rec); closeSheets(); S.py = null;
-  toast(`已記錄：付 ${p.pe} ${money(v)}${adj ? `（抹零 ${money(adj)}）` : ""}`);
+  toast(`已記錄：付 ${supName(p.sup)}・${p.pe} ${money(v)}${adj ? `（抹零 ${money(adj)}）` : ""}`);
 };
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-pay]"); if (b && (b.closest("#vPay") || b.closest("#vSum"))) return openPay(b.dataset.pay, b.dataset.amt, b.dataset.for);
-  const d = e.target.closest("[data-delpay]"); if (d) { const p = (S.pays || []).find(x => x.id === d.dataset.delpay); if (p && confirm(`刪除這筆付款？\n${p.pe} ${money(p.amt)}（${p.date}）`)) store.delPay(p.id); return }
+  const d = e.target.closest("[data-delpay]"); if (d) { const p = (S.pays || []).find(x => x.id === d.dataset.delpay); if (p && confirm(`刪除這筆付款？\n${p.sup ? supName(p.sup) + "・" : ""}${p.pe} ${money(p.amt)}（${p.date}）`)) store.delPay(p.id); return }
+  const ps = e.target.closest("[data-psup]"); if (ps) { S.paySup = ps.dataset.psup; renderPay(); return }
   const o = e.target.closest("[data-open]"); if (o) { S.payOpen = o.dataset.open; renderPay(); return }
   const pm = e.target.closest("[data-pm]");
   if (pm) { const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.payees = { ...(cfg.payees || {}) }; cfg.payees[pm.dataset.pm] = { ...(cfg.payees[pm.dataset.pm] || {}), m: pm.dataset.mv }; await store.saveOrdCfg(cfg).catch(err); return }
@@ -2896,12 +3061,12 @@ document.addEventListener("click", async e => {
 });
 function exportPays() {
   if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
-  const L = ledger(), sum = [["付款對象", "付款方式", "應付", "已付（含抹零）", "未付", "沒單價筆數"]];
-  Object.values(L).forEach(x => sum.push([x.pe, PAY_M[x.m], x.due, x.paid, x.left, x.miss]));
-  const rows = [["日期", "付款對象", "金額", "方式", "付款人", "抹零", "備註"]];
-  (S.pays || []).slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(p => rows.push([p.date, p.pe, p.amt, p.m === "bank" ? "匯款" : "現金", p.by || "", p.adj || "", p.note || ""]));
-  const due = [["日期", "付款對象", "應付", "已沖銷", "未付"]];
-  Object.values(L).forEach(x => x.days.forEach(d => due.push([d.date, x.pe, d.miss ? "金額未定" : d.a, d.paid, d.left])));
+  const L = ledger(), sum = [["叫貨廠商", "付款對象", "付款方式", "應付", "已付（含抹零）", "未付", "沒單價筆數"]];
+  Object.values(L).forEach(x => sum.push([supName(x.sup), x.pe, PAY_M[x.m], x.due, x.paid, x.left, x.miss]));
+  const rows = [["日期", "叫貨廠商", "付款對象", "金額", "方式", "付款人", "抹零", "備註"]];
+  Object.values(L).flatMap(x => x.pays.map(p => ({ p, sn: supName(x.sup) }))).sort((a, b) => a.p.date.localeCompare(b.p.date)).forEach(({ p, sn }) => rows.push([p.date, sn, p.pe, p.amt, p.m === "bank" ? "匯款" : "現金", p.by || "", p.adj || "", p.note || ""]));
+  const due = [["日期", "叫貨廠商", "付款對象", "應付", "已沖銷", "未付"]];
+  Object.values(L).forEach(x => x.days.forEach(d => due.push([d.date, supName(x.sup), x.pe, d.miss ? "金額未定" : d.a, d.paid, d.left])));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), "各家餘額");
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), "付款紀錄");
@@ -3071,14 +3236,27 @@ $("#vSet").addEventListener("click", async e => {
   if (t.closest("#edStart")) { S.draft = JSON.parse(JSON.stringify(sup())); renderSet(); return }
   if (t.closest("#edCancel")) { S.draft = null; renderSet(); return }
   if (t.closest("#edSave")) {
-    syncDraftInputs();
-    const bad = S.draft.items.filter(i => !i.n.trim()); if (bad.length) return toast("有品項沒填品名");
-    const cfg = JSON.parse(JSON.stringify(S.ocfg)); const k = cfg.sups.findIndex(x => x.id === S.draft.id);
-    const renames = specRenames(cfg.sups[k], S.draft);
-    cfg.sups[k] = S.draft;
-    S.draft = null; await store.saveOrdCfg(cfg).then(() => toast("已儲存")).catch(err);
-    if (renames.length) applySpecRenames(renames);
-    renderSet(); return;
+    /* 一按就有回應：「儲存中…」→「已儲存」；失敗會寫出原因，改的內容也不會不見 */
+    const btn = t.closest("#edSave"); if (btn.disabled) return;
+    btn.disabled = true; btn.textContent = "儲存中…";
+    let slow = null;
+    try {
+      syncDraftInputs();
+      const bad = S.draft.items.filter(i => !String(i.n || "").trim());
+      if (bad.length) { btn.disabled = false; btn.textContent = "儲存"; return toast(`有 ${bad.length} 個品項沒填品名，先填好或按 ✕ 刪掉`, 4000) }
+      const cfg = JSON.parse(JSON.stringify(S.ocfg)), k = cfg.sups.findIndex(x => x.id === S.draft.id);
+      if (k < 0) throw new Error("找不到這家廠商的設定，請重新整理再試");
+      const renames = specRenames(cfg.sups[k], S.draft);
+      cfg.sups[k] = JSON.parse(JSON.stringify(S.draft));
+      toast("儲存中…", 8000);
+      slow = setTimeout(() => toast("還在儲存…網路可能不穩，請先不要關閉頁面", 8000), 7000);
+      await store.saveOrdCfg(cfg);
+      clearTimeout(slow);
+      S.draft = null; toast("已儲存");
+      if (renames.length) applySpecRenames(renames);
+      renderSet();
+    } catch (e) { clearTimeout(slow); btn.disabled = false; btn.textContent = "儲存"; err(e) }
+    return;
   }
   if (!S.draft) return;
   const add = t.closest("[data-add]");
