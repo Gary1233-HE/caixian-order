@@ -2794,7 +2794,7 @@ function itemCells(it, e) {
 const cellText = c => (c.v ? (c.h ? c.h + " " : "") + c.v : c.h || "");
 /* 列印／Excel：跟紙本西螺採購單一樣，列出全部品項，有叫的填上數量
    每個品項兩格；分廠商或規格超過兩個時往下多一列 */
-function sheetGrid(pairing) {
+function sheetGrid(target) {
   const L = lines(), R = {};
   catsOf().forEach(cat => {
     let out = [];
@@ -2803,8 +2803,6 @@ function sheetGrid(pairing) {
       const txt = (cs[0] && cs[0].v) || "";
       for (let i = 0; i < Math.max(cs.length, 1); i += 2) out.push({ n: i ? "" : it.n, q: [cs[i] || {}, cs[i + 1] || {}], cat, on: hasQty(e), cont: i > 0, simple: single && i === 0 && it.n.length <= 5 && txt.length <= 5 });
     });
-    /* 列印：單格的簡單品項兩個併成一列（像紙本的「韭菜 把，韭黃 包」），列數少了，字才能放大 */
-    if (pairing) { const m = []; for (let i = 0; i < out.length; i++) { const a = out[i], b = out[i + 1]; if (a.simple && b && b.simple) { m.push({ pair: [a, b], cat, on: a.on || b.on }); i++ } else m.push(a) } out = m }
     if (out.length) R[cat] = out;
   });
   const used = catsOf().filter(c => R[c]);
@@ -2820,10 +2818,18 @@ function sheetGrid(pairing) {
   }
   while (cols.length < 3) cols.push([]);
   used.filter(c => !cols.flat().includes(c)).forEach(c => { let m = 0; cols.forEach((col, i) => { if (len(col) < len(cols[m])) m = i }); cols[m].push(c) });
-  return cols.map(col => col.flatMap(c => [{ h: c, cat: c }, ...R[c]]));
+  const grid = cols.map(col => col.flatMap(c => [{ h: c, cat: c }, ...R[c]]));
+  /* 盡量一個品項一列；只有某一欄太長、字會太小時，才從那一欄的下面開始，把簡單品項兩個併一列，併到放得下為止 */
+  if (target) grid.forEach(col => {
+    for (let i = col.length - 2; i >= 0 && col.length > target; i--) {
+      const a = col[i], b = col[i + 1];
+      if (a && b && a.simple && b.simple && a.cat === b.cat) { col.splice(i, 2, { pair: [a, b], cat: a.cat, on: a.on || b.on }); i-- }
+    }
+  });
+  return grid;
 }
 function printSheet() {
-  const g = sheetGrid(true), rows = Math.max(0, ...g.map(c => c.length));
+  const g = sheetGrid(Math.floor((262 - 13 - 18) / 5.2)), rows = Math.max(0, ...g.map(c => c.length));   /* 每列至少 5.2mm（約 10.5 號字）才開始併列 */
   /* 依列數算列高和字級，保證整張塞進一張 A4（上 1.5、下 1 公分 → 可用 272mm，扣掉標題和備註）*/
   /* 保守一點算：就算瀏覽器用自己的邊界、或紙張被設成 Letter，也塞得進一頁 */
   const avail = 262 - 13 - 18, rh0 = avail / Math.max(rows, 1), rh = Math.max(3.6, Math.min(8, rh0));
