@@ -2772,17 +2772,23 @@ function itemParts(it, e) {
   return qtyOpts(it, e).map(k => partText(it, k, e.vs[k]));
 }
 /* 採購單格子：{ h: 灰色提示（規格／單位）, v: 叫的數量 } */
+/* 這個品項叫給幾家廠商（有填廠商的才算） */
+function vendSet(it, e) { const m = new Set(); if (hasQty(e)) qtyOpts(it, e).forEach(k => { const v = splitKey(it, k).vend; if (v) m.add(v) }); return m }
+/* 數量合併掉廠商：{ 規格: 數量 }（採購單上只叫給一家時，不印廠商名字，格子才放得下大字） */
+function specQty(it, e) { const o = {}; if (hasQty(e)) qtyOpts(it, e).forEach(k => { const sp = splitKey(it, k).spec; o[sp] = (o[sp] || 0) + (e.vs[k] || 0) }); return o }
 function itemCells(it, e) {
   const ord = hasQty(e), u = it.u || "";
-  if (ord && hasVend(it, e)) {
+  /* 分給兩家以上才印廠商名字（要分辨誰訂多少）；只有一家就不印 */
+  if (ord && vendSet(it, e).size >= 2) {
     const per = new Map();
     qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || ""; per.set(w, [...(per.get(w) || []), partText(it, spec, e.vs[k])]) });
     return [...per].map(([w, ts]) => ({ h: w, v: ts.join(" ") }));
   }
+  const sq = specQty(it, e), keys = Object.keys(sq).filter(k => sq[k] > 0);
   const bs = baseKeys(it);
-  if (bs.length === 1 && bs[0] === "") return [ord ? { v: qtyOpts(it, e).map(k => partText(it, k, e.vs[k])).join(" ") } : { h: u }, {}];
-  const cells = bs.map(b => { const q = e && e.vs ? e.vs[b] : null; return q > 0 ? (isUnitOpt(b) ? { v: fmt(q) + b } : { h: b, v: fmt(q) + u }) : { h: b } });
-  if (ord) qtyOpts(it, e).filter(k => !bs.includes(k)).forEach(k => cells.push({ v: partText(it, k, e.vs[k]) }));
+  if (bs.length === 1 && bs[0] === "") return [ord ? { v: keys.map(k => partText(it, k, sq[k])).join(" ") } : { h: u }, {}];
+  const cells = bs.map(b => { const q = sq[b]; return q > 0 ? (isUnitOpt(b) ? { v: fmt(q) + b } : { h: b, v: fmt(q) + u }) : { h: b } });
+  if (ord) keys.filter(k => !bs.includes(k)).forEach(k => cells.push({ v: partText(it, k, sq[k]) }));
   return cells;
 }
 const cellText = c => (c.v ? (c.h ? c.h + " " : "") + c.v : c.h || "");
@@ -2793,7 +2799,7 @@ function sheetGrid(pairing) {
   catsOf().forEach(cat => {
     let out = [];
     itemsOf(cat).forEach(it => {
-      const e = L[it.id], cs = itemCells(it, e), single = cs.length <= 2 && !(cs[1] && (cs[1].v || cs[1].h)) && !hasVend(it, e) && !(it.o || []).length && qtyOpts(it, e).length <= 1;
+      const e = L[it.id], cs = itemCells(it, e), single = cs.length <= 2 && !(cs[1] && (cs[1].v || cs[1].h)) && vendSet(it, e).size < 2 && !(it.o || []).length && Object.keys(specQty(it, e)).length <= 1;
       const txt = (cs[0] && cs[0].v) || "";
       for (let i = 0; i < Math.max(cs.length, 1); i += 2) out.push({ n: i ? "" : it.n, q: [cs[i] || {}, cs[i + 1] || {}], cat, on: hasQty(e), cont: i > 0, simple: single && i === 0 && it.n.length <= 5 && txt.length <= 5 });
     });
