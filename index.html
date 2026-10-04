@@ -580,7 +580,8 @@ select.in{appearance:auto}
   .pf.tight{--fn:10.5pt;--fq:12pt;--fc:11.5pt;--rh:5.4mm}
   .pf.xtight{--fn:9pt;--fq:10.5pt;--fc:10pt;--rh:4.6mm}
   .pf td{border:1px solid #000;height:var(--rh);padding:0 1.2mm;font-size:var(--fn);font-weight:400;overflow:hidden;white-space:nowrap;line-height:1.05}
-  .pf td.n{letter-spacing:-.02em}
+  /* 品名分散對齊：字平均排滿整格（像 Excel 的「分散對齊」） */
+  .pf td.n{text-align:justify;text-align-last:justify;text-justify:inter-character;padding:0 1.8mm}
   .pf td.h{font-weight:400;text-align:center;background:#eee;font-size:calc(var(--fq) * .85);color:#333;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .pf td.h.hc{font-size:var(--fc);font-weight:700;color:#000;letter-spacing:.05em}
   .pf td.gap{border:0}
@@ -588,10 +589,11 @@ select.in{appearance:auto}
   .pf .pp{display:flex;height:var(--rh)}
   .pf .ph{flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:1mm;padding:0 1.2mm;font-size:var(--fn);white-space:nowrap;overflow:hidden}
   .pf .ph + .ph{border-left:1px solid #000}
+  .pf .hn{flex:1;min-width:0;text-align:justify;text-align-last:justify;text-justify:inter-character;margin-right:1.5mm}
   .pf .hq{font-size:var(--fq);font-weight:700}.pf .hq.e{font-size:.74em;font-weight:400;color:#999}
   .pf td.tq{text-align:left;padding:0 1mm;font-size:var(--fq)}
   .pf td.tq.c{text-align:center;padding:0 .5mm}
-  .pf td.n.sm{font-size:calc(var(--fn) * .88);letter-spacing:-.03em}
+  .pf td.n.sm{font-size:calc(var(--fn) * .88);padding:0 1.2mm}
   .pf td.tq.sm{font-size:calc(var(--fq) * .9);letter-spacing:-.03em}
   .pf td.tq.xs{font-size:calc(var(--fq) * .8);letter-spacing:-.04em}
   .pf td i{font-style:normal;color:#555;font-size:.68em;margin-right:.8mm;vertical-align:.08em}
