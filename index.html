@@ -555,7 +555,11 @@ select.in{appearance:auto}
 .ut-k{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}.ut-kn{font-size:13px;font-weight:700}.ut-kn small{color:var(--muted);font-weight:500;margin-left:6px}
 .ut-ok{align-self:end;padding:9px;color:var(--ok);font-weight:900}
 .ut-b{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.ut-b .btn{width:auto;padding:9px 12px}
+.ut-ur{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;font-size:14px;font-weight:700}.ut-ur label{display:flex;align-items:center;gap:4px}.ut-ur input{width:64px;padding:7px;text-align:center}.ut-ur small{flex-basis:100%;font-size:11px;color:var(--muted);font-weight:500}
 .ut-note{margin-top:6px;font-size:12px;color:#8A4B00}
+.ut-foot3{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:8px;margin-top:8px}.ut-foot3 .btn{width:auto;padding:13px 6px;font-size:13.5px}
+.ui-w{background:#FFF6F4;border:1px solid #F0C4BE;border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:13.5px;line-height:1.6}.ui-w b{color:var(--warn)}
+.ui-c{background:#F3F8F4;border:1px solid #BFE3CB;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.6}.ui-c b{color:var(--ok)}
 .ut-foot{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:8px}.ut-foot .btn{width:auto;padding:13px 8px;font-size:14px}
 .sub-cat{font-weight:900;font-size:14px;border-left:4px solid var(--cc);padding-left:8px;margin:12px 2px 6px}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
@@ -751,7 +755,13 @@ select.in{appearance:auto}
   <div class="sh-head"><div><b>單位規格總表</b><span id="utSub"></span></div><button class="sh-x" id="utClose" aria-label="關閉">×</button></div>
   <div class="ut-bar"><input type="search" id="utQ" placeholder="搜尋品項" autocomplete="off"><div class="ut-f" id="utF"></div></div>
   <div class="ut-l" id="utList"></div>
-  <div class="ut-foot"><button class="btn" id="utXlsx">匯出 Excel</button><button class="btn pri" id="utAll">要整理的全部改成點貨單位</button></div>
+  <div class="ut-foot3"><button class="btn" id="utXlsx">匯出 Excel</button><button class="btn" id="utImp">匯入 Excel</button><button class="btn pri" id="utAll">要整理的全部改成點貨單位</button></div>
+  <input type="file" id="utFile" accept=".xlsx,.xls" class="hide">
+</section>
+<section class="sheet ut-sheet" id="uiSheet" aria-label="匯入預覽">
+  <div class="sh-head"><div><b>匯入預覽</b><span id="uiSub"></span></div><button class="sh-x" id="uiClose" aria-label="關閉">×</button></div>
+  <div class="ut-l" id="uiList"></div>
+  <div class="ut-foot"><button class="btn" id="uiNo">取消</button><button class="btn okb" id="uiOk">套用</button></div>
 </section>
 <section class="sheet" id="pushSheet" aria-label="送到報價">
   <div class="sh-head"><div><b>送到採鮮報價（待確認）</b><span id="pushSub"></span></div><button class="sh-x" id="pushClose" aria-label="關閉">×</button></div>
@@ -1072,9 +1082,10 @@ if (F) {
       return [...ds].map(dd => mergeInvDay(w.find(x => x.date === dd) || null, mm[dd] || null));
     },
     /* 改點貨品項的單位（單位規格總表用）：交易裡重讀最新設定，只改這幾項的 u */
+    /* 改點貨品項的單位或品名（單位規格總表用）：交易裡重讀最新設定，只改指定的欄位 */
     setUnits: changes => F.runTransaction(db, async tx => {
       const ref = F.doc(db, "config", "inventory"), x = await tx.get(ref); if (!x.exists()) throw new Error("讀不到點貨設定");
-      const items = (x.data().items || []).map(i => { const c = changes.find(z => z.id === i.id); if (!c) return i; const o = { ...i, u: c.u }; if (o.mu && !String(c.u).split("/").includes(o.mu)) delete o.mu; return o });
+      const items = (x.data().items || []).map(i => { const c = changes.find(z => z.id === i.id); if (!c) return i; const o = { ...i }; if (c.u != null) { o.u = c.u; if (o.mu && !String(c.u).split("/").includes(o.mu)) delete o.mu } if (c.n) o.n = c.n; if (c.ur !== undefined) { if (c.ur && Object.keys(c.ur).length) o.ur = c.ur; else delete o.ur } return o });
       tx.update(ref, { items });
     })
   };
@@ -1086,7 +1097,7 @@ if (F) {
     watchCfg: cb => { cb(rd(K.ic)); return () => {} },
     watchDay: (d, cb) => { const a = rd(K.id) || {}, m = rd(K.mk) || {}; const k = Object.keys(a).filter(x => x <= d).sort().pop(); cb(mergeInvDay(k ? a[k] : null, m[k || d] || null)); return () => {} },
     listDays: async (a, b) => { const w = rd(K.id) || {}, m = rd(K.mk) || {}; return [...new Set([...Object.keys(w), ...Object.keys(m)])].filter(x => x >= a && x <= b).map(x => mergeInvDay(w[x] || null, m[x] || null)) },
-    setUnits: async changes => { const c = rd(K.ic); c.items = c.items.map(i => { const z = changes.find(q => q.id === i.id); return z ? { ...i, u: z.u } : i }); localStorage.setItem(K.ic, JSON.stringify(c)); S.inv = c; S.fcCache = {}; render() }
+    setUnits: async changes => { const c = rd(K.ic); c.items = c.items.map(i => { const z = changes.find(q => q.id === i.id); if (!z) return i; const o = { ...i, ...(z.u != null ? { u: z.u } : {}), ...(z.n ? { n: z.n } : {}) }; if (z.ur !== undefined) { if (z.ur && Object.keys(z.ur).length) o.ur = z.ur; else delete o.ur } return o }); localStorage.setItem(K.ic, JSON.stringify(c)); S.inv = c; S.fcCache = {}; render() }
   };
 }
 
@@ -1208,7 +1219,12 @@ const iUnits = i => { const a = String(i.u || "").split(/[\/、,，|]/).map(s =>
 const iMin = i => (+i.m > 0 ? +i.m : 0);
 const iVal = (i, e, u) => { if (!e) return null; if (e.vs) return e.vs[u] ?? null; return u === iUnits(i)[0] ? (e.v ?? null) : null };
 const iZero = e => !!e && (e.vs ? Object.values(e.vs).length > 0 && Object.values(e.vs).every(x => x === 0) : e.v === 0);
-const iFirst = (i, e) => iVal(i, e, iUnits(i)[0]);
+/* 第一個單位的數量；其他單位有設換算（ur，例如 1捆＝9小把）就折算進來 */
+const iFirst = (i, e) => {
+  const us = iUnits(i); let v = iVal(i, e, us[0]);
+  if (e && e.vs && i.ur) { let add = 0, any = v != null; us.slice(1).forEach(u => { const r = +i.ur[u], q = e.vs[u]; if (r > 0 && q != null) { add += q / r; any = true } }); if (any) v = Math.round(((v || 0) + add) * 100) / 100 }
+  return v;
+};
 const iNeed = (i, e) => { if (!e || !iMin(i)) return 0; if (iZero(e)) return iMin(i); const v = iFirst(i, e); return v != null && v < iMin(i) ? +(iMin(i) - v).toFixed(2) : 0 };
 const iOk = e => !!e && !!e.ok;   /* 點貨標「夠用」 */
 function iQty(i, e) {
@@ -1490,11 +1506,29 @@ setTimeout(() => {
   if (!S.ocfgLoaded && !ST.ord) { ST.ord = "等了 12 秒還沒有回應（資料庫可能還沒建立，或網路不通）"; showStatus() }
   if (!S.inv && !ST.inv && inv.mode === "fb") { ST.inv = "等了 12 秒還沒有回應"; showStatus() }
 }, 12000);
-inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); seedMushroom(); render() });
+inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2(); render() });
 $("#invSrc").textContent = "連線中…";
 /* 建立品項時讀不到點貨 → 讀到後自動補上連動 */
 /* 菇類帶入：名字有「菇」的廠商，如果還沒有任何菇類品項，就把點貨的菇類全部帶入（自動連動點貨）
    每家只做一次（x.mushDone）；同名的廠商有好幾家也都會補到 */
+/* 一次性：點貨有兩個都叫「地瓜葉」的品項（一個捆、一個件），是不同東西 → 改名「地瓜葉捆」「地瓜葉件」，叫貨的規格「捆／件」就能用名字對上 */
+function fixDGY() {
+  if (!S.ocfg || !S.ocfg.sups || S.ocfg.dgy1 || !invItems().length || window.__dgyBusy || !inv.setUnits) return;
+  const two = invItems().filter(i => i.n === "地瓜葉"), k = two.find(i => iUnits(i)[0] === "捆"), j = two.find(i => iUnits(i)[0] === "件");
+  window.__dgyBusy = 1;
+  const mark = () => { const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.dgy1 = 1; return store.saveOrdCfg(cfg) };
+  if (two.length === 2 && k && j) inv.setUnits([{ id: k.id, n: "地瓜葉捆" }, { id: j.id, n: "地瓜葉件" }]).then(mark).then(() => { window.__dgyBusy = 0; toast("點貨的兩個「地瓜葉」已改名為「地瓜葉捆」「地瓜葉件」", 4000) }).catch(e => { window.__dgyBusy = 0; err(e) });
+  else mark().then(() => { window.__dgyBusy = 0 }).catch(() => { window.__dgyBusy = 0 });
+}
+/* 一次性：地瓜葉的捆是 9 小把 → 點貨「地瓜葉捆」可以點捆或小把，小把用 9 折成捆 */
+function fixDGY2() {
+  if (!S.ocfg || !S.ocfg.sups || S.ocfg.dgy2 || !S.ocfg.dgy1 || !invItems().length || window.__dgy2Busy || !inv.setUnits) return;
+  const k = invItems().find(i => i.n === "地瓜葉捆"); window.__dgy2Busy = 1;
+  const mark = () => { const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.dgy2 = 1; return store.saveOrdCfg(cfg) };
+  if (k) { const us = iUnits(k).filter(Boolean); if (!us.includes("小把")) us.push("小把");
+    inv.setUnits([{ id: k.id, u: us.join("/"), ur: { ...(k.ur || {}), "小把": 9 } }]).then(mark).then(() => { window.__dgy2Busy = 0; toast("地瓜葉捆：可以點「小把」，1捆＝9小把", 4000) }).catch(e => { window.__dgy2Busy = 0; err(e) }) }
+  else mark().then(() => { window.__dgy2Busy = 0 }).catch(() => { window.__dgy2Busy = 0 });
+}
 function seedMushroom() {
   if (!S.ocfg || !S.ocfg.sups || !invItems().length || window.__mushBusy) return;
   const mush = invItems().filter(i => i.c === "菇類"); if (!mush.length) return;
@@ -1530,7 +1564,7 @@ function relink() {
   if (n) store.saveOrdCfg(cfg).then(() => toast(`點貨品項有更新，已自動連動 ${n} 項`)).catch(err);
 }
 store.watchOrdCfg(c => {
-  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom();
+  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2();
   normWeights();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 9)) { migrate(); return }
@@ -1974,7 +2008,7 @@ function openPeople() {
   $("#ppList").innerHTML = ppl.map(p => `<button class="${p === S.me ? "on" : ""}" data-p="${esc(p)}">${esc(p)}</button>`).join("");
   openSheet("pp");
 }
-$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush(); closeNote(); closeNewItem(); closeUt(); $("#splitSheet").classList.remove("show") };
+$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush(); closeNote(); closeNewItem(); closeUt(); $("#uiSheet").classList.remove("show"); $("#splitSheet").classList.remove("show") };
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheets);
 $("#ppList").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; S.me = b.dataset.p; try { localStorage.setItem("caixian-order-me", S.me) } catch {} renderWho(); closeSheets() };
 
@@ -2493,11 +2527,16 @@ function renderUt() {
       <div class="ut-g">
         <label class="ut-c"><small>叫貨單位</small><input class="in" data-utu="${it.id}" value="${esc(it.u || "")}" placeholder="例如 件"></label>
         <label class="ut-c"><small>叫貨規格（用 / 分開）</small><input class="in" data-uto="${it.id}" value="${esc((it.o || []).map(x => x + (it.ow && it.ow[x] ? fmt(it.ow[x]) + "kg" : "")).join("/"))}" placeholder="沒有就空著"></label>
+        ${!(it.o || []).length ? `<label class="ut-c"><small>每件重量 KG</small><input class="in" data-utw="${it.id}" inputmode="decimal" value="${it.uw > 0 ? fmt(it.uw) : ""}" placeholder="例如 30"></label>` : ""}
       </div>
       ${r.links.map(l => `<div class="ut-k${l.same ? " same" : ""}">
-        <div class="ut-kn">↔ 點貨「${esc(l.inv.n)}」<small>${esc(l.inv.c || "")}</small></div>
+        <div class="ut-kn">↔ 點貨<small>${esc(l.inv.c || "")}　對應規格：${esc(optFor(it, l.inv) || "（無）")}</small></div>
+        ${iUnits(l.inv).filter(Boolean).length > 1 ? `<div class="ut-ur">${iUnits(l.inv).slice(1).map(u => `<label>1${esc(iUnits(l.inv)[0])}＝<input class="in" data-utr="${l.inv.id}|${esc(u)}" inputmode="decimal" value="${l.inv.ur && l.inv.ur[u] ? fmt(l.inv.ur[u]) : ""}" placeholder="?">${esc(u)}</label>`).join("")}<small>點貨同時用多個單位時，填了會折算成「${esc(iUnits(l.inv)[0])}」來算庫存</small></div>` : ""}
         <div class="ut-g">
+          <label class="ut-c"><small>點貨品名</small><input class="in" data-utn="${l.inv.id}" value="${esc(l.inv.n)}"></label>
           <label class="ut-c"><small>點貨單位</small><input class="in" data-uti="${l.inv.id}" value="${esc(String(l.inv.u || ""))}"></label>
+        </div>
+        <div class="ut-g">
           ${l.same ? `<div class="ut-ok">✓ 都是「${esc(l.ou)}」</div>` : `<label class="ut-c"><small>換算：1${esc(l.ou || "叫貨單位")}＝？${esc(l.iu)}</small><input class="in" data-utx="${it.id}|${l.inv.id}" inputmode="decimal" value="${l.fx ?? ""}" placeholder="例如 2"></label>`}
         </div>
         ${!l.same && l.iu ? `<div class="ut-b"><button class="btn sm pri" data-uta="${it.id}|${l.inv.id}|o">叫貨${l.ou ? "改成" : "設成"}「${esc(l.iu)}」</button>${l.ou ? `<button class="btn sm" data-uta="${it.id}|${l.inv.id}|i">點貨改成「${esc(l.ou)}」</button>` : ""}</div>` : ""}
@@ -2519,7 +2558,10 @@ $("#utList").addEventListener("change", async e => {
     const id = t.dataset.uto, raw = v.split(/[\/、,，|]/).map(z => z.trim()).filter(Boolean);
     await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; const ow = {}; it.o = raw.map(z => { const p = splitWt(z); if (p.w && p.n) { ow[p.n] = p.w; return p.n } if (it.ow && it.ow[z]) ow[z] = it.ow[z]; return z }); if (Object.keys(ow).length) it.ow = ow; else delete it.ow }, "已改叫貨規格"); renderUt(); return;
   }
+  if (t.dataset.utr) { const [iid, u] = t.dataset.utr.split("|"), ii = invById(iid), n = +v; if (!ii) return; const ur = { ...(ii.ur || {}) }; if (n > 0) ur[u] = n; else delete ur[u]; await invApi.setUnits([{ id: iid, ur }]).then(() => toast(n > 0 ? `已設：1${iUnits(ii)[0]}＝${n}${u}` : "已清除")).catch(err); setTimeout(renderUt, 300); return }
+  if (t.dataset.utn) { const ii = invById(t.dataset.utn); if (!v || !ii || v === ii.n) { renderUt(); return } if (!confirm(`點貨品名「${ii.n}」改成「${v}」？\n點貨 App 也會跟著改名，點過的數字不受影響。`)) { renderUt(); return } await invApi.setUnits([{ id: ii.id, n: v }]).then(() => toast("已改點貨品名")).catch(err); setTimeout(renderUt, 300); return }
   if (t.dataset.uti) { const ii = invById(t.dataset.uti); if (!v) { toast("點貨單位不能空白"); renderUt(); return } if (!ii || !confirm(`點貨「${ii.n}」的單位改成「${v}」？\n以前點貨記的數字不會換算。`)) { renderUt(); return } await invApi.setUnits([{ id: t.dataset.uti, u: v }]).then(() => toast("已改點貨單位")).catch(err); setTimeout(renderUt, 300); return }
+  if (t.dataset.utw) { const id = t.dataset.utw, w = parseKg(v); if (w.err) { toast(w.err); renderUt(); return } await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; if (w.kg > 0) it.uw = w.kg; else delete it.uw }, w.kg > 0 ? `已設每件重量 ${w.kg}KG` : "已清除每件重量"); renderUt(); return }
   if (t.dataset.utx) { const [id, iid] = t.dataset.utx.split("|"), n = +v; await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; it.fx = { ...(it.fx || {}) }; if (n > 0) it.fx[iid] = n; else delete it.fx[iid] }, n > 0 ? "已設換算" : "已清除換算"); renderUt(); return }
 });
 $("#utList").addEventListener("click", async e => {
@@ -2536,11 +2578,103 @@ $("#utAll").onclick = async () => {
 };
 $("#utXlsx").onclick = () => {
   if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
-  const rows = [["叫貨廠商", "分類", "叫貨品項", "叫貨單位", "叫貨規格", "規格重量KG", "點貨品項", "點貨單位", "換算（1叫貨單位＝?點貨單位）", "加工", "狀態"]];
-  utRows().forEach(r => { const it = r.it, base = [sup().name, it.c, it.n, it.u || "", (it.o || []).join("/"), it.ow ? Object.entries(it.ow).map(([k, v]) => `${k}=${v}`).join("、") : "", ]; const pc = it.pc ? (it.pc.outs || []).map(o => o.n).join("、") : "";
-    if (!r.links.length) rows.push([...base, "", "", "", pc, r.msg]); else r.links.forEach(l => rows.push([...base, l.inv.n, l.inv.u || "", l.fx ?? "", pc, r.msg])) });
-  const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = [8, 8, 12, 8, 14, 12, 12, 8, 14, 12, 16].map(w => ({ wch: w }));
+  const rows = [["叫貨廠商", "分類", "叫貨品項", "叫貨單位", "叫貨規格", "規格重量KG", "每件重量KG", "點貨品項", "點貨單位", "換算（1叫貨單位＝?點貨單位）", "加工", "狀態（匯出當時）", "叫貨ID", "點貨ID"]];
+  utRows().forEach(r => { const it = r.it, base = [sup().name, it.c, it.n, it.u || "", (it.o || []).join("/"), it.ow ? Object.entries(it.ow).map(([k, v]) => `${k}=${v}`).join("、") : "", it.uw > 0 ? it.uw : ""]; const pc = it.pc ? (it.pc.outs || []).map(o => o.n).join("、") : "";
+    if (!r.links.length) rows.push([...base, "", "", "", pc, r.msg, it.id, ""]); else r.links.forEach(l => rows.push([...base, l.inv.n, l.inv.u || "", l.fx ?? "", pc, r.msg, it.id, l.inv.id])) });
+  const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = [8, 8, 12, 8, 14, 14, 10, 12, 8, 14, 12, 16, 9, 9].map(w => ({ wch: w }));
   XLSX.utils.book_append_sheet(wb, ws, "單位規格總表"); XLSX.writeFile(wb, `單位規格總表_${sup().name}_${today().replace(/-/g, "")}.xlsx`);
+};
+/* ===== 單位規格總表：Excel 匯入 =====
+   用欄位名稱找欄（順序可以換）；有「叫貨ID／點貨ID」就用 ID 對，沒有就用「分類＋叫貨品項」和點貨品名對。
+   先算出要改哪些、哪些有問題，給你看過，按「套用」才寫入 */
+function parseKg(v) {
+  if (v == null || v === "") return { kg: null };
+  if (typeof v === "number") return { kg: v };
+  const t = String(v).trim().replace(/\s+/g, ""), m = t.match(/^(\d+(?:\.\d+)?)(kg|公斤|g|公克|克|台斤|斤)?$/i);
+  if (!m) return { err: `看不懂「${t}」` };
+  const n = +m[1], u = (m[2] || "kg").toLowerCase();
+  if (u === "g" || u === "公克" || u === "克") return { kg: Math.round(n) / 1000, note: `${t} 換成 ${n / 1000}KG` };
+  if (u === "斤" || u === "台斤") return { kg: Math.round(n * 0.6 * 1000) / 1000, note: `${t} 換成 ${Math.round(n * 0.6 * 1000) / 1000}KG` };
+  return { kg: n };
+}
+const splitList = v => String(v ?? "").split(/[\/、,，;；|]/).map(z => z.trim()).filter(Boolean);
+let UI = null;
+async function utImport(file) {
+  if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
+  const wb = XLSX.read(await file.arrayBuffer()), ws = wb.Sheets[wb.SheetNames[0]], A = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+  const H = (A[0] || []).map(x => String(x).trim()), col = (...ks) => H.findIndex(h => ks.some(k => h.startsWith(k)));
+  const C = { sup: col("叫貨廠商"), cat: col("分類"), n: col("叫貨品項"), u: col("叫貨單位"), o: col("叫貨規格"), ow: col("規格重量"), uw: col("每件重量"), in: col("點貨品項"), iu: col("點貨單位"), fx: col("換算"), id: col("叫貨ID"), iid: col("點貨ID") };
+  if (C.n < 0) return toast("找不到「叫貨品項」欄，請用總表匯出的格式");
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), invs = invItems();
+  const chg = [], warn = [], invChg = new Map(), seen = new Set(), used = {}, cell = (r, k) => C[k] >= 0 ? r[C[k]] : undefined, str = v => String(v ?? "").trim();
+  A.slice(1).forEach((r, ri) => {
+    const rowNo = ri + 2, name = str(cell(r, "n")); if (!name) return;
+    if (C.sup >= 0 && str(cell(r, "sup")) && str(cell(r, "sup")) !== sup().name) { warn.push(`第 ${rowNo} 列：「${str(cell(r, "sup"))}」不是目前的叫貨廠商（${sup().name}），略過`); return }
+    const it = (C.id >= 0 && str(cell(r, "id")) && x.items.find(i => i.id === str(cell(r, "id")))) || x.items.find(i => i.n === name && (C.cat < 0 || i.c === str(cell(r, "cat")))) || x.items.find(i => i.n === name);
+    if (!it) { warn.push(`第 ${rowNo} 列：找不到叫貨品項「${name}」`); return }
+    const lab = `${it.n}（${it.c}）`;
+    if (!seen.has(it.id)) {   /* 品項本身的欄位，用這個品項的第一列 */
+      seen.add(it.id);
+      if (C.u >= 0) { const nu = str(cell(r, "u")); if (nu !== (it.u || "")) { chg.push(`${lab}：叫貨單位 ${it.u || "（空白）"} → ${nu || "（空白）"}`); it.u = nu } }
+      let specs = it.o || [];
+      if (C.o >= 0) {
+        const raw = splitList(cell(r, "o")), ow = { ...(it.ow || {}) }, ns = raw.map(z => { const p = splitWt(z); if (p.w && p.n) { ow[p.n] = p.w; return p.n } return z });
+        const wcell = C.ow >= 0 ? str(cell(r, "ow")) : "";
+        if (!ns.length && (it.o || []).length && wcell && splitList(wcell).length >= 2 && !wcell.includes("=")) warn.push(`${lab}：規格欄空白、規格重量寫了「${wcell}」，看不出是哪個規格的重量，規格先不改。建議規格寫「小把1.5kg/大把3kg」`);
+        else if (ns.join("/") !== (it.o || []).join("/")) { chg.push(`${lab}：規格 ${(it.o || []).join("/") || "（無）"} → ${ns.join("/") || "（無）"}`); it.o = ns; specs = ns }
+        ns.forEach(z => { if (/^\d+(\.\d+)?\s*(kg|公斤|g)$/i.test(z)) warn.push(`${lab}：規格「${z}」只有重量沒有名稱`) });
+        if (Object.keys(ow).length) it.ow = Object.fromEntries(Object.entries(ow).filter(([k]) => specs.includes(k))); 
+      }
+      if (C.ow >= 0) {
+        const wcell = str(cell(r, "ow")), ow = {};
+        if (wcell.includes("=")) splitList(wcell).forEach(p => { const [k, v] = p.split("="); const w = parseKg(v); if (w.err) warn.push(`${lab}：規格重量 ${w.err}`); else if (w.kg > 0 && specs.includes(k.trim())) { ow[k.trim()] = w.kg; if (w.note) warn.push(`${lab}：${w.note}`) } else if (!specs.includes(k.trim())) warn.push(`${lab}：規格重量的「${k.trim()}」不在規格裡`) });
+        else if (wcell) { const ws2 = splitList(wcell).map(parseKg);
+          if (ws2.some(w => w.err)) warn.push(`${lab}：規格重量「${wcell}」看不懂`);
+          else if (specs.length && ws2.length === specs.length) ws2.forEach((w, k) => { ow[specs[k]] = w.kg; if (w.note) warn.push(`${lab}：${w.note}`) });
+          else if (!specs.length && ws2.length === 1) { const w = ws2[0]; if (C.uw < 0 || !str(cell(r, "uw"))) { if (+it.uw !== w.kg) { chg.push(`${lab}：每件重量 ${it.uw || "（無）"} → ${w.kg}KG`); it.uw = w.kg } if (w.note) warn.push(`${lab}：${w.note}`) } }
+          else if (!(!specs.length && ws2.length >= 2)) warn.push(`${lab}：規格重量有 ${ws2.length} 個，規格有 ${specs.length} 個，對不起來，先不改`) }
+        const before = JSON.stringify(it.ow || {}), after = JSON.stringify(Object.keys(ow).length ? ow : (wcell ? (it.ow || {}) : {}));
+        if (wcell && Object.keys(ow).length && before !== JSON.stringify(ow)) { chg.push(`${lab}：規格重量 → ${Object.entries(ow).map(([k, v]) => `${k} ${v}KG`).join("、")}`); it.ow = ow }
+        else if (!wcell && it.ow && Object.keys(it.ow).length) { chg.push(`${lab}：清除規格重量`); delete it.ow }
+      }
+      if (C.uw >= 0 && str(cell(r, "uw"))) { const w = parseKg(cell(r, "uw")); if (w.err) warn.push(`${lab}：每件重量 ${w.err}`); else if (+it.uw !== w.kg) { chg.push(`${lab}：每件重量 ${it.uw || "（無）"} → ${w.kg}KG`); it.uw = w.kg; if (w.note) warn.push(`${lab}：${w.note}`) } }
+    }
+    /* 點貨那一邊 */
+    const iname = C.in >= 0 ? str(cell(r, "in")) : ""; if (!iname) return;
+    let inv = C.iid >= 0 && str(cell(r, "iid")) ? invs.find(i => i.id === str(cell(r, "iid"))) : null;
+    /* 同一個叫貨品項連到兩個同名的點貨品項（例如兩個「地瓜葉」）：照列的順序一個對一個 */
+    const us = (used[it.id] ||= new Set());
+    if (!inv) { const linked = (it.inv || []).map(id => invs.find(i => i.id === id)).filter(Boolean).filter(i => i.n === iname && !us.has(i.id)), riu = C.iu >= 0 ? str(cell(r, "iu")) : "";
+      inv = linked.find(i => String(i.u || "") === riu) || linked[0] }   /* 同名的優先對到單位一樣的那個 */
+    if (!inv) { const cand = invs.filter(i => i.n === iname); if (cand.length === 1) { inv = cand[0]; if (!(it.inv || []).includes(inv.id)) { it.inv = [...(it.inv || []), inv.id]; it.manual = 1; chg.push(`${lab}：新增連動點貨「${inv.n}」`) } } else { warn.push(`${lab}：點貨品項「${iname}」${cand.length ? "有好幾個同名的" : "找不到"}，這列的點貨欄先不改`); return } }
+    us.add(inv.id);
+    if (C.iid >= 0 && str(cell(r, "iid")) === inv.id && iname !== inv.n) { const cur = invChg.get(inv.id) || { id: inv.id, from: inv.u || "", n: inv.n }; cur.rn = iname; invChg.set(inv.id, cur) }
+    if (C.iu >= 0) { const nu = str(cell(r, "iu")); if (nu && nu !== String(inv.u || "")) { invChg.set(inv.id, { id: inv.id, u: nu, from: inv.u || "", n: inv.n }) } }
+    if (C.fx >= 0) { const raw = cell(r, "fx"), t = str(raw), cur = it.fx && it.fx[inv.id];
+      if (t === "") { if (cur != null) { chg.push(`${lab} ↔ ${inv.n}：清除換算`); delete it.fx[inv.id] } }
+      else { const n = +t; if (!(n > 0)) warn.push(`${lab} ↔ ${inv.n}：換算欄要填數字，寫的是「${t}」，先不改。${t.includes(it.n) ? `如果「${t}」是點貨品名，請改在「點貨品項」欄（要用新匯出、有點貨ID的檔案）` : ""}`); else if (+cur !== n) { chg.push(`${lab} ↔ ${inv.n}：換算 ${cur ?? "（無）"} → 1${it.u || "叫貨單位"}＝${n}${String(inv.u || "").split("/")[0]}`); it.fx = { ...(it.fx || {}), [inv.id]: n } } } }
+  });
+  invChg.forEach(c => { if (c.rn) chg.push(`點貨「${c.n}」：品名改成「${c.rn}」`); if (c.u != null) chg.push(`點貨「${c.n}」：點貨單位 ${c.from || "（空白）"} → ${c.u}（以前點貨的數字不會換算）`) });
+  UI = { cfg, invChg: [...invChg.values()], n: chg.length };
+  $("#uiSub").textContent = `${file.name}　${chg.length} 項變更、${warn.length} 項提醒`;
+  $("#uiList").innerHTML = (warn.length ? `<div class="ui-w"><b>⚠ 要注意（這些沒有套用）</b>${warn.map(w => `<div>${esc(w)}</div>`).join("")}</div>` : "") +
+    (chg.length ? `<div class="ui-c"><b>會改這些</b>${chg.map(c => `<div>${esc(c)}</div>`).join("")}</div>` : `<div class="empty">跟目前的設定一樣，沒有要改的</div>`);
+  $("#uiOk").textContent = `套用 ${chg.length} 項`; $("#uiOk").disabled = !chg.length;
+  $("#utSheet").classList.remove("show"); $("#uiSheet").classList.add("show"); $("#scrim").classList.add("show");
+}
+$("#utImp").onclick = () => $("#utFile").click();
+$("#utFile").addEventListener("change", e => { const f = e.target.files[0]; e.target.value = ""; if (f) utImport(f).catch(err) });
+$("#uiClose").onclick = $("#uiNo").onclick = () => { $("#uiSheet").classList.remove("show"); openUt() };
+$("#uiOk").onclick = async () => {
+  if (!UI) return; const btn = $("#uiOk"); btn.disabled = true; btn.textContent = "套用中…";
+  try {
+    const old = sup(), x = UI.cfg.sups.find(q => q.id === S.sup), rn = specRenames(old, x);
+    await store.saveOrdCfg(UI.cfg);
+    if (UI.invChg.length) await invApi.setUnits(UI.invChg.map(c => ({ id: c.id, ...(c.u != null ? { u: c.u } : {}), ...(c.rn ? { n: c.rn } : {}) })));
+    if (rn.length) applySpecRenames(rn);
+    toast(`已套用 ${UI.n} 項`); UI = null;
+    $("#uiSheet").classList.remove("show"); setTimeout(openUt, 400);
+  } catch (e) { btn.disabled = false; btn.textContent = "套用"; err(e) }
 };
 /* ===== 送到報價（待確認）：預覽 → 勾選 → 送出。不會改到客人看的報價 ===== */
 const PUSH = { rows: [], items: [], sent: null };
@@ -2728,7 +2862,8 @@ function wtOf(e, o) { return e && e.wt && e.wt[pk(o)] != null ? e.wt[pk(o)] : nu
 /* 單位本身就是重量：斤（台斤）＝0.6 公斤、公斤＝1。這種品項不用填每件重量，成本直接算 */
 function unitKg(u) { u = String(u || "").trim(); if (/^(台斤|斤)$/.test(u)) return 0.6; if (/^(公斤|kg|KG|Kg)$/.test(u)) return 1; return null }
 function splitWt(label) { const re = /\s*(\d+(?:\.\d+)?)\s*(kg|KG|Kg|公斤)\s*$/, m = String(label || "").match(re); return m ? { n: label.replace(re, "").trim(), w: +m[1] } : { n: String(label || "").trim(), w: null } }
-function specWt(it, o) { const sp = splitKey(it, o).spec; return it.ow && it.ow[sp] > 0 ? it.ow[sp] : null }
+/* 規格重量（ow）優先；沒規格或那個規格沒設，就用品項的每件重量（uw） */
+function specWt(it, o) { const sp = splitKey(it, o).spec; return it.ow && it.ow[sp] > 0 ? it.ow[sp] : it.uw > 0 ? it.uw : null }
 function effWt(it, e, o) {
   const uk = unitKg(unitLabel(it, splitKey(it, o).spec)); if (uk) return { w: uk, src: "unit" };
   const w = wtOf(e, o); if (w != null) return { w, src: "today" };
