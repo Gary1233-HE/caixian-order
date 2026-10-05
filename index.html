@@ -542,6 +542,21 @@ select.in{appearance:auto}
 .pu-aff{margin-top:10px;background:var(--bg);border-radius:10px;padding:8px 12px;font-size:13px}.pu-aff b{display:block;margin-bottom:4px}.pu-aff div{font-family:var(--mono)}
 .cnote{display:block;width:100%;text-align:left;background:#FFF8E1;border:1.5px solid #F2D675;border-radius:12px;padding:10px 12px;margin-bottom:8px;white-space:pre-wrap;font-size:14px;line-height:1.5}.cnote b{display:block;font-size:12px;color:#8A6A00;margin-bottom:2px}.cnote small{display:block;color:var(--muted);font-size:11px;margin-top:4px}
 .ni-b{padding-top:6px}.ni-b .su-in{margin-top:0}
+.ut-sheet{max-height:92vh;display:flex;flex-direction:column}
+.ut-bar{margin-top:8px}.ut-bar input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px}
+.ut-f{display:flex;gap:6px;overflow-x:auto;margin-top:8px;scrollbar-width:none}.ut-f::-webkit-scrollbar{display:none}
+.ut-f button{flex:none;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:700;background:#fff}.ut-f button b{font-family:var(--mono);margin-left:5px}
+.ut-f button.bad b{color:var(--warn)}.ut-f button.conv b{color:#2F6FD6}.ut-f button.none b{color:var(--muted)}.ut-f button.ok b{color:var(--ok)}.ut-f button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.ut-f button.on b{color:var(--citrus)}
+.ut-l{overflow:auto;flex:1;min-height:120px;margin-top:8px}
+.ut-r{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;background:#fff}.ut-r.bad{border-color:#F0C4BE;background:#FFF8F6}.ut-r.ok{background:#F6FBF7}
+.ut-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ut-h b{font-size:17px}.ut-h small{color:var(--muted)}.ut-st{margin-left:auto;font-size:12px;font-weight:900}
+.ut-r.bad .ut-st{color:var(--warn)}.ut-r.conv .ut-st{color:#2F6FD6}.ut-r.ok .ut-st{color:var(--ok)}.ut-r.none .ut-st{color:var(--muted)}
+.ut-g{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:8px}.ut-c{display:flex;flex-direction:column;gap:3px;min-width:0}.ut-c small{font-size:11px;color:var(--muted)}.ut-c input{padding:9px;font-size:15px;font-weight:700}
+.ut-k{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}.ut-kn{font-size:13px;font-weight:700}.ut-kn small{color:var(--muted);font-weight:500;margin-left:6px}
+.ut-ok{align-self:end;padding:9px;color:var(--ok);font-weight:900}
+.ut-b{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.ut-b .btn{width:auto;padding:9px 12px}
+.ut-note{margin-top:6px;font-size:12px;color:#8A4B00}
+.ut-foot{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:8px}.ut-foot .btn{width:auto;padding:13px 8px;font-size:14px}
 .sub-cat{font-weight:900;font-size:14px;border-left:4px solid var(--cc);padding-left:8px;margin:12px 2px 6px}
 /* 浮動按鈕：電腦放右側中間，手機放底部選單上方 */
 .fab{position:fixed;z-index:35;display:flex;gap:8px}
@@ -731,6 +746,12 @@ select.in{appearance:auto}
     <div class="su-l">放在哪一類</div><select class="in" id="niCat" style="width:100%;padding:12px;font-size:16px"></select>
     <button class="su-ok" id="niOk">加入並開始叫貨</button>
   </div>
+</section>
+<section class="sheet ut-sheet" id="utSheet" aria-label="單位規格總表">
+  <div class="sh-head"><div><b>單位規格總表</b><span id="utSub"></span></div><button class="sh-x" id="utClose" aria-label="關閉">×</button></div>
+  <div class="ut-bar"><input type="search" id="utQ" placeholder="搜尋品項" autocomplete="off"><div class="ut-f" id="utF"></div></div>
+  <div class="ut-l" id="utList"></div>
+  <div class="ut-foot"><button class="btn" id="utXlsx">匯出 Excel</button><button class="btn pri" id="utAll">要整理的全部改成點貨單位</button></div>
 </section>
 <section class="sheet" id="pushSheet" aria-label="送到報價">
   <div class="sh-head"><div><b>送到採鮮報價（待確認）</b><span id="pushSub"></span></div><button class="sh-x" id="pushClose" aria-label="關閉">×</button></div>
@@ -1049,7 +1070,13 @@ if (F) {
       const mm = {}; m.forEach(x => { mm[x.date] = x });
       const ds = new Set([...w.map(x => x.date), ...m.map(x => x.date)]);
       return [...ds].map(dd => mergeInvDay(w.find(x => x.date === dd) || null, mm[dd] || null));
-    }
+    },
+    /* 改點貨品項的單位（單位規格總表用）：交易裡重讀最新設定，只改這幾項的 u */
+    setUnits: changes => F.runTransaction(db, async tx => {
+      const ref = F.doc(db, "config", "inventory"), x = await tx.get(ref); if (!x.exists()) throw new Error("讀不到點貨設定");
+      const items = (x.data().items || []).map(i => { const c = changes.find(z => z.id === i.id); if (!c) return i; const o = { ...i, u: c.u }; if (o.mu && !String(c.u).split("/").includes(o.mu)) delete o.mu; return o });
+      tx.update(ref, { items });
+    })
   };
 } else {
   const K = { ic: "cxo-demo-invcfg", id: "cxo-demo-invdays", mk: "cxo-demo-invdays-mk" };
@@ -1058,7 +1085,8 @@ if (F) {
     mode: "local",
     watchCfg: cb => { cb(rd(K.ic)); return () => {} },
     watchDay: (d, cb) => { const a = rd(K.id) || {}, m = rd(K.mk) || {}; const k = Object.keys(a).filter(x => x <= d).sort().pop(); cb(mergeInvDay(k ? a[k] : null, m[k || d] || null)); return () => {} },
-    listDays: async (a, b) => { const w = rd(K.id) || {}, m = rd(K.mk) || {}; return [...new Set([...Object.keys(w), ...Object.keys(m)])].filter(x => x >= a && x <= b).map(x => mergeInvDay(w[x] || null, m[x] || null)) }
+    listDays: async (a, b) => { const w = rd(K.id) || {}, m = rd(K.mk) || {}; return [...new Set([...Object.keys(w), ...Object.keys(m)])].filter(x => x >= a && x <= b).map(x => mergeInvDay(w[x] || null, m[x] || null)) },
+    setUnits: async changes => { const c = rd(K.ic); c.items = c.items.map(i => { const z = changes.find(q => q.id === i.id); return z ? { ...i, u: z.u } : i }); localStorage.setItem(K.ic, JSON.stringify(c)); S.inv = c; S.fcCache = {}; render() }
   };
 }
 
@@ -1946,7 +1974,7 @@ function openPeople() {
   $("#ppList").innerHTML = ppl.map(p => `<button class="${p === S.me ? "on" : ""}" data-p="${esc(p)}">${esc(p)}</button>`).join("");
   openSheet("pp");
 }
-$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush(); closeNote(); closeNewItem(); $("#splitSheet").classList.remove("show") };
+$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush(); closeNote(); closeNewItem(); closeUt(); $("#splitSheet").classList.remove("show") };
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheets);
 $("#ppList").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; S.me = b.dataset.p; try { localStorage.setItem("caixian-order-me", S.me) } catch {} renderWho(); closeSheets() };
 
@@ -2436,6 +2464,84 @@ function procCost(it, price, wt) {
     return { n: o.n, u: isKg ? "KG" : o.u, c, perKg: isKg ? c : (o.uw > 0 ? c / o.uw : null) };
   }) };
 }
+/* ===== 單位規格總表：叫貨 ↔ 點貨 對照，讓兩邊單位一致 ===== */
+/* 每個叫貨品項一列；每個連動的點貨品項各自比對：叫貨單位（依對應規格）vs 點貨第一個單位 */
+function utRows() {
+  return oItems().map(it => {
+    const invs = (it.inv || []).map(id => invById(id)).filter(Boolean);
+    const links = invs.map(inv => { const ou = unitLabel(it, optFor(it, inv)), iu = iUnits(inv)[0] || "", fx = it.fx && +it.fx[inv.id] > 0 ? +it.fx[inv.id] : null; return { inv, ou, iu, fx, same: !!ou && ou === iu } });
+    const noU = needUnit(it), wOnly = (it.o || []).some(x => /^\s*\d+(\.\d+)?\s*(kg|KG|Kg|公斤)\s*$/.test(x));
+    let lv = "ok", msg = "兩邊一致";
+    if (noU) { lv = "bad"; msg = "叫貨沒有單位" }
+    else if (!invs.length) { lv = "none"; msg = "沒有連動點貨" }
+    else if (links.some(l => !l.same && !l.fx)) { lv = "bad"; msg = "單位不同，也沒有換算" }
+    else if (links.some(l => !l.same)) { lv = "conv"; msg = "單位不同（已設換算）" }
+    return { it, links, lv, msg, wOnly };
+  });
+}
+const UT = { f: "bad", q: "" };
+function openUt() { UT.q = ""; $("#utQ").value = ""; const rs = utRows(); UT.f = rs.some(r => r.lv === "bad") ? "bad" : "all"; renderUt(); $("#utSheet").classList.add("show"); $("#scrim").classList.add("show") }
+function closeUt() { $("#utSheet").classList.remove("show"); $("#scrim").classList.remove("show") }
+function renderUt() {
+  const all = utRows(), cnt = k => all.filter(r => r.lv === k).length, q = norm(UT.q);
+  $("#utSub").textContent = `${sup().name}　${all.length} 項`;
+  $("#utF").innerHTML = [["bad", "要整理", cnt("bad")], ["conv", "單位不同（有換算）", cnt("conv")], ["none", "沒連動", cnt("none")], ["ok", "一致", cnt("ok")], ["all", "全部", all.length]].map(([k, l, n]) => `<button data-utf="${k}" class="${UT.f === k ? "on" : ""} ${k}">${l}<b>${n}</b></button>`).join("");
+  const list = all.filter(r => (UT.f === "all" || r.lv === UT.f) && (!q || norm(r.it.n).includes(q) || r.links.some(l => norm(l.inv.n).includes(q))));
+  $("#utList").innerHTML = list.length ? list.map(r => { const it = r.it;
+    return `<div class="ut-r ${r.lv}" data-ut="${it.id}">
+      <div class="ut-h"><b>${esc(it.n)}</b><small>${esc(it.c)}</small><span class="ut-st">${r.msg}</span></div>
+      <div class="ut-g">
+        <label class="ut-c"><small>叫貨單位</small><input class="in" data-utu="${it.id}" value="${esc(it.u || "")}" placeholder="例如 件"></label>
+        <label class="ut-c"><small>叫貨規格（用 / 分開）</small><input class="in" data-uto="${it.id}" value="${esc((it.o || []).map(x => x + (it.ow && it.ow[x] ? fmt(it.ow[x]) + "kg" : "")).join("/"))}" placeholder="沒有就空著"></label>
+      </div>
+      ${r.links.map(l => `<div class="ut-k${l.same ? " same" : ""}">
+        <div class="ut-kn">↔ 點貨「${esc(l.inv.n)}」<small>${esc(l.inv.c || "")}</small></div>
+        <div class="ut-g">
+          <label class="ut-c"><small>點貨單位</small><input class="in" data-uti="${l.inv.id}" value="${esc(String(l.inv.u || ""))}"></label>
+          ${l.same ? `<div class="ut-ok">✓ 都是「${esc(l.ou)}」</div>` : `<label class="ut-c"><small>換算：1${esc(l.ou || "叫貨單位")}＝？${esc(l.iu)}</small><input class="in" data-utx="${it.id}|${l.inv.id}" inputmode="decimal" value="${l.fx ?? ""}" placeholder="例如 2"></label>`}
+        </div>
+        ${!l.same && l.iu ? `<div class="ut-b"><button class="btn sm pri" data-uta="${it.id}|${l.inv.id}|o">叫貨${l.ou ? "改成" : "設成"}「${esc(l.iu)}」</button>${l.ou ? `<button class="btn sm" data-uta="${it.id}|${l.inv.id}|i">點貨改成「${esc(l.ou)}」</button>` : ""}</div>` : ""}
+      </div>`).join("")}
+      ${r.wOnly ? `<div class="ut-note">規格只寫重量（例如 1.5kg），可以改成「名稱＋重量」，例如「小把1.5kg」，重量才會用在成本</div>` : ""}
+    </div>` }).join("") : `<div class="empty">${UT.f === "bad" ? "沒有要整理的，兩邊都一致了 ✓" : "沒有符合的品項"}</div>`;
+  const nb = all.filter(r => r.lv === "bad" && r.links.length && !needUnit(r.it) && !(r.it.o || []).some(isUnitOpt)).length;
+  $("#utAll").textContent = `要整理的全部改成點貨單位（${nb} 項）`; $("#utAll").disabled = !nb;
+}
+const invApi = { setUnits: c => inv.setUnits(c) };
+async function utSaveOrd(fn, msg) { const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup); fn(x); await store.saveOrdCfg(cfg).then(() => toast(msg)).catch(err) }
+$("#utQ").addEventListener("input", e => { UT.q = e.target.value; renderUt() });
+$("#utF").addEventListener("click", e => { const b = e.target.closest("[data-utf]"); if (b) { UT.f = b.dataset.utf; renderUt() } });
+$("#utClose").onclick = closeUt;
+$("#utList").addEventListener("change", async e => {
+  const t = e.target, v = t.value.trim();
+  if (t.dataset.utu) { const id = t.dataset.utu; await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (it) it.u = v }, "已改叫貨單位"); renderUt(); return }
+  if (t.dataset.uto != null && t.dataset.uto !== undefined && t.matches("[data-uto]")) {
+    const id = t.dataset.uto, raw = v.split(/[\/、,，|]/).map(z => z.trim()).filter(Boolean);
+    await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; const ow = {}; it.o = raw.map(z => { const p = splitWt(z); if (p.w && p.n) { ow[p.n] = p.w; return p.n } if (it.ow && it.ow[z]) ow[z] = it.ow[z]; return z }); if (Object.keys(ow).length) it.ow = ow; else delete it.ow }, "已改叫貨規格"); renderUt(); return;
+  }
+  if (t.dataset.uti) { const ii = invById(t.dataset.uti); if (!v) { toast("點貨單位不能空白"); renderUt(); return } if (!ii || !confirm(`點貨「${ii.n}」的單位改成「${v}」？\n以前點貨記的數字不會換算。`)) { renderUt(); return } await invApi.setUnits([{ id: t.dataset.uti, u: v }]).then(() => toast("已改點貨單位")).catch(err); setTimeout(renderUt, 300); return }
+  if (t.dataset.utx) { const [id, iid] = t.dataset.utx.split("|"), n = +v; await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; it.fx = { ...(it.fx || {}) }; if (n > 0) it.fx[iid] = n; else delete it.fx[iid] }, n > 0 ? "已設換算" : "已清除換算"); renderUt(); return }
+});
+$("#utList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-uta]"); if (!b) return; const [id, iid, side] = b.dataset.uta.split("|"), r = utRows().find(z => z.it.id === id), l = r && r.links.find(z => z.inv.id === iid); if (!l) return;
+  if (side === "o") { if (!confirm(`叫貨「${r.it.n}」的單位改成「${l.iu}」，跟點貨一樣？`)) return; await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; if ((it.o || []).some(isUnitOpt)) it.o = it.o.map(z => z === l.ou ? l.iu : z); else it.u = l.iu; if (it.fx) delete it.fx[iid] }, `已改成「${l.iu}」`) }
+  else { if (!confirm(`點貨「${l.inv.n}」的單位改成「${l.ou}」，跟叫貨一樣？\n以前點貨記的數字不會換算。`)) return; const us = String(l.inv.u || "").split("/").filter(Boolean); const nu = [l.ou, ...us.slice(1).filter(z => z !== l.ou)].join("/"); await invApi.setUnits([{ id: iid, u: nu }]).then(() => toast(`點貨已改成「${l.ou}」`)).catch(err); await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (it && it.fx) delete it.fx[iid] }, "已更新") }
+  setTimeout(renderUt, 300);
+});
+$("#utAll").onclick = async () => {
+  const list = utRows().filter(r => r.lv === "bad" && r.links.length && !needUnit(r.it) && !(r.it.o || []).some(isUnitOpt)); if (!list.length) return;
+  if (!confirm(`把 ${list.length} 項的叫貨單位改成跟點貨一樣？\n${list.slice(0, 8).map(r => `${r.it.n}：${r.it.u || "—"} → ${r.links[0].iu}`).join("\n")}${list.length > 8 ? "\n…" : ""}`)) return;
+  await utSaveOrd(x => list.forEach(r => { const it = x.items.find(i => i.id === r.it.id); if (it) it.u = r.links[0].iu }), `已改 ${list.length} 項`);
+  setTimeout(renderUt, 300);
+};
+$("#utXlsx").onclick = () => {
+  if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
+  const rows = [["叫貨廠商", "分類", "叫貨品項", "叫貨單位", "叫貨規格", "規格重量KG", "點貨品項", "點貨單位", "換算（1叫貨單位＝?點貨單位）", "加工", "狀態"]];
+  utRows().forEach(r => { const it = r.it, base = [sup().name, it.c, it.n, it.u || "", (it.o || []).join("/"), it.ow ? Object.entries(it.ow).map(([k, v]) => `${k}=${v}`).join("、") : "", ]; const pc = it.pc ? (it.pc.outs || []).map(o => o.n).join("、") : "";
+    if (!r.links.length) rows.push([...base, "", "", "", pc, r.msg]); else r.links.forEach(l => rows.push([...base, l.inv.n, l.inv.u || "", l.fx ?? "", pc, r.msg])) });
+  const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = [8, 8, 12, 8, 14, 12, 12, 8, 14, 12, 16].map(w => ({ wch: w }));
+  XLSX.utils.book_append_sheet(wb, ws, "單位規格總表"); XLSX.writeFile(wb, `單位規格總表_${sup().name}_${today().replace(/-/g, "")}.xlsx`);
+};
 /* ===== 送到報價（待確認）：預覽 → 勾選 → 送出。不會改到客人看的報價 ===== */
 const PUSH = { rows: [], items: [], sent: null };
 const baseName = n => String(n || "").replace(/[/／].*$/, "").trim();
@@ -3125,7 +3231,7 @@ $("#vHist").addEventListener("click", e => {
 
 /* ---------- 設定 ---------- */
 /* 設定頁分區、可收合：品項｜廠商與文字｜成本｜人員與休市 */
-const SET_GROUPS = [["item", "品項", t => /叫貨品項|單位換算|通用品項/.test(t)], ["vend", "廠商與文字", t => /^廠商|傳給廠商/.test(t)], ["cost", "加工成本", t => /加工成本/.test(t)], ["misc", "人員、休市與其他", () => true]];
+const SET_GROUPS = [["item", "品項", t => /叫貨品項|單位換算|單位規格總表|通用品項/.test(t)], ["vend", "廠商與文字", t => /^廠商|傳給廠商/.test(t)], ["cost", "加工成本", t => /加工成本/.test(t)], ["misc", "人員、休市與其他", () => true]];
 function groupSettings() {
   const root = $("#vSet"), panels = [...root.querySelectorAll(":scope > .panel")]; if (!panels.length) return;
   S.sgOpen ||= {}; if (S.draft) S.sgOpen.item = true;
@@ -3161,10 +3267,10 @@ function renderSet() {
     ${(() => { const seen = new Set(), pairs = []; oItems().forEach(it => altOf(it).forEach(b => { const k = [it.id, b.id].sort().join("|"); if (!seen.has(k)) { seen.add(k); pairs.push([it, b]) } })); return pairs.length ? pairs.map(([a, b]) => `<div class="alt-r"><span>${esc(altName(a))}<small>（${esc(a.c)}）</small> ＝ ${esc(altName(b))}<small>（${esc(b.c)}）</small></span><button class="btn sm warn" data-altdel="${a.id}|${b.id}">取消</button></div>`).join("") : `<p class="muted">還沒有設定</p>` })()}
     <div class="alt-add"><select class="in" id="altA"><option value="">選品項 A…</option>${oItems().map(i => `<option value="${i.id}">${esc(i.n)}（${esc(i.c)}${i.u ? " " + esc(i.u) : ""}）</option>`).join("")}</select><select class="in" id="altB"><option value="">選品項 B…</option>${oItems().map(i => `<option value="${i.id}">${esc(i.n)}（${esc(i.c)}${i.u ? " " + esc(i.u) : ""}）</option>`).join("")}</select><button class="btn sm" id="altAdd">設成通用</button></div>
   </div>
-  ${(() => { const todo = oItems().flatMap(it => (it.inv || []).map(id => invById(id)).filter(Boolean).filter(inv => convMissing(it, inv)).map(inv => ({ it, inv })));
-    return todo.length ? `<div class="panel cvp"><h3>單位換算 <span class="c o">${todo.length}</span></h3>
-    <p class="muted" style="margin:0 0 8px">這些品項點貨和叫貨用的單位不同，設好換算，建議量才會正確。填「叫貨 1 單位＝點貨幾單位」，填完自動存</p>
-    ${todo.map(({ it, inv }) => `<div class="cv-r"><span class="n">${esc(it.n)}${it.n !== inv.n ? `<small>${esc(inv.n)}</small>` : ""}</span><span>1${esc(unitLabel(it, optFor(it, inv)))}＝</span><input data-cvit="${it.id}" data-cvinv="${inv.id}" inputmode="decimal" autocomplete="off" placeholder="幾"><span>${esc(iUnits(inv)[0])}</span></div>`).join("")}</div>` : "" })()}
+  ${(() => { const st = utRows(), bad = st.filter(r => r.lv === "bad").length, dif = st.filter(r => r.lv === "conv").length;
+    return `<div class="panel"><h3>單位規格總表 ${bad ? `<span class="c bad">${bad} 項要整理</span>` : `<span class="c ok">都一致</span>`}</h3>
+    <p class="muted" style="margin:0 0 8px">叫貨和點貨的單位、規格、換算放在同一張表對照，不一致的可以一鍵改成一樣。${dif ? `另有 ${dif} 項單位不同但已設換算。` : ""}</p>
+    <button class="btn pri" id="utOpen">打開單位規格總表</button></div>` })()}
   <div class="panel"><h3>傳給廠商的文字開頭 <span class="c">${esc(sup().name)}</span></h3>
     <p class="muted" style="margin:0 0 8px">下訂頁「複製給這家」會先放這幾行，空一行再接訂貨品項</p>
     <div class="car-t"><label>平日<input class="in" id="carWd" value="${esc(carCfg().wd)}"></label><label>假日<input class="in" id="carWe" value="${esc(carCfg().we)}"></label></div>
@@ -3228,6 +3334,7 @@ $("#vSet").addEventListener("click", async e => {
   if (t.closest("#supRen")) { const name = await askText("廠商名稱", sup().name); if (!name) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.sups.find(x => x.id === S.sup).name = name; if (S.draft) S.draft.name = name; await store.saveOrdCfg(cfg).catch(err); return }
   if (t.closest("#supDel")) { if (!confirm(`刪除「${sup().name}」和它的叫貨品項？（過去的叫貨紀錄會保留）`)) return; const cfg = JSON.parse(JSON.stringify(S.ocfg)); cfg.sups = cfg.sups.filter(x => x.id !== S.sup); S.draft = null; S.sup = cfg.sups[0].id; await store.saveOrdCfg(cfg).catch(err); renderSupSel(); openOrder(); return }
   if (t.closest("#pushPrice")) { openPush(); return }
+  if (t.closest("#utOpen")) { openUt(); return }
   if (t.closest("#altAdd")) {
     const a = $("#altA").value, b = $("#altB").value; if (!a || !b || a === b) return toast("選兩個不同的品項");
     const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), A = x.items.find(i => i.id === a), B = x.items.find(i => i.id === b);
