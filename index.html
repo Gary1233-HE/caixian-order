@@ -931,6 +931,8 @@ function mergeInvDay(wh, mk) {
   });
   return out;
 }
+/* Firestore 不接受空白欄位名稱和 undefined，存之前先清掉（保險） */
+function fsClean(v) { if (Array.isArray(v)) return v.map(x => x === undefined ? null : fsClean(x)); if (v && typeof v === "object") { const o = {}; Object.entries(v).forEach(([k, x]) => { if (k !== "" && x !== undefined) o[k] = fsClean(x) }); return o } return v }
 /* ---- 採鮮報價（caixian-price）：把加工成本送到報價的「成本」欄 ----
    報價頁（客人看的）是用 成本＋加價 現場算售價，所以寫入成本＝客人看到的價格會跟著變。一定先預覽、確認才寫入。 */
 const PRICE_CONFIG = { apiKey: "AIzaSyDyIgF1T3qwVUdxTtfuo9SRwpiEQpfMaIA", authDomain: "caixian-price-619c4.firebaseapp.com", projectId: "caixian-price-619c4" };
@@ -1078,7 +1080,7 @@ if (ORDER_FB && F) {
   store = {
     mode: "fb",
     watchOrdCfg: cb => F.onSnapshot(F.doc(db, "config", "order"), { includeMetadataChanges: true }, x => { if (!x.exists() && x.metadata.fromCache) return; /* 離線時不當成空的，免得蓋掉雲端設定 */ ST.ord = ""; showStatus(); cb(x.exists() ? x.data() : null) }, fail("ord")),
-    saveOrdCfg: c => F.setDoc(F.doc(db, "config", "order"), c).catch(e => { fail("ord")(e); throw e }),
+    saveOrdCfg: c => F.setDoc(F.doc(db, "config", "order"), fsClean(c)).catch(e => { fail("ord")(e); throw e }),
     watchOrder: (d, s, cb) => F.onSnapshot(oref(d, s), x => cb(x.exists() ? decDoc(x.data()) : null), err),
     /* 整筆取代這一項（避免舊規格數量殘留） */
     setLine: (d, s, id, e) => e === null ? merge(d, s, { lines: { [id]: F.deleteField() } })
@@ -1107,7 +1109,7 @@ if (ORDER_FB && F) {
   const P = DEMO ? "cxo-demo-" : "cxo-local-";
   const K = { oc: P + "ordcfg", od: P + "orders", pr: P + "prices", py: P + "pays" };
   const L = { oc: [], o: {} };
-  const fsCheck = (v, p = "") => { if (v === undefined) throw new Error("undefined at " + p); if (Array.isArray(v)) v.forEach((x, i) => { if (Array.isArray(x)) throw new Error("nested array at " + p); fsCheck(x, p + "[" + i + "]") }); else if (v && typeof v === "object") Object.entries(v).forEach(([k, x]) => { if (k === "") throw new Error("empty field name at " + p); fsCheck(x, p + "." + k) }) };
+  const fsCheck = (v, p = "") => { if (v === undefined) throw new Error("undefined at " + p); if (Array.isArray(v)) v.forEach((x, i) => { if (Array.isArray(x)) throw new Error("nested array at " + p); fsCheck(x, p + "[" + i + "]") }); else if (v && typeof v === "object") Object.entries(v).forEach(([k, x]) => { if (k === "") throw Object.assign(new Error("empty field name at " + p), { code: "invalid-argument" }); fsCheck(x, p + "." + k) }) };
   const ordersRaw = () => rd(K.od) || {};
   const orders = () => { const a = ordersRaw(), r = {}; Object.keys(a).forEach(k => { r[k] = decDoc(a[k]) }); return r };
   const emitO = key => (L.o[key] || []).forEach(f => f(orders()[key] || null));
@@ -1766,7 +1768,7 @@ $("#suOk").onclick = async () => {
   if (!u) { toast("先選或輸入單位"); $("#suUnit").focus(); return }
   const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), it = x && x.items.find(i => i.id === id); if (!it) return;
   const raw = $("#suSpec").value.split(/[\/、,，|]/).map(t => t.trim()).filter(Boolean), ow = {};
-  it.u = u; it.o = raw.map(t => { const p = splitWt(t); if (p.w) ow[p.n] = p.w; return p.n });
+  it.u = u; it.o = raw.map(t => { const p = splitWt(t); if (p.w && p.n) { ow[p.n] = p.w; return p.n } return t });
   if (Object.keys(ow).length) it.ow = ow; else delete it.ow;
   await store.saveOrdCfg(cfg).catch(err);
   const t0 = Date.now(); const go = () => { const n = oById(id); if ((n && !needUnit(n)) || Date.now() - t0 > 4000) { S.kp = null; $("#kp").classList.remove("show"); openKp(id); toast(`已設定「${it.n}」單位：${u}${it.o.length ? "，規格：" + it.o.join("/") : ""}`) } else setTimeout(go, 150) }; go();
@@ -3402,7 +3404,8 @@ function syncDraftInputs() {
     const it = draftItem(r.dataset.rid); if (!it) return;
     it.n = r.querySelector('[data-f="n"]').value.trim();
     const raw = r.querySelector('[data-f="o"]').value.split(/[\/、,，|]/).map(x => x.trim()).filter(Boolean), ow = {};
-    it.o = raw.map(x => { const p = splitWt(x); if (p.w) ow[p.n] = p.w; else if (it.ow && it.ow[p.n]) ow[p.n] = it.ow[p.n]; return p.n });
+    /* 「漂亮10kg」→ 規格「漂亮」＋重量 10；只有重量沒有名字的（例如「1.5kg」「3KG」）就保留原樣當規格 */
+    it.o = raw.map(x => { const p = splitWt(x); if (p.w && p.n) { ow[p.n] = p.w; return p.n } if (it.ow && it.ow[x]) ow[x] = it.ow[x]; return x });
     if (Object.keys(ow).length) it.ow = ow; else delete it.ow;
     it.u = r.querySelector('[data-f="u"]').value.trim();
   });
