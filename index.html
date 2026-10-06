@@ -442,7 +442,7 @@ select.in{appearance:auto}
 .vrow{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-weight:700;border-left:4px solid var(--cc);padding-left:8px}
 .vrow span{width:56px;flex:none}.vrow input{flex:1;min-width:0;padding:8px}
 .imp-cat{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap}.imp-cat span{font-size:13px;font-weight:700;color:var(--muted);width:100%}.imp-cat select{flex:1;min-width:0;padding:8px}.imp-cat .btn{width:auto;padding:9px 14px}
-.car-t{display:grid;grid-template-columns:1fr 1fr;gap:8px}.car-t label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--muted)}.car-t input{padding:9px}
+.car-t{display:grid;grid-template-columns:1fr 1fr;gap:8px 8px}.car-t label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--muted)}.car-t input{padding:9px}
 .keepg{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px}
 .keepg label{display:flex;align-items:center;gap:6px;font-weight:700;border-left:4px solid var(--cc);padding-left:8px}
 .keepg label span{flex:1}.keepg input{width:56px;padding:6px;text-align:center}
@@ -2149,13 +2149,17 @@ function byVendorCart() {
 }
 /* 傳給廠商的文字：開頭幾行（車到時間、車號、停車位置）在設定裡改，空一行再接品項 */
 /* {時間} 會依叫貨日自動換：平日／假日（週六、週日，加上設定的假日日期）*/
-const DEF_MSG_HEAD = "車到時間：約{時間}\n車號：927\n車停：央場旁小鐵皮";
-const DEF_CAR = { wd: "下午2點30", we: "下午1點" };
+const DEF_MSG_HEAD = "車到時間：約{時間}\n車離開時間：約{離開}\n車號：927\n車停：央場旁小鐵皮";
+const DEF_CAR = { wd: "下午2點30", we: "下午1點", lwd: "", lwe: "" };
 const carCfg = () => ({ ...DEF_CAR, ...(sup().car || {}) });
 const isHoliday = d => { const w = wdOf(d); return w === 0 || w === 6 || (sup().hol || []).includes(d) };
 const carTime = (d = S.date) => isHoliday(d) ? carCfg().we : carCfg().wd;
 function msgHeadRaw() { let h = (sup().msgHead != null ? sup().msgHead : DEF_MSG_HEAD); if (!h.includes("{時間}")) h = h.replace(/下午\s*2\s*點\s*30|下午\s*1\s*點/, "{時間}"); return h.trim() }
-const msgHead = (d = S.date) => msgHeadRaw().replace(/\{時間\}/g, carTime(d));
+const carLeave = (d = S.date) => isHoliday(d) ? carCfg().lwe : carCfg().lwd;
+/* {離開} 沒填時間的話，整行不印 */
+const msgHead = (d = S.date) => { const lv = carLeave(d); return msgHeadRaw().split("\n").filter(l => lv || !l.includes("{離開}")).join("\n").replace(/\{時間\}/g, carTime(d)).replace(/\{離開\}/g, lv) };
+/* 開頭文字裡還沒有「車離開時間」那一行，就加在車到時間下面 */
+function addLeaveLine(h) { if (h.includes("{離開}")) return h; const ls = h.split("\n"), k = ls.findIndex(l => l.includes("{時間}")); ls.splice(k >= 0 ? k + 1 : 0, 0, "車離開時間：約{離開}"); return ls.join("\n") }
 function vendorText(v, list) {
   const head = msgHead(), note = noteVal().trim();
   return [...(head ? [head, ""] : []), ...list.map(({ r, q }) => `${r.n}${r.lab ? " " + r.lab : ""}　${partText(r.it, r.lab ? "" : r.spec, q)}`), ...(note ? ["", `備註：${note}`] : [])].join("\n");
@@ -2644,13 +2648,22 @@ async function utImport(file) {
     let inv = C.iid >= 0 && str(cell(r, "iid")) ? invs.find(i => i.id === str(cell(r, "iid"))) : null;
     /* 同一個叫貨品項連到兩個同名的點貨品項（例如兩個「地瓜葉」）：照列的順序一個對一個 */
     const us = (used[it.id] ||= new Set());
-    if (!inv) { const linked = (it.inv || []).map(id => invs.find(i => i.id === id)).filter(Boolean).filter(i => i.n === iname && !us.has(i.id)), riu = C.iu >= 0 ? str(cell(r, "iu")) : "";
+    const allLinked = (it.inv || []).map(id => invs.find(i => i.id === id)).filter(Boolean), riu = C.iu >= 0 ? str(cell(r, "iu")) : "", fxText = C.fx >= 0 ? str(cell(r, "fx")) : "";
+    let fxIsName = false;
+    /* 換算欄寫的是點貨品名（例如「地瓜葉捆」）：當成這一列對應的點貨品項，不當換算 */
+    if (!inv && fxText && isNaN(+fxText)) { const byName = allLinked.find(i => i.n === fxText && !us.has(i.id)) || invs.find(i => i.n === fxText); if (byName) { inv = byName; fxIsName = true } }
+    if (!inv) { const linked = allLinked.filter(i => i.n === iname && !us.has(i.id));
       inv = linked.find(i => String(i.u || "") === riu) || linked[0] }   /* 同名的優先對到單位一樣的那個 */
+    /* 點貨品項後來改過名（例如「地瓜葉」→「地瓜葉捆」）：用「舊名＋單位」對 */
+    if (!inv) inv = allLinked.find(i => !us.has(i.id) && i.n.startsWith(iname) && (!riu || iUnits(i)[0] === iUnits({ u: riu })[0])) || null;
+    if (inv && fxIsName && !(it.inv || []).includes(inv.id)) { it.inv = [...(it.inv || []), inv.id]; it.manual = 1; chg.push(`${lab}：新增連動點貨「${inv.n}」`) }
     if (!inv) { const cand = invs.filter(i => i.n === iname); if (cand.length === 1) { inv = cand[0]; if (!(it.inv || []).includes(inv.id)) { it.inv = [...(it.inv || []), inv.id]; it.manual = 1; chg.push(`${lab}：新增連動點貨「${inv.n}」`) } } else { warn.push(`${lab}：點貨品項「${iname}」${cand.length ? "有好幾個同名的" : "找不到"}，這列的點貨欄先不改`); return } }
     us.add(inv.id);
     if (C.iid >= 0 && str(cell(r, "iid")) === inv.id && iname !== inv.n) { const cur = invChg.get(inv.id) || { id: inv.id, from: inv.u || "", n: inv.n }; cur.rn = iname; invChg.set(inv.id, cur) }
-    if (C.iu >= 0) { const nu = str(cell(r, "iu")); if (nu && nu !== String(inv.u || "")) { invChg.set(inv.id, { id: inv.id, u: nu, from: inv.u || "", n: inv.n }) } }
-    if (C.fx >= 0) { const raw = cell(r, "fx"), t = str(raw), cur = it.fx && it.fx[inv.id];
+    /* 只是少寫了後面的單位（例如目前「捆/小把」、表上寫「捆」）不算改 */
+    const sameish = (nu, cu) => { const a = iUnits({ u: nu }), b = iUnits({ u: cu }); return a[0] === b[0] && a.every(x => b.includes(x)) };
+    if (C.iu >= 0) { const nu = str(cell(r, "iu")); if (nu && nu !== String(inv.u || "") && !sameish(nu, String(inv.u || ""))) { invChg.set(inv.id, { id: inv.id, u: nu, from: inv.u || "", n: inv.n }) } }
+    if (C.fx >= 0 && !fxIsName) { const raw = cell(r, "fx"), t = str(raw), cur = it.fx && it.fx[inv.id];
       if (t === "") { if (cur != null) { chg.push(`${lab} ↔ ${inv.n}：清除換算`); delete it.fx[inv.id] } }
       else { const n = +t; if (!(n > 0)) warn.push(`${lab} ↔ ${inv.n}：換算欄要填數字，寫的是「${t}」，先不改。${t.includes(it.n) ? `如果「${t}」是點貨品名，請改在「點貨品項」欄（要用新匯出、有點貨ID的檔案）` : ""}`); else if (+cur !== n) { chg.push(`${lab} ↔ ${inv.n}：換算 ${cur ?? "（無）"} → 1${it.u || "叫貨單位"}＝${n}${String(inv.u || "").split("/")[0]}`); it.fx = { ...(it.fx || {}), [inv.id]: n } } } }
   });
@@ -3408,11 +3421,12 @@ function renderSet() {
     <button class="btn pri" id="utOpen">打開單位規格總表</button></div>` })()}
   <div class="panel"><h3>傳給廠商的文字開頭 <span class="c">${esc(sup().name)}</span></h3>
     <p class="muted" style="margin:0 0 8px">下訂頁「複製給這家」會先放這幾行，空一行再接訂貨品項</p>
-    <div class="car-t"><label>平日<input class="in" id="carWd" value="${esc(carCfg().wd)}"></label><label>假日<input class="in" id="carWe" value="${esc(carCfg().we)}"></label></div>
-    <p class="muted" style="margin:6px 0">假日＝週六、週日，和下面加的日期。今天（${dateLabel(S.date)}）是<b>${isHoliday(S.date) ? "假日" : "平日"}</b>，車到時間會寫「${esc(carTime())}」</p>
+    <div class="car-t"><label>車到・平日<input class="in" id="carWd" value="${esc(carCfg().wd)}"></label><label>車到・假日<input class="in" id="carWe" value="${esc(carCfg().we)}"></label>
+      <label>車離開・平日<input class="in" id="carLwd" value="${esc(carCfg().lwd)}" placeholder="例如 下午3點30"></label><label>車離開・假日<input class="in" id="carLwe" value="${esc(carCfg().lwe)}" placeholder="例如 下午2點"></label></div>
+    <p class="muted" style="margin:6px 0">假日＝週六、週日，和下面加的日期。今天（${dateLabel(S.date)}）是<b>${isHoliday(S.date) ? "假日" : "平日"}</b>，車到時間會寫「${esc(carTime())}」${carLeave() ? `，車離開時間「${esc(carLeave())}」` : "，車離開時間還沒填（沒填就不印那一行）"}</p>
     <div class="chips" style="margin-bottom:6px">${(sup().hol || []).filter(d => d >= today()).sort().map(d => `<span class="chip">${dateLabel(d)} <button data-delhol="${d}" style="color:var(--warn);font-weight:900;padding:0 2px" aria-label="移除">×</button></span>`).join("")}</div>
     <div style="display:flex;gap:8px;margin-bottom:10px"><input type="date" class="in" id="holIn" style="flex:1"><button class="btn sm" id="addHol" style="padding:10px 14px">加入假日</button></div>
-    <p class="muted" style="margin:0 0 4px">開頭文字（「{時間}」會自動換成平日或假日的時間）</p>
+    <p class="muted" style="margin:0 0 4px">開頭文字（「{時間}」換成車到時間、「{離開}」換成車離開時間，都會依平日或假日自動換）</p>
     <textarea class="note" id="msgHeadIn" style="min-height:84px">${esc(msgHeadRaw())}</textarea>
     <pre class="lt" style="margin-top:8px;max-height:none">${esc(vendorText("範例", [{ r: { n: "油菜", lab: "", it: { u: "件" }, spec: "" }, q: 3 }]))}</pre>
   </div>
@@ -3570,10 +3584,11 @@ $("#vSet").addEventListener("change", async e => {
     renderSet(); toast(`${it.n || "品項"} 移到 ${it.c}`); return;
   }
   if (e.target.dataset && e.target.dataset.cvit) { await saveConv(e.target.dataset.cvit, e.target.dataset.cvinv, e.target.value); return }
-  if (e.target.id === "carWd" || e.target.id === "carWe") {
-    const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup);
-    x.car = { ...DEF_CAR, ...(x.car || {}), [e.target.id === "carWd" ? "wd" : "we"]: e.target.value.trim() };
-    await store.saveOrdCfg(cfg).then(() => toast("已更新車到時間")).catch(err); return;
+  if (["carWd", "carWe", "carLwd", "carLwe"].includes(e.target.id)) {
+    const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), key = { carWd: "wd", carWe: "we", carLwd: "lwd", carLwe: "lwe" }[e.target.id], v = e.target.value.trim();
+    x.car = { ...DEF_CAR, ...(x.car || {}), [key]: v };
+    if ((key === "lwd" || key === "lwe") && v) x.msgHead = addLeaveLine(x.msgHead != null ? x.msgHead : DEF_MSG_HEAD);
+    await store.saveOrdCfg(cfg).then(() => toast(key.startsWith("l") ? "已更新車離開時間" : "已更新車到時間")).catch(err); return;
   }
   if (e.target.id === "msgHeadIn") {
     const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup);
