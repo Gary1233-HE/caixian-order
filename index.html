@@ -409,6 +409,14 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 .ck-r.chg .bx{background:var(--low);border-color:var(--low);color:#fff}
 .ck-r.chg .w{color:var(--low);font-weight:700}
 .lt{white-space:pre-wrap;font-size:14px;line-height:1.6;background:var(--bg);border-radius:10px;padding:10px;max-height:220px;overflow:auto;margin:0 0 10px}
+.hf{padding:10px 12px}.hf-mode{margin-bottom:8px;flex-wrap:nowrap}.hf-mode button{flex:1}
+.hf-m{display:flex;align-items:center;gap:8px}.hf-m label{flex:1;position:relative;text-align:center;font-size:20px;padding:6px 0;border:1px solid var(--line);border-radius:10px;background:#fff}.hf-m label input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}.hf-m .btn{font-size:20px;padding:6px 16px}
+.hf-r{display:flex;align-items:center;gap:6px}.hf-r .in{flex:1;min-width:0}
+.hf-q{display:flex;gap:6px;margin-top:8px}.hf-q button{flex:1;border:1px solid var(--line);border-radius:999px;padding:7px 0;font-size:13px;font-weight:700;background:#fff}.hf-q button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.hs{display:flex;align-items:center;gap:8px}.hs div{margin-right:auto}.hs small{display:block;font-size:12px;color:var(--muted)}.hs b{display:block;font-family:var(--mono);font-size:28px}.hs span{font-size:13px;color:var(--muted)}.hs em{font-style:normal;color:var(--low);font-weight:700}
+.hagg summary{display:flex;align-items:baseline;gap:8px;cursor:pointer;list-style:none}.hagg summary::-webkit-details-marker{display:none}.hagg summary span{font-size:12px;color:var(--muted)}.hagg summary::after{content:"▾";margin-left:auto;color:var(--muted)}.hagg[open] summary::after{content:"▴"}
+.ha-h,.ha-r{display:grid;grid-template-columns:1fr 70px 64px 80px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}.ha-h{font-size:12px;color:var(--muted);margin-top:8px}.ha-h span:not(:first-child),.ha-r>span:not(:first-child),.ha-r b{text-align:right;font-family:var(--mono)}
+.ha-r em{font-style:normal;font-size:12px;color:var(--muted);margin-left:4px}.ha-r small{font-size:11px;color:var(--muted);margin-left:6px}
 .hist{display:flex;align-items:center;gap:10px;width:100%;padding:12px 4px;border-bottom:1px solid var(--line);text-align:left}
 .hist .d{font-family:var(--mono);font-weight:700;font-size:15px;width:100px;flex:none}
 .hist .s{font-weight:700;width:56px;flex:none}
@@ -2015,7 +2023,7 @@ $("#ppList").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) re
 /* ================= views ================= */
 function setView(v) {
   if (S.view === "Set" && v !== "Set" && S.draft) { if (!confirm("品項設定還沒儲存，要放棄修改嗎？")) return; S.draft = null }
-  S.view = v;
+  S.view = v; if (v === "Hist") S.histCache = null;
   if (v !== "Ord") document.documentElement.style.removeProperty("--catbg");
   ["Ord", "Cart", "Sum", "Pay", "Hist", "Set"].forEach(x => $("#v" + x).classList.toggle("hide", x !== v));
   $("#fab").classList.toggle("hide", v !== "Sum"); document.body.classList.toggle("fab-on", v === "Sum");
@@ -3356,25 +3364,113 @@ function exportPays() {
   XLSX.writeFile(wb, `付款紀錄_${today().replace(/-/g, "")}.xlsx`);
 }
 
-/* ---------- 紀錄 ---------- */
+/* ---------- 紀錄（可選月份／自訂日期、廠商篩選、合計、品項彙總、匯出 Excel） ---------- */
+const ymOf = d => d.slice(0, 7);
+const ymShift = (ym, n) => { const [y, m] = ym.split("-").map(Number), x = new Date(y, m - 1 + n, 1); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}` };
+const ymEnd = ym => { const [y, m] = ym.split("-").map(Number); return `${ym}-${String(new Date(y, m, 0).getDate()).padStart(2, "0")}` };
+const ymLabel = ym => { const [y, m] = ym.split("-"); return `${y}年${+m}月` };
+function histRange() {
+  const f = S.hf || (S.hf = { mode: "m", ym: ymOf(today()), from: addDays(today(), -30), to: today(), sup: "" });
+  return f.mode === "m" ? { from: f.ym + "-01", to: ymEnd(f.ym) } : { from: f.from <= f.to ? f.from : f.to, to: f.from <= f.to ? f.to : f.from };
+}
+/* 一張叫貨單的明細列（日期、廠商、品名、規格、叫貨廠商、數量、實收、單位、單價、小計） */
+function histDetail(x) {
+  const sp = sups().find(q => q.id === x.sup), out = [];
+  Object.entries(x.lines || {}).forEach(([id, e]) => {
+    if (!hasQty(e)) return;
+    const it = (sp && sp.items.find(i => i.id === id)) || { id, n: (e.n || id), c: "", o: Object.keys(e.vs), u: "" };
+    qtyOpts(it, e).forEach(k => {
+      const { spec, vend } = splitKey(it, k), p = priceOf(e, k), got = gotQty(e, k);
+      out.push({ date: x.date, sup: x.sup, c: it.c || "", n: it.n || id, spec: spec && !isUnitOpt(spec) ? spec : "", vend: vend || (e.vd && e.vd[pk(k)]) || "", q: e.vs[k], rv: rvOf(e, k), u: unitLabel(it, spec), p, a: p == null ? null : Math.round(p * got * 100) / 100 });
+    });
+  });
+  return out;
+}
 async function renderHist() {
-  $("#vHist").innerHTML = `<div class="empty">讀取中…</div>`;
-  const list = await store.listOrders(90).catch(e => { err(e); return [] });
-  if (S.view !== "Hist") return;
+  const r = histRange(), f = S.hf, key = r.from + "~" + r.to;
+  const head = () => `<div class="panel hf">
+    <div class="seg hf-mode"><button class="${f.mode === "m" ? "on" : ""}" data-hmode="m">依月份</button><button class="${f.mode === "r" ? "on" : ""}" data-hmode="r">自訂日期</button></div>
+    ${f.mode === "m" ? `<div class="hf-m"><button class="btn sm" data-hym="-1" aria-label="上個月">‹</button><label><b>${ymLabel(f.ym)}</b><input type="month" id="hYm" value="${f.ym}"></label><button class="btn sm" data-hym="1" aria-label="下個月"${f.ym >= ymOf(today()) ? " disabled" : ""}>›</button></div>
+      <div class="hf-q">${[0, -1, -2].map(n => { const ym = ymShift(ymOf(today()), n); return `<button class="${f.ym === ym ? "on" : ""}" data-hset="${ym}">${n === 0 ? "本月" : n === -1 ? "上月" : ymLabel(ym).slice(5)}</button>` }).join("")}</div>`
+    : `<div class="hf-r"><input type="date" class="in" id="hFrom" value="${f.from}"><span>到</span><input type="date" class="in" id="hTo" value="${f.to}"></div>
+      <div class="hf-q"><button data-hrq="7">近7天</button><button data-hrq="14">近14天</button><button data-hrq="30">近30天</button></div>`}
+  </div>`;
+  if (!S.histCache || S.histCache.key !== key) {
+    $("#vHist").innerHTML = head() + `<div class="empty">讀取中…</div>`;
+    const list = await store.listRange(r.from, r.to).catch(e => { err(e); return null });
+    if (S.view !== "Hist") return;
+    if (!list) return;
+    S.histCache = { key, list: list.filter(x => x.lines && Object.values(x.lines).some(hasQty)).sort((a, b) => b.date.localeCompare(a.date) || String(a.sup).localeCompare(String(b.sup))) };
+  }
   const name = id => (sups().find(s => s.id === id) || { name: id }).name;
-  const rows = list.filter(x => x.lines && Object.values(x.lines).some(hasQty));
-  $("#vHist").innerHTML = rows.length ? `<div class="panel" style="padding:4px 12px">${rows.map(x => {
+  const all = S.histCache.list, supIds = [...new Set(all.map(x => x.sup))];
+  if (f.sup && !supIds.includes(f.sup)) f.sup = "";
+  const rows = all.filter(x => !f.sup || x.sup === f.sup);
+  const amtOf = x => { const sp = sups().find(q => q.id === x.sup); return orderAmt(x.lines, id => sp && sp.items.find(i => i.id === id)) };
+  const amts = new Map(all.map(x => [x, amtOf(x)]));
+  const tot = rows.reduce((n, x) => n + amts.get(x).a, 0), miss = rows.reduce((n, x) => n + amts.get(x).miss, 0);
+  const days = new Set(rows.map(x => x.date)).size;
+  /* 品項彙總 */
+  const agg = {};
+  rows.forEach(x => histDetail(x).forEach(d => { const k = [d.sup, d.n, d.spec, d.u].join("|"); const g = agg[k] || (agg[k] = { sup: d.sup, n: d.n, spec: d.spec, u: d.u, c: d.c, q: 0, got: 0, a: 0, pq: 0, times: new Set() }); g.q += d.q; g.got += d.rv != null ? d.rv : d.q; if (d.a != null) { g.a += d.a; g.pq += d.rv != null ? d.rv : d.q } g.times.add(d.date) }));
+  const ag = Object.values(agg).sort((a, b) => b.a - a.a || b.q - a.q);
+  S.histAgg = ag; S.histRows = rows;
+  const rangeTxt = f.mode === "m" ? ymLabel(f.ym) : `${dateLabel(r.from)} – ${dateLabel(r.to)}`;
+  $("#vHist").innerHTML = head() + `
+  ${supIds.length > 1 ? `<div class="pay-sf"><button data-hsup="" class="${f.sup ? "" : "on"}">全部<b>${money(all.reduce((n, x) => n + amts.get(x).a, 0))}</b></button>${supIds.map(id => `<button data-hsup="${esc(id)}" class="${f.sup === id ? "on" : ""}">${esc(name(id))}<b>${money(all.filter(x => x.sup === id).reduce((n, x) => n + amts.get(x).a, 0))}</b></button>`).join("")}</div>` : ""}
+  <div class="panel hs"><div><small>${esc(rangeTxt)}${f.sup ? "・" + esc(name(f.sup)) : ""} 叫貨金額</small><b>${money(tot)}</b><span>${days} 天・${rows.length} 張單${miss ? `・<em>${miss} 項沒單價（未算入）</em>` : ""}</span></div><button class="btn sm" id="hXlsx"${rows.length ? "" : " disabled"}>匯出 Excel</button></div>
+  ${ag.length ? `<details class="panel hagg"${S.hAggOpen ? " open" : ""}><summary><b>品項彙總</b><span>${ag.length} 項・金額由高到低</span></summary>
+    <div class="ha-h"><span>品名</span><span>數量</span><span>均價</span><span>金額</span></div>
+    ${ag.map(g => `<div class="ha-r"><span>${esc(g.n)}${g.spec ? `<em>${esc(g.spec)}</em>` : ""}${!f.sup && supIds.length > 1 ? `<small>${esc(name(g.sup))}</small>` : ""}<small>${g.times.size}天</small></span><span>${fmt(Math.round(g.got * 10) / 10)}${esc(g.u)}</span><span>${g.pq ? money(g.a / g.pq) : "—"}</span><b>${g.a ? money(g.a) : "—"}</b></div>`).join("")}
+  </details>` : ""}
+  ${rows.length ? `<div class="panel" style="padding:4px 12px">${rows.map(x => {
     const n = Object.values(x.lines).filter(hasQty).length, who = [...new Set(Object.values(x.lines).map(l => l.by).filter(Boolean))].join("、");
-    const sp = sups().find(q => q.id === x.sup), am = orderAmt(x.lines, id => sp && sp.items.find(i => i.id === id));
+    const am = amts.get(x);
     const bad = Object.values(x.lines).filter(l => l.rv && Object.entries(l.vs || {}).some(([k, q]) => q > 0 && l.rv[k || "_"] != null && l.rv[k || "_"] !== q)).length;
     return `<button class="hist" data-d="${x.date}" data-s="${esc(x.sup)}"><span class="d">${dateLabel(x.date)}</span><span class="s">${esc(name(x.sup))}</span><span class="w">${esc(who)}${bad ? `<br><b style="color:var(--warn)">到貨不符 ${bad} 項</b>` : ""}</span><span class="n">${n}項${am.a ? `<br><b>${money(am.a)}</b>` : ""}${am.miss && am.a ? `<small style="color:var(--low)"> 缺${am.miss}</small>` : ""}</span>${x.sent ? `<span class="ck">✓</span>` : ""}</button>`;
-  }).join("")}</div>` : `<div class="empty">還沒有叫貨紀錄</div>`;
+  }).join("")}</div>` : `<div class="empty">${esc(rangeTxt)} 沒有叫貨紀錄</div>`}`;
+}
+function histXlsx() {
+  if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
+  const f = S.hf, r = histRange(), rows = S.histRows || [], name = id => (sups().find(s => s.id === id) || { name: id }).name;
+  const tag = f.mode === "m" ? f.ym.replace("-", "") : `${r.from.replace(/-/g, "")}-${r.to.replace(/-/g, "")}`;
+  const wb = XLSX.utils.book_new();
+  const s1 = [["日期", "星期", "廠商", "品項數", "金額", "沒單價項數", "叫貨人", "已傳廠商"]];
+  rows.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(x => { const sp = sups().find(q => q.id === x.sup), am = orderAmt(x.lines, id => sp && sp.items.find(i => i.id === id)); s1.push([x.date, "日一二三四五六"[new Date(x.date + "T00:00").getDay()], name(x.sup), am.n, am.a, am.miss || "", [...new Set(Object.values(x.lines).map(l => l.by).filter(Boolean))].join("、"), x.sent ? "✓" : ""]) });
+  s1.push([], ["", "", "合計", "", s1.slice(1).reduce((n, x) => n + (x[4] || 0), 0)]);
+  const w1 = XLSX.utils.aoa_to_sheet(s1); w1["!cols"] = [{ wch: 11 }, { wch: 5 }, { wch: 8 }, { wch: 7 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 8 }];
+  XLSX.utils.book_append_sheet(wb, w1, "每日合計");
+  const s2 = [["日期", "廠商", "分類", "品名", "規格", "叫貨廠商", "叫貨數量", "實收", "單位", "單價", "小計"]];
+  rows.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(x => histDetail(x).forEach(d => s2.push([d.date, name(d.sup), d.c, d.n, d.spec, d.vend, d.q, d.rv ?? "", d.u, d.p ?? "", d.a ?? ""])));
+  const w2 = XLSX.utils.aoa_to_sheet(s2); w2["!cols"] = [{ wch: 11 }, { wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, w2, "明細");
+  const s3 = [["廠商", "分類", "品名", "規格", "單位", "叫貨天數", "叫貨數量", "實收數量", "平均單價", "金額"]];
+  (S.histAgg || []).forEach(g => s3.push([name(g.sup), g.c, g.n, g.spec, g.u, g.times.size, Math.round(g.q * 10) / 10, Math.round(g.got * 10) / 10, g.pq ? Math.round(g.a / g.pq * 10) / 10 : "", Math.round(g.a)]));
+  const w3 = XLSX.utils.aoa_to_sheet(s3); w3["!cols"] = [{ wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 6 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 10 }];
+  XLSX.utils.book_append_sheet(wb, w3, "品項彙總");
+  XLSX.writeFile(wb, `叫貨紀錄${f.sup ? "_" + name(f.sup) : ""}_${tag}.xlsx`);
 }
 $("#vHist").addEventListener("click", e => {
-  const b = e.target.closest("[data-d]"); if (!b) return;
-  S.date = b.dataset.d; $("#date").value = S.date;
-  if (sups().some(s => s.id === b.dataset.s)) { S.sup = b.dataset.s; renderSupSel() }
-  openOrder(); setView("Sum");
+  const t = e.target, f = S.hf;
+  let b;
+  if ((b = t.closest("[data-hmode]"))) { f.mode = b.dataset.hmode; return renderHist() }
+  if ((b = t.closest("[data-hym]"))) { f.ym = ymShift(f.ym, +b.dataset.hym); return renderHist() }
+  if ((b = t.closest("[data-hset]"))) { f.ym = b.dataset.hset; return renderHist() }
+  if ((b = t.closest("[data-hrq]"))) { f.to = today(); f.from = addDays(today(), -(+b.dataset.hrq - 1)); return renderHist() }
+  if ((b = t.closest("[data-hsup]"))) { f.sup = b.dataset.hsup; return renderHist() }
+  if (t.closest("#hXlsx")) return histXlsx();
+  if (t.closest(".hagg summary")) { setTimeout(() => { const d = $("#vHist .hagg"); S.hAggOpen = d && d.open }, 0); return }
+  if ((b = t.closest("[data-d]"))) {
+    S.date = b.dataset.d; $("#date").value = S.date;
+    if (sups().some(s => s.id === b.dataset.s)) { S.sup = b.dataset.s; renderSupSel() }
+    openOrder(); setView("Sum");
+  }
+});
+$("#vHist").addEventListener("change", e => {
+  const f = S.hf;
+  if (e.target.id === "hYm" && e.target.value) { f.ym = e.target.value; renderHist() }
+  if (e.target.id === "hFrom" && e.target.value) { f.from = e.target.value; renderHist() }
+  if (e.target.id === "hTo" && e.target.value) { f.to = e.target.value; renderHist() }
 });
 
 /* ---------- 設定 ---------- */
