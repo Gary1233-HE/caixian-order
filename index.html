@@ -239,7 +239,7 @@ table.pc-t td b{font-family:var(--mono);font-size:17px}
 .bk-h .spec{display:inline-block;font-size:11.5px;font-weight:700;background:var(--bg);border-radius:5px;padding:0 5px;margin-left:5px;vertical-align:2px}
 .bk-h .bq{font-family:var(--mono);font-weight:700;white-space:nowrap}.bk-h .bq small{font-size:11px;color:var(--muted);margin-left:1px}
 .bk-h .bs{font-family:var(--mono);font-weight:900;min-width:64px;text-align:right}
-.bk-b{display:grid;grid-template-columns:1.1fr 1fr 1.2fr 1fr;gap:6px;margin-top:8px;align-items:end}
+.bk-b{display:grid;grid-template-columns:1.4fr 1fr 1.2fr 1fr;gap:6px;margin-top:8px;align-items:end}
 .bk-b .bf{display:flex;flex-direction:column;gap:2px;min-width:0}.bk-b .bf small{font-size:11px;color:var(--muted)}
 .bk-b input{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 6px;text-align:right;font-family:var(--mono);font-weight:700;font-size:15px;background:#fff}
 .bk-b input::placeholder{color:#C5CBD3;font-weight:400}
@@ -247,6 +247,15 @@ table.pc-t td b{font-family:var(--mono);font-size:17px}
 .bk-b .card.np .pin,.np .pin{border-color:#F2C58E;background:#FFFAF3}
 .bk-b .rv-btn,.bk-b .rv-t{width:100%;height:40px;border-radius:9px;font-size:13px}
 .bk-b .rv-btn{border:1.5px solid var(--ok);color:var(--ok);background:#fff;font-weight:900}
+.bk-b .rv2{display:flex;gap:4px}.bk-b .rv2 .rv-btn{flex:1.3;white-space:nowrap;padding:0;font-size:12.5px}.bk-b .rv2 .rv-nd{white-space:nowrap}.bk-b .rv-nd{flex:1;height:40px;border-radius:9px;border:1.5px solid #C9CED6;color:#5B6573;background:#fff;font-size:12px;font-weight:900;padding:0}
+.rv-t.nd{background:#E7EAEE;color:#3A4350}
+.rs-q,.rs-r{padding:12px 4px;border-bottom:1px solid var(--line)}.rs-q small,.rs-r small{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.rs-q>div{display:flex;align-items:center;gap:10px}.rs-q .sp-q{min-width:80px}#rsU{font-weight:700;color:var(--muted)}.rs-hint{margin-top:6px;font-size:13px;font-weight:700;color:var(--warn)}
+#rsWhy{display:flex;flex-wrap:wrap;gap:8px}#rsWhy button{border:1.5px solid var(--line);border-radius:999px;padding:9px 14px;font-size:14px;font-weight:700;background:#fff}#rsWhy button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.rv-why{display:inline-block;margin:6px 6px 0 0;font-size:12px;font-weight:900;border-radius:6px;padding:2px 7px;background:#E7EAEE;color:#3A4350}
+.bk-cards .card.rv-nd{border-color:#D5D9DF;background:#F1F3F5}.bk-cards .card.rv-nd .bn,.bk-cards .card.rv-nd .bq{color:#7A8494;text-decoration:line-through}.bk-cards .card.rv-nd input{background:#F1F3F5}
+.ndv{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px;font-size:13px;color:var(--muted)}.ndv button{border:1px solid #C9CED6;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:700;background:#fff;color:#3A4350}
+table.rt .rv-nd{margin-left:4px;border:1.5px solid #C9CED6;border-radius:8px;padding:6px 6px;font-size:12px;font-weight:900;background:#fff;color:#5B6573}
 .bk-b .addw{height:40px;border:1px dashed var(--line);border-radius:9px;font-size:12px;color:var(--muted);background:#fff}
 .pwarn{display:inline-block;margin:6px 6px 0 0;font-size:12px;font-weight:900;color:#fff;background:var(--warn);border-radius:6px;padding:2px 7px}
 .wunit{height:40px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);background:var(--bg);border-radius:9px;text-align:center;line-height:1.2}
@@ -783,6 +792,12 @@ select.in{appearance:auto}
   <div class="sp-list" id="spList"></div>
   <div class="sp-b"><button class="btn" id="spReset">清除重分</button><button class="btn okb" id="spOk">套用</button></div>
 </section>
+<section class="sheet sp-sheet" id="rvSheet" aria-label="缺貨少送">
+  <div class="sh-head"><div><b id="rsTitle">缺貨／少送</b><span id="rsSub"></span></div><button class="sh-x" id="rsClose" aria-label="關閉">×</button></div>
+  <div class="rs-q"><small>實際到貨</small><div><button class="sp-m" data-rsq="-">−</button><button class="sp-q" id="rsQ">0</button><button class="sp-m" data-rsq="+">＋</button><span id="rsU"></span></div><div class="rs-hint" id="rsHint"></div></div>
+  <div class="rs-r"><small>原因</small><div id="rsWhy"></div></div>
+  <div class="sp-b"><button class="btn" id="rsClear">取消核對</button><button class="btn" id="rsAll0">全部沒到</button><button class="btn okb" id="rsOk">確定</button></div>
+</section>
 <div class="bigedit hide" id="askBox" role="dialog" aria-label="輸入">
   <div class="be-l" id="askLabel"></div>
   <input id="askIn" autocomplete="off" data-lpignore="true" enterkeyhint="done">
@@ -1308,7 +1323,7 @@ const qtyOpts = (it, e) => {
 /* 到貨：rv[規格] = 實收數量（沒填＝還沒核對，當作跟叫的一樣） */
 const rvOf = (e, o) => (e && e.rv && e.rv[pk(o)] != null ? e.rv[pk(o)] : null);
 const gotQty = (e, o) => { const r = rvOf(e, o); return r != null ? r : e.vs[o] };
-function lineAmt(it, e) { let a = 0, miss = 0; qtyOpts(it, e).forEach(o => { const p = priceOf(e, o); if (p == null) miss++; else a += p * gotQty(e, o) }); return { a: Math.round(a * 100) / 100, miss } }
+function lineAmt(it, e) { let a = 0, miss = 0; qtyOpts(it, e).forEach(o => { const p = priceOf(e, o), g = gotQty(e, o); if (!(g > 0)) return; if (p == null) miss++; else a += p * g }); return { a: Math.round(a * 100) / 100, miss } }   /* 沒送（實收 0）的不算金額、也不算沒填價格 */
 function orderAmt(ls, find) { let a = 0, miss = 0, n = 0; Object.entries(ls || {}).forEach(([id, e]) => { if (!hasQty(e)) return; const it = find(id) || { o: Object.keys(e.vs), u: "" }; const r = lineAmt(it, e); a += r.a; miss += r.miss; n++ }); return { a: Math.round(a), miss, n } }
 const money = v => "$" + Math.round(v).toLocaleString("en-US");
 const unitLabel = (it, o) => (o && isUnitOpt(o) ? o : it.u || "");
@@ -1658,13 +1673,18 @@ function favVendorOf(id, spec) {
   Object.entries(last).forEach(([k, v]) => { if (k.startsWith(id + "|") && v && v.v && (!pick || (v.d || "") > (pick.d || ""))) pick = { d: v.d || "", v: v.v } });
   return pick ? pick.v : "";
 }
+/* 價格紀錄 key（品項id|規格·廠商）是不是這個規格的；不同規格的價格不互相延用 */
+function lastKeySpec(id, kk) {
+  if (!kk.startsWith(id + "|")) return null;
+  const rest = kk.slice(id.length + 1), it = oById(id), k = rest === "_" ? "" : rest;
+  if (k.includes("·")) return k.slice(0, k.lastIndexOf("·"));
+  return it ? splitKey(it, k).spec : k;
+}
 function lastPriceFor(id, k, spec) {
   const last = S.last || {}, a = last[`${id}|${pk(k)}`]; if (a && a.p != null) return a.p;
-  const sp = pk(spec), pre = `${id}|${sp}`;
+  /* 同一個規格、別家廠商的最近價格 */
   let best = null;
-  Object.entries(last).forEach(([kk, v]) => { if ((kk === pre || kk.startsWith(pre + "·")) && v && v.p != null && (!best || (v.d || "") > (best.d || ""))) best = v });
-  if (best) return best.p;
-  Object.entries(last).forEach(([kk, v]) => { if (kk.startsWith(id + "|") && v && v.p != null && (!best || (v.d || "") > (best.d || ""))) best = v });
+  Object.entries(last).forEach(([kk, v]) => { if (v && v.p != null && lastKeySpec(id, kk) === (spec || "") && (!best || (v.d || "") > (best.d || ""))) best = v });
   return best ? best.p : null;
 }
 
@@ -1685,8 +1705,11 @@ function autoFill() {
     });
     /* 2) 沒填單價 → 帶入上次價格 */
     qtyOpts(it, e).forEach(k => {
-      if (priceOf(e, k) != null) return;
-      const p = lastPriceFor(it.id, k, specKeyOf(it, k)); if (p == null) return;
+      const cur = priceOf(e, k), inh = (e.pi || {})[pk(k)];
+      if (cur != null && (!inh || S.date < today())) return;   /* 自己填的價格不動；以前的單子也不動 */
+      const p = lastPriceFor(it.id, k, specKeyOf(it, k));
+      if (cur != null && p === cur) return;
+      if (p == null) { if (cur != null) { const x = (patch[it.id] ||= { p: {}, pi: {} }); x.p[pk(k)] = null; x.pi[pk(k)] = null } return }   /* 之前誤帶到別的規格的價格 → 清掉 */
       ((patch[it.id] ||= { p: {}, pi: {} }).p)[pk(k)] = p; patch[it.id].pi[pk(k)] = 1;
     });
   });
@@ -1860,8 +1883,9 @@ function mkEntry(it, vs, sug) {
   const wt = {}; if (old && old.wt) Object.keys(vs).forEach(o => { if (old.wt[pk(o)] != null) wt[pk(o)] = old.wt[pk(o)] });
   const vd = {}; if (old && old.vd) Object.keys(vs).forEach(o => { if (old.vd[pk(o)] != null) vd[pk(o)] = old.vd[pk(o)] });
   const pi = {}; if (old && old.pi) Object.keys(vs).forEach(o => { if (old.pi[pk(o)]) pi[pk(o)] = 1 });
+  const rr = {}; if (old && old.rr) Object.keys(vs).forEach(o => { if (old.rr[pk(o)]) rr[pk(o)] = old.rr[pk(o)] });
   const a = analyze(it);
-  return { vs, by: S.me, t: Date.now(), n: it.n, c: it.c, ...(Object.keys(p).length ? { p } : {}), ...(Object.keys(rv).length ? { rv } : {}), ...(Object.keys(wt).length ? { wt } : {}), ...(Object.keys(vd).length ? { vd } : {}), ...(Object.keys(pi).length ? { pi } : {}), ...(a.needAny ? { sg: a.sug } : {}), ...(sug ? { sug: true } : {}) };
+  return { vs, by: S.me, t: Date.now(), n: it.n, c: it.c, ...(Object.keys(p).length ? { p } : {}), ...(Object.keys(rv).length ? { rv } : {}), ...(Object.keys(wt).length ? { wt } : {}), ...(Object.keys(vd).length ? { vd } : {}), ...(Object.keys(pi).length ? { pi } : {}), ...(Object.keys(rr).length ? { rr } : {}), ...(a.needAny ? { sg: a.sug } : {}), ...(sug ? { sug: true } : {}) };
 }
 /* ================= keypad ================= */
 function needMe() { if (!S.me) { openPeople(); return true } return false }
@@ -2016,7 +2040,7 @@ function openPeople() {
   $("#ppList").innerHTML = ppl.map(p => `<button class="${p === S.me ? "on" : ""}" data-p="${esc(p)}">${esc(p)}</button>`).join("");
   openSheet("pp");
 }
-$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush(); closeNote(); closeNewItem(); closeUt(); $("#uiSheet").classList.remove("show"); $("#splitSheet").classList.remove("show") };
+$("#who").onclick = openPeople; $("#scrim").onclick = () => { closeSheets(); closeBulk(); closePush(); closeNote(); closeNewItem(); closeUt(); $("#uiSheet").classList.remove("show"); $("#splitSheet").classList.remove("show"); $("#rvSheet").classList.remove("show") };
 document.querySelectorAll("[data-close]").forEach(b => b.onclick = closeSheets);
 $("#ppList").onclick = e => { const b = e.target.closest("[data-p]"); if (!b) return; S.me = b.dataset.p; try { localStorage.setItem("caixian-order-me", S.me) } catch {} renderWho(); closeSheets() };
 
@@ -2063,18 +2087,24 @@ function orderText() {
    沒選廠商的，預設延用這個品項上次的廠商
    ck[品項|規格] = { by, t, q }；q 是打勾時的數量，之後數量被改要重新確認 */
 /* 這個品項最近常跟哪幾家叫（越近權重越大，約 2 週減半），沒有紀錄就用價格紀錄裡出現過的 */
-function vendRank(it) {
-  const sc = {}, key = `vr|${it.id}`; S.fcCache ||= {}; if (key in S.fcCache) return S.fcCache[key];
+/* 這個品項（這個規格）最常跟哪幾家叫：近 6 週叫過幾天，天數多的排前面，一樣多就看最近一次；
+   這個規格沒紀錄就看整個品項；再沒有就用價格紀錄裡出現過的 */
+function vendRank(it, spec) {
+  const key = `vr|${it.id}|${spec == null ? "*" : spec}`; S.fcCache ||= {}; if (key in S.fcCache) return S.fcCache[key];
+  const cnt = { s: {}, a: {} }, lastD = {};
   ((S.hist && S.hist.ords) || []).forEach(o => {
     if (o.sup !== S.sup || o.date >= S.date || !o.lines || !o.lines[it.id] || !o.lines[it.id].vs) return;
-    const w = Math.exp(-Math.max(0, (new Date(S.date + "T00:00") - new Date(o.date + "T00:00")) / 864e5) / 14);
-    Object.entries(o.lines[it.id].vs).forEach(([k, q]) => { if (q > 0) { const v = splitKey(it, k).vend; if (v) sc[v] = (sc[v] || 0) + w } });
+    const e = o.lines[it.id], seen = { s: new Set(), a: new Set() };
+    Object.entries(e.vs).forEach(([k, q]) => { if (!(q > 0)) return; const sk = splitKey(it, k), v = sk.vend || (e.vd && e.vd[pk(k)]) || ""; if (!v) return;
+      seen.a.add(v); if (spec != null && sk.spec === spec) seen.s.add(v); if (!lastD[v] || o.date > lastD[v]) lastD[v] = o.date });
+    seen.a.forEach(v => cnt.a[v] = (cnt.a[v] || 0) + 1); seen.s.forEach(v => cnt.s[v] = (cnt.s[v] || 0) + 1);
   });
-  Object.entries(S.last || {}).forEach(([k, v]) => { if (k.startsWith(it.id + "|") && v && v.v) sc[v.v] = (sc[v.v] || 0) + 0.2 });
-  const r = Object.keys(sc).sort((a, b) => sc[b] - sc[a]);
+  const by = c => Object.keys(c).sort((a, b) => c[b] - c[a] || (lastD[b] || "").localeCompare(lastD[a] || ""));
+  const lastV = Object.entries(S.last || {}).filter(([k, v]) => v && v.v && k.startsWith(it.id + "|")).sort((a, b) => (b[1].d || "").localeCompare(a[1].d || "")).map(([, v]) => v.v);
+  const r = [...new Set([...by(cnt.s), ...by(cnt.a), ...lastV])];
   return S.hist ? (S.fcCache[key] = r) : r;
 }
-const vendOrder = (it, first = []) => [...new Set([...first.filter(Boolean), ...(it ? vendRank(it) : []), ...vendList()])];
+const vendOrder = (it, first = [], spec) => [...new Set([...first.filter(Boolean), ...(it ? vendRank(it, spec) : []), ...vendList()])];
 function vendList() {
   const sp = sup(); if (sp.vendFixed) return sp.vendList || [];
   const set = new Set(sp.vendList || []);
@@ -2334,7 +2364,7 @@ function openSplit(key) {
   const r = cartItems().find(x => x.key === key); if (!r) return;
   SP.key = key; SP.total = r.tot; SP.q = {}; SP.unit = r.u || "";
   r.allocs.forEach(a => { if (a.v) SP.q[a.v] = (SP.q[a.v] || 0) + a.q });
-  const cur = Object.keys(SP.q), rank = vendRank(r.it);
+  const cur = Object.keys(SP.q), rank = vendRank(r.it, r.spec);
   SP.top = rank.find(v => !cur.includes(v)) || "";   /* 另一家：最常叫的那家，直接排在目前這家下面 */
   SP.order = [...new Set([...cur, SP.top, ...rank, ...vendList()])].filter(Boolean);
   $("#spTitle").textContent = `${r.n}${r.lab ? " " + r.lab : ""}　共 ${fmt(r.tot)}${r.u || ""}`;
@@ -2409,11 +2439,15 @@ function cbLabel(el) {
   if (el.classList.contains("awin")) return `${nm}${vend ? " " + vend : ""}　每件重量（KG，沒改就延用上次）`;
   return nm;
 }
-function cbItem() { const el = CB.el, cr = el && el.closest ? el.closest(".r2") : null, k = el && el.dataset && el.dataset.ri; const r = k ? cartItems().find(x => x.key === k) : null; return r ? r.it : null }
+function cbRow() { const el = CB.el, k = el && el.dataset && el.dataset.ri; return k ? cartItems().find(x => x.key === k) || null : null }
+function cbItem() { const r = cbRow(); return r ? r.it : null }
 function cbChips() {
   const box = $("#cbChips"); if (!CB.el || !(CB.el.classList.contains("vin"))) { box.innerHTML = ""; return }
-  const q = norm($("#cbIn").value), it = cbItem(), top = it ? vendRank(it)[0] : "";
-  const list = vendOrder(it).filter(v => !q || norm(v).includes(q));   /* 全部廠商都列出來，不用打字找 */
+  const q = norm($("#cbIn").value), row = cbRow(), it = row && row.it, sp = row ? row.spec : undefined;
+  /* 這一列以外、同規格已經分給的廠商，不算「常叫」→ 分給另一家時直接標出頻率最高的另一家 */
+  const ai = CB.el.dataset && CB.el.dataset.ai != null ? +CB.el.dataset.ai : -1, others = row ? row.allocs.filter((a, i) => i !== ai && a.v).map(a => a.v) : [];
+  const rank = it ? vendRank(it, sp) : [], top = rank.find(v => !others.includes(v)) || "";
+  const list = vendOrder(it, [top], sp).filter(v => !q || norm(v).includes(q));   /* 全部廠商都列出來，不用打字找 */
   const curV = CB.el.value;
   box.innerHTML = list.map(v => `<button data-cbv="${esc(v)}" class="${v === top ? "fv" : ""}${v === curV ? " cur" : ""}">${v === curV ? "✓ " : ""}${esc(v)}${v === top ? "<small>常叫</small>" : ""}</button>`).join("") + (q && !vendList().some(v => norm(v) === q) ? `<button class="new" data-cbv="${esc($("#cbIn").value.trim())}">＋ 新增「${esc($("#cbIn").value.trim())}」</button>` : "");
 }
@@ -2455,30 +2489,64 @@ function rvRows() {
     const e = L[it.id];
     qtyOpts(it, e).forEach((o, k) => {
       const sk = splitKey(it, o), q = e.vs[o], r = rvOf(e, o), u = unitLabel(it, sk.spec || "");
-      out.push({ it, id: it.id, o, cat, n: it.n, first: k === 0, lab: [sk.spec && !isUnitOpt(sk.spec) ? sk.spec : "", sk.vend || (e.vd && e.vd[pk(o)]) || ""].filter(Boolean).join(" "), q, r, u, st: r == null ? "no" : r === q ? "ok" : r < q ? "short" : "over" });
+      out.push({ it, id: it.id, o, cat, n: it.n, first: k === 0, lab: [sk.spec && !isUnitOpt(sk.spec) ? sk.spec : "", sk.vend || (e.vd && e.vd[pk(o)]) || ""].filter(Boolean).join(" "), q, r, u, why: (e.rr && e.rr[pk(o)]) || "", st: r == null ? "no" : r === q ? "ok" : r < q ? "short" : "over" });
     });
   }));
   return out;
 }
+/* ===== 缺貨／少送：填實際到貨數量＋原因（產地缺貨、廠商沒送…） ===== */
+const RS = { id: "", o: "", q: 0, got: 0, why: "" };
+function openRvShort(id, o) {
+  const r = rvRows().find(x => x.id === id && x.o === o); if (!r) return;
+  Object.assign(RS, { id, o, q: r.q, got: r.r != null && r.r < r.q ? r.r : Math.max(0, r.q - 1), why: r.why || "產地缺貨", u: r.u || "" });
+  $("#rsTitle").textContent = `${r.n}${r.lab ? " " + r.lab : ""}`; $("#rsSub").textContent = `叫 ${fmt(r.q)}${r.u || ""}`; $("#rsU").textContent = r.u || "";
+  $("#rsClear").classList.toggle("hide", r.r == null);
+  renderRvShort(); $("#rvSheet").classList.add("show"); $("#scrim").classList.add("show");
+}
+function renderRvShort() {
+  $("#rsQ").textContent = fmt(RS.got);
+  $("#rsHint").textContent = RS.got === 0 ? "全部沒到，這項不算錢" : `少 ${fmt(Math.round((RS.q - RS.got) * 100) / 100)}${RS.u}，金額依實際到貨 ${fmt(RS.got)}${RS.u} 計算`;
+  $("#rsWhy").innerHTML = RV_WHY.map(w => `<button class="${RS.why === w ? "on" : ""}" data-rsw="${w}">${w}</button>`).join("");
+}
+const closeRvShort = () => { $("#rvSheet").classList.remove("show"); $("#scrim").classList.remove("show") };
+$("#rvSheet").addEventListener("click", async e => {
+  const b = e.target.closest("[data-rsq]"); if (b) { RS.got = b.dataset.rsq === "+" ? Math.min(RS.q, RS.got + 1) : Math.max(0, RS.got - 1); return renderRvShort() }
+  const w = e.target.closest("[data-rsw]"); if (w) { RS.why = w.dataset.rsw; if (RS.why === "其他") { const t = await askText("原因", ""); if (t && t.trim()) RS.why = t.trim() } return renderRvShort() }
+  if (e.target.closest("#rsQ")) { const t = await askText(`實際到貨幾${RS.u}？`, String(RS.got)); const n = Math.round(+String(t).replace(/[,，]/g, "") * 100) / 100; if (t !== "" && n >= 0 && !isNaN(n)) RS.got = n; return renderRvShort() }
+  if (e.target.closest("#rsAll0")) { RS.got = 0; return renderRvShort() }
+  if (e.target.closest("#rsClose")) return closeRvShort();
+  if (e.target.closest("#rsClear")) { store.setRv(S.date, S.sup, RS.id, RS.o, null); store.patchLines(S.date, S.sup, { [RS.id]: { rr: { [pk(RS.o)]: null } } }); closeRvShort(); return toast("已取消核對") }
+  if (e.target.closest("#rsOk")) {
+    store.setRv(S.date, S.sup, RS.id, RS.o, RS.got);
+    store.patchLines(S.date, S.sup, { [RS.id]: { rr: { [pk(RS.o)]: RS.got < RS.q ? RS.why : null } } });
+    closeRvShort(); toast(RS.got === 0 ? `已標記沒到・${RS.why}` : `實收 ${fmt(RS.got)}${RS.u}・${RS.why}`);
+  }
+});
+/* 這一列是跟哪家叫的 */
+function rvVend(r) { const e = lines()[r.id]; return splitKey(r.it, r.o).vend || (e && e.vd && e.vd[pk(r.o)]) || "" }
 function rvPanel() {
   const rs = rvRows(); if (!rs.length) return "";
   const done = rs.filter(r => r.st !== "no").length, bad = rs.filter(r => r.st === "short" || r.st === "over");
   let cat = "";
   return `<div class="panel rv-p${done === rs.length && !bad.length ? " fin" : ""}"><h3>到貨核對 <span class="c ${done === rs.length ? "ok" : "o"}">${done} / ${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}${done < rs.length ? `<button class="btn sm r" id="rvAll">其餘都到齊</button>` : `<button class="btn sm r" id="rvNone">全部取消</button>`}</h3>
-    <p class="muted" style="margin:0 0 8px">貨到了點 ✓＝到齊；數量不對就在「實收」填實際到的數量。點「到齊 ✕」可以取消。金額和預估用量會用實收計算。</p>
+    <p class="muted" style="margin:0 0 8px">貨到了點 ✓＝到齊；產地缺貨、少送或沒送點「缺/少」，填實際到的數量和原因；也可以直接在「實收」改數量。點「到齊 ✕」可以取消。金額和預估用量會用實收計算。</p>
     <table class="t rt"><tr><th>品項</th><th class="r">叫</th><th class="r">實收</th><th></th></tr>
     ${rs.map(r => { const h = r.cat !== cat ? `<tr class="ch" style="--cc:${catColor(r.cat)};--ct:${catTint(r.cat)}"><td colspan="4">${esc(r.cat)}</td></tr>` : ""; cat = r.cat;
       return h + `<tr class="rv-${r.st}"><td>${r.first ? esc(r.n) : ""}${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}</td><td class="r">${fmt(r.q)}<small>${esc(r.u)}</small></td>
       <td class="r"><input class="rin" id="r_${r.id}_${esc(pk(r.o))}" data-rid="${r.id}" data-ro="${esc(r.o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${r.r == null ? "" : fmt(r.r)}" placeholder="${fmt(r.q)}" aria-label="${esc(r.n + (r.lab ? " " + r.lab : ""))} 實收"></td>
-      <td class="r">${r.st === "no" ? `<button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(r.o)}" aria-label="到齊">✓</button>` : `<button class="rv-t ${r.st === "ok" ? "ok" : r.st === "short" ? "bad" : "over"}" data-rvx="${r.id}" data-ro="${esc(r.o)}" title="點一下取消">${r.st === "ok" ? "到齊" : r.st === "short" ? `少${fmt(r.q - r.r)}` : `多${fmt(r.r - r.q)}`} ✕</button>`}</td></tr>` }).join("")}
+      <td class="r">${r.st === "no" ? `<button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(r.o)}" aria-label="到齊">✓</button><button class="rv-nd" data-rvnd="${r.id}" data-ro="${esc(r.o)}">缺/少</button>` : `<button class="rv-t ${rvCls(r)}" data-rvx="${r.id}" data-ro="${esc(r.o)}" title="點一下取消">${rvLab(r)} ✕</button>`}</td></tr>` }).join("")}
     </table>
     ${bad.length ? `<button class="btn" id="rvMsg" style="margin-top:10px">複製到貨不符通知（傳給廠商）</button>` : ""}
   </div>`;
 }
+const RV_WHY = ["產地缺貨", "廠商沒送", "品質不好退回", "其他"];
+const rvWhy = (id, o) => { const e = lines()[id]; return (e && e.rr && e.rr[pk(o)]) || "" };
+const rvLab = r => r.st === "ok" ? "到齊" : r.r === 0 ? (r.why === "產地缺貨" ? "缺貨" : "沒到") : r.st === "short" ? `少${fmt(r.q - r.r)}` : `多${fmt(r.r - r.q)}`;
+const rvCls = r => r.st === "ok" ? "ok" : r.r === 0 ? "nd" : r.st === "short" ? "bad" : "over";
 function rvText() {
   const bad = rvRows().filter(r => r.st === "short" || r.st === "over");
   const lines2 = [`採鮮農產行 ${dateLabel(S.date)} ${sup().name} 到貨不符`, ""];
-  bad.forEach(r => lines2.push(`${r.n}${r.lab ? " " + r.lab : ""}：叫 ${fmt(r.q)}${r.u}，到 ${fmt(r.r)}${r.u}（${r.st === "short" ? "少" : "多"}${fmt(Math.abs(r.q - r.r))}${r.u}）`));
+  bad.forEach(r => lines2.push(`${r.n}${r.lab ? " " + r.lab : ""}：叫 ${fmt(r.q)}${r.u}，${r.r === 0 ? "沒到" : `到 ${fmt(r.r)}${r.u}（${r.st === "short" ? "少" : "多"}${fmt(Math.abs(r.q - r.r))}${r.u}）`}${r.why ? `・${r.why}` : ""}`));
   lines2.push("", "麻煩確認，謝謝！");
   return lines2.join("\n");
 }
@@ -2489,6 +2557,7 @@ function saveRv(inp) {
   if (raw !== "" && (isNaN(v) || v < 0)) { toast("數量格式不對"); inp.value = rvOf(e, o) == null ? "" : fmt(rvOf(e, o)); return }
   if (v === rvOf(e, o)) return;
   store.setRv(S.date, S.sup, id, o, v);
+  if (v != null && v < e.vs[o] && inp.closest("#vSum")) toast("少送的話，點「少…✎」可以選原因（產地缺貨等）");
 }
 /* ===== 加工成本 =====
    原料每KG ＝ 叫貨單價 ÷ 每單位重量(w)
@@ -2799,8 +2868,8 @@ function bookPanel(amt, canLast) {
   const cards = rs.map(r => {
     const it = r.it, e = L[r.id], o = r.o, p = priceOf(e, o), inh = !!(e.pi || {})[pk(o)], w = effWt(it, e, o), u = r.u, showW = needWt(it, e, o);
     const h = r.cat !== cat ? `<div class="sub-cat" style="--cc:${catColor(r.cat)}">${esc(r.cat)}</div>` : ""; cat = r.cat;
-    const stb = r.st === "no" ? `<button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(o)}">✓ 到齊</button>` : `<button class="rv-t ${r.st === "ok" ? "ok" : r.st === "short" ? "bad" : "over"}" data-rvx="${r.id}" data-ro="${esc(o)}" title="點一下取消">${r.st === "ok" ? "到齊" : r.st === "short" ? `少${fmt(r.q - r.r)}` : `多${fmt(r.r - r.q)}`} ✕</button>`;
-    return h + `<div class="bk card rv-${r.st}${p == null ? " np" : ""}">
+    const stb = r.st === "no" ? `<div class="rv2"><button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(o)}">✓到齊</button><button class="rv-nd" data-rvnd="${r.id}" data-ro="${esc(o)}">缺/少</button></div>` : r.st === "short" ? `<button class="rv-t ${rvCls(r)}" data-rvnd="${r.id}" data-ro="${esc(o)}" title="點一下修改">${rvLab(r)} ✎</button>` : `<button class="rv-t ${rvCls(r)}" data-rvx="${r.id}" data-ro="${esc(o)}" title="點一下取消">${rvLab(r)} ✕</button>`;
+    return h + `<div class="bk card rv-${r.r === 0 ? "nd" : r.st}${p == null && r.r !== 0 ? " np" : ""}">
       <div class="bk-h"><span class="bn" data-go="${r.id}">${esc(r.n)}${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}</span><span class="bq">叫 ${fmt(r.q)}<small>${esc(u)}</small></span><span class="bs">${p == null ? `<span class="muted">—</span>` : money(p * gotQty(e, o))}</span></div>
       <div class="bk-b">
         <div class="bf">${stb}</div>
@@ -2808,13 +2877,14 @@ function bookPanel(amt, canLast) {
         <label class="bf"><small>單價/${esc(u || "件")}</small><input class="pin${inh ? " inh" : ""}" id="p_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="單價"></label>
         ${showW ? `<label class="bf"><small>每件重量KG</small><input class="win${w && w.src !== "today" ? " inh" : ""}" id="w_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${w ? fmt(w.w) : ""}" placeholder="每件KG"></label>` : unitKg(u) ? `<div class="bf"><small>重量</small><span class="wunit">1${esc(u)}＝${fmt(unitKg(u))}公斤</span></div>` : `<button class="bf addw" data-addw="${r.id}">＋每件重量</button>`}
       </div>
-      ${priceWarn(r.id, o, p, inh)}${inh ? `<span class="pnote">灰色＝延用上次價格，有變再改</span>` : ""}${r.r != null && r.r !== r.q ? `<span class="pnote" style="color:var(--warn)">小計依實收 ${fmt(r.r)}</span>` : ""}${p != null && w ? `<span class="pnote cost">成本 <b>${fmt(Math.round(p / w.w * 10) / 10)}</b> 元/KG${w.src === "unit" ? `（1${esc(u)}＝${fmt(w.w)}公斤）` : `（共 ${fmt(Math.round(gotQty(e, o) * w.w * 10) / 10)}KG）`}</span>` : w && !p ? "" : ""}
+      ${priceWarn(r.id, o, p, inh)}${inh ? `<span class="pnote">灰色＝延用上次價格，有變再改</span>` : ""}${r.why && r.r != null && r.r !== r.q ? `<span class="rv-why">${esc(r.why)}</span>` : ""}${r.r === 0 ? `<span class="pnote">沒到貨，這項不算錢，也不用填價格</span>` : r.r != null && r.r !== r.q ? `<span class="pnote" style="color:var(--warn)">小計依實收 ${fmt(r.r)}</span>` : ""}${p != null && w ? `<span class="pnote cost">成本 <b>${fmt(Math.round(p / w.w * 10) / 10)}</b> 元/KG${w.src === "unit" ? `（1${esc(u)}＝${fmt(w.w)}公斤）` : `（共 ${fmt(Math.round(gotQty(e, o) * w.w * 10) / 10)}KG）`}</span>` : w && !p ? "" : ""}
     </div>`;
   }).join("");
   return `<div class="panel bk-p"><h3>${esc(sup().name)} ${dateLabel(S.date)} <span class="c">${st.ordered.length} 項</span><span class="c ${done === rs.length ? "ok" : "o"}">到貨 ${done}/${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}</h3>
     <div class="amt"><div><small>叫貨金額${bad.length ? "（依實收）" : ""}</small><b>${money(amt.a)}</b></div>${amt.miss ? `<span class="c o">${amt.miss} 筆未填價格</span>` : `<span class="c ok">價格都填好了</span>`}</div>
     ${(() => { let kg = 0, am = 0, n = 0; rs.forEach(r => { const e = L[r.id], p = priceOf(e, r.o), w = effWt(r.it, e, r.o); if (p != null && w) { const q = gotQty(e, r.o); kg += q * w.w; am += q * p; n++ } }); return n ? `<p class="muted" style="margin:0 0 8px">有重量的 ${n} 項：共 <b>${fmt(Math.round(kg * 10) / 10)}</b> KG，平均 <b>${fmt(Math.round(am / kg * 10) / 10)}</b> 元/KG</p>` : "" })()}
     <div class="bk-act">${done < rs.length ? `<button class="btn sm okb" id="rvAll">其餘都到齊</button>` : `<button class="btn sm" id="rvNone">取消全部到貨</button>`}${canLast ? `<button class="btn sm" id="fillLast">帶入上次價格</button>` : ""}${bad.length ? `<button class="btn sm warn" id="rvMsg">複製到貨不符通知</button>` : ""}</div>
+    ${(() => { const vs = [...new Set(rs.filter(r => r.st === "no").map(r => rvVend(r)).filter(Boolean))]; return vs.length ? `<div class="ndv"><span>整家沒來：</span>${vs.map(v => `<button data-ndv="${esc(v)}">${esc(v)}</button>`).join("")}</div>` : "" })()}
     <div class="bk-cards">${cards}</div>
     <div class="bk-tot"><span>合計${amt.miss ? `（${amt.miss} 筆未填）` : ""}</span><b>${money(amt.a)}</b></div>
   </div>`;
@@ -2893,9 +2963,8 @@ function effWt(it, e, o) {
 }
 function lastWeightFor(id, k) {
   const last = S.last || {}, a = last[`${id}|${pk(k)}`]; if (a && a.w > 0) return { w: a.w, d: a.wd };
-  const it = oById(id), sp = it ? pk(specKeyOf(it, k)) : pk(k), pre = `${id}|${sp}`; let best = null;
-  Object.entries(last).forEach(([kk, v]) => { if ((kk === pre || kk.startsWith(pre + "·")) && v && v.w > 0 && (!best || (v.wd || "") > (best.wd || ""))) best = v });
-  if (!best) Object.entries(last).forEach(([kk, v]) => { if (kk.startsWith(id + "|") && v && v.w > 0 && (!best || (v.wd || "") > (best.wd || ""))) best = v });
+  const it = oById(id), sp = it ? specKeyOf(it, k) : k; let best = null;
+  Object.entries(last).forEach(([kk, v]) => { if (v && v.w > 0 && lastKeySpec(id, kk) === (sp || "") && (!best || (v.wd || "") > (best.wd || ""))) best = v });
   return best ? { w: best.w, d: best.wd } : null;
 }
 function priceRows(it, e, last) {
@@ -2985,8 +3054,12 @@ $("#vSum").addEventListener("click", async e => {
   const aw = e.target.closest("[data-addw]"); if (aw) { (S.showWt ||= {})[aw.dataset.addw] = 1; renderSum(); setTimeout(() => { const w = document.querySelector(`#vSum .bk .win[data-pid="${aw.dataset.addw}"]`); if (w) w.focus() }, 30); return }
   const rok = e.target.closest("[data-rvok]");
   if (rok) { const l = lines()[rok.dataset.rvok]; if (l) store.setRv(S.date, S.sup, rok.dataset.rvok, rok.dataset.ro, l.vs[rok.dataset.ro]); return }
+  const rnd = e.target.closest("[data-rvnd]");
+  if (rnd) { openRvShort(rnd.dataset.rvnd, rnd.dataset.ro); return }
+  const ndv = e.target.closest("[data-ndv]");
+  if (ndv) { const v = ndv.dataset.ndv, rs = rvRows().filter(r => r.st === "no" && rvVend(r) === v); if (!rs.length) return; if (!confirm(`「${v}」今天都沒來？還沒核對的 ${rs.length} 項會標記沒到（原因：廠商沒送）`)) return; rs.forEach(r => { store.setRv(S.date, S.sup, r.id, r.o, 0); store.patchLines(S.date, S.sup, { [r.id]: { rr: { [pk(r.o)]: "廠商沒送" } } }) }); return toast(`${v}：${rs.length} 項標記沒到`) }
   const rvx = e.target.closest("[data-rvx]");
-  if (rvx) { store.setRv(S.date, S.sup, rvx.dataset.rvx, rvx.dataset.ro, null); return }
+  if (rvx) { store.setRv(S.date, S.sup, rvx.dataset.rvx, rvx.dataset.ro, null); if (rvWhy(rvx.dataset.rvx, rvx.dataset.ro)) store.patchLines(S.date, S.sup, { [rvx.dataset.rvx]: { rr: { [pk(rvx.dataset.ro)]: null } } }); return }
   if (e.target.closest("#rvNone")) { if (!confirm("取消全部的到貨核對？")) return; rvRows().filter(r => r.st !== "no").forEach(r => store.setRv(S.date, S.sup, r.id, r.o, null)); return toast("已取消到貨核對") }
   if (e.target.closest("#rvAll")) { const rs = rvRows().filter(r => r.st === "no"); rs.forEach(r => store.setRv(S.date, S.sup, r.id, r.o, r.q)); return toast(`${rs.length} 項標記到齊`) }
   if (e.target.closest("#rvMsg")) { const t = rvText(); try { await navigator.clipboard.writeText(t) } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() } return toast("已複製，貼到 LINE 傳給廠商") }
@@ -3381,7 +3454,7 @@ function histDetail(x) {
     const it = (sp && sp.items.find(i => i.id === id)) || { id, n: (e.n || id), c: "", o: Object.keys(e.vs), u: "" };
     qtyOpts(it, e).forEach(k => {
       const { spec, vend } = splitKey(it, k), p = priceOf(e, k), got = gotQty(e, k);
-      out.push({ date: x.date, sup: x.sup, c: it.c || "", n: it.n || id, spec: spec && !isUnitOpt(spec) ? spec : "", vend: vend || (e.vd && e.vd[pk(k)]) || "", q: e.vs[k], rv: rvOf(e, k), u: unitLabel(it, spec), p, a: p == null ? null : Math.round(p * got * 100) / 100 });
+      out.push({ date: x.date, sup: x.sup, c: it.c || "", n: it.n || id, spec: spec && !isUnitOpt(spec) ? spec : "", vend: vend || (e.vd && e.vd[pk(k)]) || "", q: e.vs[k], rv: rvOf(e, k), u: unitLabel(it, spec), p, a: p == null ? null : Math.round(p * got * 100) / 100, why: (e.rr && e.rr[pk(k)]) || "" });
     });
   });
   return out;
@@ -3440,8 +3513,8 @@ function histXlsx() {
   s1.push([], ["", "", "合計", "", s1.slice(1).reduce((n, x) => n + (x[4] || 0), 0)]);
   const w1 = XLSX.utils.aoa_to_sheet(s1); w1["!cols"] = [{ wch: 11 }, { wch: 5 }, { wch: 8 }, { wch: 7 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 8 }];
   XLSX.utils.book_append_sheet(wb, w1, "每日合計");
-  const s2 = [["日期", "廠商", "分類", "品名", "規格", "叫貨廠商", "叫貨數量", "實收", "單位", "單價", "小計"]];
-  rows.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(x => histDetail(x).forEach(d => s2.push([d.date, name(d.sup), d.c, d.n, d.spec, d.vend, d.q, d.rv ?? "", d.u, d.p ?? "", d.a ?? ""])));
+  const s2 = [["日期", "廠商", "分類", "品名", "規格", "叫貨廠商", "叫貨數量", "實收", "單位", "單價", "小計", "缺貨原因"]];
+  rows.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(x => histDetail(x).forEach(d => s2.push([d.date, name(d.sup), d.c, d.n, d.spec, d.vend, d.q, d.rv ?? "", d.u, d.p ?? "", d.a ?? "", d.why])));
   const w2 = XLSX.utils.aoa_to_sheet(s2); w2["!cols"] = [{ wch: 11 }, { wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 6 }, { wch: 6 }, { wch: 8 }, { wch: 10 }];
   XLSX.utils.book_append_sheet(wb, w2, "明細");
   const s3 = [["廠商", "分類", "品名", "規格", "單位", "叫貨天數", "叫貨數量", "實收數量", "平均單價", "金額"]];
