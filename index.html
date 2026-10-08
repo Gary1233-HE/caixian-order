@@ -247,6 +247,13 @@ table.pc-t td b{font-family:var(--mono);font-size:17px}
 .bk-b .card.np .pin,.np .pin{border-color:#F2C58E;background:#FFFAF3}
 .bk-b .rv-btn,.bk-b .rv-t{width:100%;height:40px;border-radius:9px;font-size:13px}
 .bk-b .rv-btn{border:1.5px solid var(--ok);color:var(--ok);background:#fff;font-weight:900}
+.bk-q{display:flex;align-items:center;gap:6px;margin-top:8px}.bk-q>small{font-size:12px;color:var(--muted);font-weight:700;width:28px;flex:none}
+.bk-q .qb{width:44px;height:44px;flex:none;border-radius:11px;background:var(--bg);border:1px solid var(--line);font-size:24px;font-weight:900;line-height:1}.bk-q .qb:disabled{opacity:.35}
+.bk-q .qv{min-width:64px;height:44px;flex:none;border-radius:11px;border:2px solid var(--line);background:#fff;font-family:var(--mono);font-size:20px;font-weight:900;padding:0 6px}.bk-q .qv small{font-size:11px;font-weight:700;color:var(--muted);margin-left:2px}.bk-q .qv.pend{border-color:var(--low);color:var(--low);background:#FFFAF0}
+.bk-q .rv-ok2,.bk-q .rv-cf,.bk-q .rv-t{flex:1;min-width:0;height:44px;border-radius:11px;font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+.bk-q .rv-ok2{border:1.5px solid var(--ok);color:var(--ok);background:#fff}
+.bk-q .rv-cf{border:none;background:var(--low);color:#fff;line-height:1.1}.bk-q .rv-cf small{display:block;font-size:11px;font-weight:700;opacity:.9}
+.bk-b.two{grid-template-columns:1fr 1fr}
 .bk-b .rv2{display:flex;gap:4px}.bk-b .rv2 .rv-btn{flex:1.3;white-space:nowrap;padding:0;font-size:12.5px}.bk-b .rv2 .rv-nd{white-space:nowrap}.bk-b .rv-nd{flex:1;height:40px;border-radius:9px;border:1.5px solid #C9CED6;color:#5B6573;background:#fff;font-size:12px;font-weight:900;padding:0}
 .rv-t.nd{background:#E7EAEE;color:#3A4350}
 .rs-q,.rs-r{padding:12px 4px;border-bottom:1px solid var(--line)}.rs-q small,.rs-r small{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
@@ -331,7 +338,7 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 /* ===== 下訂頁新版型 ===== */
 .cbar{position:sticky;top:var(--tabs-top,96px);z-index:16;background:var(--bg);padding:8px 2px 6px;margin:0 -2px}
 .cbar-r{display:flex;gap:8px;align-items:center}
-.cbar-r input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px;background:#fff}
+.cbar-r input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:16px;background:#fff}
 .seg.cv{display:flex;flex:none;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px}.seg.cv button{padding:7px 10px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted)}.seg.cv button.on{background:var(--ink);color:#fff}
 .cchips{display:flex;gap:6px;overflow-x:auto;margin-top:8px;scrollbar-width:none}.cchips::-webkit-scrollbar{display:none}
 .cc{flex:none;border:1px solid var(--line);border-radius:999px;padding:6px 11px;font-size:13px;font-weight:700;background:#fff}.cc b{font-family:var(--mono);margin-left:5px}
@@ -365,6 +372,10 @@ table.bk-t tr.tot .r{font-size:18px;font-family:var(--mono)}
 .r2m{flex:none;width:30px;height:32px;color:var(--muted);font-size:16px}
 .r2w{padding:0 12px 6px 50px;font-size:12px;color:var(--warn);font-weight:700}
 .r2d{padding:2px 12px 10px 50px;background:#FAFBFC}
+.r2q{display:flex;align-items:center;gap:8px;padding:8px 0 10px}.r2q>span{font-size:13px;color:var(--muted);font-weight:700;margin-right:2px}
+.r2q .qb{width:46px;height:44px;border-radius:11px;background:var(--bg);border:1px solid var(--line);font-size:24px;font-weight:900;line-height:1}
+.r2q .qv{min-width:72px;height:44px;border-radius:11px;border:2px solid var(--ink);background:#fff;font-family:var(--mono);font-size:20px;font-weight:900;padding:0 8px}.r2q .qv small{font-family:var(--sans,inherit);font-size:12px;font-weight:700;color:var(--muted);margin-left:2px}
+.r2q .qdel{margin-left:auto;height:44px;padding:0 14px;border-radius:11px;border:1.5px solid #F0C4BE;background:#FFF6F4;color:var(--warn);font-weight:900;font-size:14px}
 .gdone{display:flex;align-items:center;gap:8px;padding:0 12px 0 0;border-top:1px solid var(--line);background:var(--okbg)}
 .gdone button:first-child{flex:1;text-align:left;padding:9px 12px;font-size:13px;font-weight:700;color:var(--ok)}
 .gdone .gu{font-size:12px;font-weight:700;color:var(--warn);border:1px solid #F0C4BE;border-radius:8px;padding:5px 9px;background:#fff}
@@ -1634,6 +1645,7 @@ function ensureSeed() {
   store.saveOrdCfg(cfg).catch(e => { seeded = false; err(e) });
 }
 function openOrder() {
+  S.rvDraft = {};
   S.unsub.forEach(f => typeof f === "function" && f()); S.unsub = [];
   S.ord = null; S.invDay = null; S.prev = null;
   const d = S.date, s = S.sup;
@@ -2145,6 +2157,7 @@ function setAllocs(r, allocs) {
   const merged = {};
   allocs.forEach(a => { const v = (a.v || "").trim(); if (a.q > 0) merged[v] = (merged[v] || 0) + a.q });
   Object.entries(merged).forEach(([v, q]) => { vs[vkey(r.spec, v)] = q });
+  if (!Object.values(vs).some(q => q > 0)) { store.setLine(S.date, S.sup, it.id, null); return }   /* 全部刪光 → 移除這個品項 */
   const ne = mkEntry(it, vs);
   /* 原本沒分廠商時填的價格／重量，搬到新的 key */
   const base = pk(r.spec), op = (e.p || {})[base], ow = (e.wt || {})[base];
@@ -2153,6 +2166,14 @@ function setAllocs(r, allocs) {
   if (ne.vd) { Object.keys(ne.vd).forEach(k => { if (k.includes("·")) delete ne.vd[k] }); if (!Object.keys(ne.vd).length) delete ne.vd }
   store.setLine(S.date, S.sup, it.id, ne);
   Object.keys(merged).forEach(v => { if (v) rememberVendor(r, v) });
+}
+/* 下訂頁直接改某一家的數量；0＝刪掉這一家，整個品項都沒了就從叫貨單移除 */
+function cartSetQty(r, ai, nq) {
+  const al = r.allocs.map(a => ({ v: a.v, q: a.q }));
+  if (nq > 0) al[ai].q = nq; else al.splice(ai, 1);
+  if (nq <= 0 && S.cOpen) delete S.cOpen[`${r.key}#${ai}`];
+  setAllocs(r, al);
+  toast(nq > 0 ? `${r.n} 改成 ${fmt(nq)}${r.u || ""}` : `已刪除 ${r.n}${r.lab ? " " + r.lab : ""}`);
 }
 function rememberVendor(r, v) {
   store.setLastPrice(S.sup, r.key, { v });
@@ -2228,18 +2249,19 @@ function crowHtml(en, mode) {
     </div>
     ${a.st === "chg" ? `<div class="r2w">原本訂「${esc(a.ck.q)}」，數量有改，要再確認</div>` : ""}${warn ? `<div class="r2w">${warn}</div>` : ""}
     ${open ? `<div class="r2d">
+      <div class="r2q"><span>數量</span><button class="qb" data-qd="-1" data-qid="${esc(id)}" aria-label="減一">−</button><button class="qv" data-qn="${esc(id)}">${fmt(a.q)}<small>${esc(r.u || "")}</small></button><button class="qb" data-qd="1" data-qid="${esc(id)}" aria-label="加一">＋</button><button class="qdel" data-qdel="${esc(id)}">刪除</button></div>
       <div class="al">
         <input class="vin${a.inh ? " inh" : ""}" id="vd_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" value="${esc(a.v)}" placeholder="點一下，選廠商" autocomplete="off" aria-label="${esc(r.n)} 廠商" readonly>
         ${unitKg(r.u) ? `<span class="apw aw"><small>1${esc(r.u)}＝${fmt(unitKg(r.u))}公斤</small></span>` : `<span class="apw aw"><input class="awin${a.winh ? " inh" : ""}" id="wt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.w == null ? "" : fmt(a.w)}" placeholder="每件KG" aria-label="${esc(r.n)} 每件重量"><small>KG/${esc(r.u || "件")}</small></span>`}
       </div>${a.inh ? `<div class="al-note">延用上次的廠商</div>` : ""}
       ${multi ? `<div class="al-note">這項分給 ${r.allocs.length} 家：${r.allocs.map(x => `${esc(x.v || "未指定")} ${fmt(x.q)}${esc(r.u || "")}`).join("、")}</div>` : ""}
-      <div class="r2a"><button class="btn sp" data-split="${esc(r.key)}">${multi ? "調整分給哪幾家" : "分給多家廠商"}…</button><button class="btn" data-go="${r.id}">改數量</button></div>
+      <div class="r2a"><button class="btn sp" data-split="${esc(r.key)}">${multi ? "調整分給哪幾家" : "分給多家廠商"}…</button><button class="btn" data-go="${r.id}">鍵盤改</button></div>
     </div>` : ""}
   </div>`;
 }
 function renderCart() {
   const el = $("#vCart"), sy = window.scrollY;
-  const ae = document.activeElement, keep = ae && ae.id && el.contains(ae) && ae.tagName === "INPUT" ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
+  const ae = document.activeElement, keep = ae && ae.id && el.contains(ae) && ae.tagName === "INPUT" && ae.id !== "cq" ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
   const rs = cartItems();
   if (!rs.length) { el.innerHTML = `<div class="empty">還沒有叫貨品項。到「叫貨」輸入數量後，這裡會變成下訂清單。</div>`; return }
   S.cOpen ||= {}; S.cDone ||= {};
@@ -2279,14 +2301,13 @@ function renderCart() {
       return `<div class="vg"><div class="vg-h"><div class="vg-t"><span class="cdot" style="background:${catColor(cat)}"></span><b>${esc(cat)}</b><span class="vg-n">${okn}/${all.length} 已訂</span></div></div>${rowsOf(list, "c:" + cat)}</div>`;
     }).join("");
   }
-  el.innerHTML = `${noteVal().trim() ? `<button class="cnote" id="cNote"><b>📝 備註</b>${esc(noteVal())}<small>點一下編輯，會附在複製給廠商的文字最後</small></button>` : ""}<div class="panel ${done ? "fin" : ""} cart-top"><div><small>已下訂</small><b>${ok} / ${rs.length}</b>${chgN ? `<span class="c o">${chgN} 項數量有改</span>` : ""}</div>
-    ${done ? `<button class="btn sm" id="cAllNo">全部取消</button>` : `<button class="btn sm okb" id="cAllOk">全部已下訂</button>`}</div>
-  <div class="cbar">
-    <div class="cbar-r"><input type="search" id="cq" placeholder="搜尋品項或廠商" value="${esc(S.cq || "")}" autocomplete="off"><div class="seg cv"><button data-cv="vend" class="${mode === "vend" ? "on" : ""}">依廠商</button><button data-cv="cat" class="${mode === "cat" ? "on" : ""}">依分類</button></div></div>
-    <div class="cchips">${chip("no", "未訂", cnt.no, "o")}${chip("ok", "已訂", cnt.ok, "g")}${chip("nov", "沒廠商", cnt.nov, "o")}${chip("nop", "沒價格", cnt.nop, "o")}${chip("chg", "數量有改", cnt.chg, "b")}${f ? `<button class="cc clr" data-cf="">看全部</button>` : ""}</div>
-  </div>
-  <p class="muted" style="margin:2px 2px 8px">點品名或「⋯」展開改廠商、重量、分給另一家。打勾後會收到「已訂」，點一下可以再打開。價格不知道可以先空著，之後在「到貨」頁補。</p>
-  ${groups || `<div class="empty">沒有符合的品項</div>`}`;
+  if (!$("#cq") || !el.contains($("#cq"))) el.innerHTML = `<div id="cTop"></div><div class="cbar"><div class="cbar-r"><input type="search" id="cq" placeholder="搜尋品項或廠商" value="${esc(S.cq || "")}" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"><div class="seg cv" id="cSeg"></div></div><div class="cchips" id="cChips"></div></div><div id="cBody"></div>`;
+  $("#cTop").innerHTML = `${noteVal().trim() ? `<button class="cnote" id="cNote"><b>📝 備註</b>${esc(noteVal())}<small>點一下編輯，會附在複製給廠商的文字最後</small></button>` : ""}<div class="panel ${done ? "fin" : ""} cart-top"><div><small>已下訂</small><b>${ok} / ${rs.length}</b>${chgN ? `<span class="c o">${chgN} 項數量有改</span>` : ""}</div>
+    ${done ? `<button class="btn sm" id="cAllNo">全部取消</button>` : `<button class="btn sm okb" id="cAllOk">全部已下訂</button>`}</div>`;
+  $("#cSeg").innerHTML = `<button data-cv="vend" class="${mode === "vend" ? "on" : ""}">依廠商</button><button data-cv="cat" class="${mode === "cat" ? "on" : ""}">依分類</button>`;
+  $("#cChips").innerHTML = `${chip("no", "未訂", cnt.no, "o")}${chip("ok", "已訂", cnt.ok, "g")}${chip("nov", "沒廠商", cnt.nov, "o")}${chip("nop", "沒價格", cnt.nop, "o")}${chip("chg", "數量有改", cnt.chg, "b")}${f ? `<button class="cc clr" data-cf="">看全部</button>` : ""}`;
+  $("#cBody").innerHTML = `<p class="muted" style="margin:2px 2px 8px">點品名或「⋯」展開：加減數量、刪除、改廠商、重量、分給另一家。打勾後會收到「已訂」，點一下可以再打開。價格不知道可以先空著，之後在「到貨」頁補。</p>
+  ${groups || `<div class="empty">${S.cq ? `找不到「${esc(S.cq)}」` : "沒有符合的品項"}</div>`}`;
   if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; S.refocus = true; t.focus({ preventScroll: true }); S.refocus = false; try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
   if (Math.abs(window.scrollY - sy) > 2) window.scrollTo(0, sy);   /* 重畫後回到原本的位置 */
 }
@@ -2302,6 +2323,18 @@ $("#vCart").addEventListener("click", async e => {
   const cfb = t.closest("[data-cf]"); if (cfb) { S.cf = S.cf === cfb.dataset.cf ? "" : cfb.dataset.cf; renderCart(); return }
   const gd = t.closest("[data-gdone]"); if (gd) { S.cDone ||= {}; S.cDone[gd.dataset.gdone] = gd.dataset.open !== "1"; renderCart(); return }
   const sp = t.closest("[data-split]"); if (sp) { openSplit(sp.dataset.split); return }
+  const qd = t.closest("[data-qd]"), qn = t.closest("[data-qn]"), qx = t.closest("[data-qdel]");
+  if (qd || qn || qx) {
+    if (needMe()) return;
+    const id = (qd && qd.dataset.qid) || (qn && qn.dataset.qn) || qx.dataset.qdel, k = id.lastIndexOf("#"), r = byKey(id.slice(0, k)), ai = +id.slice(k + 1);
+    if (!r || !r.allocs[ai]) return; const a = r.allocs[ai], nm = `${r.n}${r.lab ? " " + r.lab : ""}${a.v ? "（" + a.v + "）" : ""}`;
+    let nq;
+    if (qd) nq = Math.round((a.q + +qd.dataset.qd) * 100) / 100;
+    else if (qn) { const tx = await askText(`${nm} 改成幾${r.u || ""}？`, fmt(a.q)); if (tx === "" || tx == null) return; nq = Math.round(+String(tx).replace(/[,，]/g, "") * 100) / 100; if (isNaN(nq) || nq < 0) return toast("數量格式不對") }
+    else nq = 0;
+    if (nq <= 0 && !confirm(`刪除「${nm} ${fmt(a.q)}${r.u || ""}」？`)) return;
+    cartSetQty(r, ai, nq); return;
+  }
   if (t.closest("[data-addno]")) { S.cartSplit = null; renderCart(); return }
   const ad = t.closest("[data-addok]");
   if (ad) {
@@ -2330,7 +2363,11 @@ $("#vCart").addEventListener("click", async e => {
   if (t.closest("#cAllOk")) { if (needMe()) return; setCk(rs(), true); return toast("全部標記已下訂") }
   if (t.closest("#cAllNo")) { if (!confirm("取消全部的下訂確認？")) return; setCk(rs(), false); return }
 });
-$("#vCart").addEventListener("input", e => { if (e.target.id === "cq") { S.cq = e.target.value; renderCart() } });
+/* 搜尋：打字時只重畫下面的清單，輸入框本身不重畫；注音／拼音還在選字時先不篩選，不會卡字 */
+let cqT = 0, cqIme = false;
+$("#vCart").addEventListener("compositionstart", e => { if (e.target.id === "cq") cqIme = true });
+$("#vCart").addEventListener("compositionend", e => { if (e.target.id === "cq") { cqIme = false; S.cq = e.target.value; clearTimeout(cqT); cqT = setTimeout(renderCart, 60) } });
+$("#vCart").addEventListener("input", e => { if (e.target.id !== "cq" || cqIme || e.isComposing) return; S.cq = e.target.value; clearTimeout(cqT); cqT = setTimeout(renderCart, 180) });
 $("#vCart").addEventListener("change", e => {
   const t = e.target; if (!t.dataset || t.dataset.ri == null) return;
   const r = cartItems().find(x => x.key === t.dataset.ri); if (!r) return;
@@ -2478,7 +2515,7 @@ function cbMove(d) {
 $("#vCart").addEventListener("focusin", e => { if (S.refocus) return; const t = e.target; if (t.matches("input") && t.id !== "cq" && t !== CB.el) { t.blur(); cbOpen(t) } });
 $("#cbIn").addEventListener("input", e => { if (!cbLive()) return; if (!(CB.el.classList.contains("vin") && !e.target.value)) CB.el.value = e.target.value; cbChips() });
 $("#cbIn").addEventListener("focus", () => { if (CB.el && CB.el.classList.contains("vin")) $("#cbIn").select() });
-$("#cbIn").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); cbMove(1) } else if (e.key === "Escape") cbClose() });
+$("#cbIn").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === "ArrowDown") { e.preventDefault(); cbMove(1) } else if (e.key === "ArrowUp") { e.preventDefault(); cbMove(-1) } else if (e.key === "Escape") cbClose() });
 $("#cbChips").addEventListener("click", e => { const b = e.target.closest("[data-cbv]"); if (!b || !CB.el) return; $("#cbIn").value = CB.el.value = b.dataset.cbv; cbMove(1) });
 $("#cbPrev").onclick = () => cbMove(-1); $("#cbNext").onclick = () => cbMove(1); $("#cbOk").onclick = cbClose;
 document.addEventListener("pointerdown", e => { if (CB.el && !e.target.closest("#cartEdit") && !e.target.closest("#vCart input:not(#cq)")) cbClose() });
@@ -2496,9 +2533,9 @@ function rvRows() {
 }
 /* ===== 缺貨／少送：填實際到貨數量＋原因（產地缺貨、廠商沒送…） ===== */
 const RS = { id: "", o: "", q: 0, got: 0, why: "" };
-function openRvShort(id, o) {
+function openRvShort(id, o, got) {
   const r = rvRows().find(x => x.id === id && x.o === o); if (!r) return;
-  Object.assign(RS, { id, o, q: r.q, got: r.r != null && r.r < r.q ? r.r : Math.max(0, r.q - 1), why: r.why || "產地缺貨", u: r.u || "" });
+  Object.assign(RS, { id, o, q: r.q, got: got != null ? got : r.r != null && r.r < r.q ? r.r : Math.max(0, r.q - 1), why: r.why || "產地缺貨", u: r.u || "" });
   $("#rsTitle").textContent = `${r.n}${r.lab ? " " + r.lab : ""}`; $("#rsSub").textContent = `叫 ${fmt(r.q)}${r.u || ""}`; $("#rsU").textContent = r.u || "";
   $("#rsClear").classList.toggle("hide", r.r == null);
   renderRvShort(); $("#rvSheet").classList.add("show"); $("#scrim").classList.add("show");
@@ -2515,8 +2552,9 @@ $("#rvSheet").addEventListener("click", async e => {
   if (e.target.closest("#rsQ")) { const t = await askText(`實際到貨幾${RS.u}？`, String(RS.got)); const n = Math.round(+String(t).replace(/[,，]/g, "") * 100) / 100; if (t !== "" && n >= 0 && !isNaN(n)) RS.got = n; return renderRvShort() }
   if (e.target.closest("#rsAll0")) { RS.got = 0; return renderRvShort() }
   if (e.target.closest("#rsClose")) return closeRvShort();
-  if (e.target.closest("#rsClear")) { store.setRv(S.date, S.sup, RS.id, RS.o, null); store.patchLines(S.date, S.sup, { [RS.id]: { rr: { [pk(RS.o)]: null } } }); closeRvShort(); return toast("已取消核對") }
+  if (e.target.closest("#rsClear")) { if (S.rvDraft) delete S.rvDraft[`${RS.id}|${pk(RS.o)}`]; store.setRv(S.date, S.sup, RS.id, RS.o, null); store.patchLines(S.date, S.sup, { [RS.id]: { rr: { [pk(RS.o)]: null } } }); closeRvShort(); return toast("已取消核對") }
   if (e.target.closest("#rsOk")) {
+    if (S.rvDraft) delete S.rvDraft[`${RS.id}|${pk(RS.o)}`];
     store.setRv(S.date, S.sup, RS.id, RS.o, RS.got);
     store.patchLines(S.date, S.sup, { [RS.id]: { rr: { [pk(RS.o)]: RS.got < RS.q ? RS.why : null } } });
     closeRvShort(); toast(RS.got === 0 ? `已標記沒到・${RS.why}` : `實收 ${fmt(RS.got)}${RS.u}・${RS.why}`);
@@ -2529,7 +2567,7 @@ function rvPanel() {
   const done = rs.filter(r => r.st !== "no").length, bad = rs.filter(r => r.st === "short" || r.st === "over");
   let cat = "";
   return `<div class="panel rv-p${done === rs.length && !bad.length ? " fin" : ""}"><h3>到貨核對 <span class="c ${done === rs.length ? "ok" : "o"}">${done} / ${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}${done < rs.length ? `<button class="btn sm r" id="rvAll">其餘都到齊</button>` : `<button class="btn sm r" id="rvNone">全部取消</button>`}</h3>
-    <p class="muted" style="margin:0 0 8px">貨到了點 ✓＝到齊；產地缺貨、少送或沒送點「缺/少」，填實際到的數量和原因；也可以直接在「實收」改數量。點「到齊 ✕」可以取消。金額和預估用量會用實收計算。</p>
+    <p class="muted" style="margin:0 0 8px">貨到了點 ✓＝到齊；數量不對用 −／＋ 調實收，再按「確認實收」，少的要選原因（產地缺貨等）。點「到齊 ✕」可以取消。金額和預估用量會用實收計算。</p>
     <table class="t rt"><tr><th>品項</th><th class="r">叫</th><th class="r">實收</th><th></th></tr>
     ${rs.map(r => { const h = r.cat !== cat ? `<tr class="ch" style="--cc:${catColor(r.cat)};--ct:${catTint(r.cat)}"><td colspan="4">${esc(r.cat)}</td></tr>` : ""; cat = r.cat;
       return h + `<tr class="rv-${r.st}"><td>${r.first ? esc(r.n) : ""}${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}</td><td class="r">${fmt(r.q)}<small>${esc(r.u)}</small></td>
@@ -2868,12 +2906,17 @@ function bookPanel(amt, canLast) {
   const cards = rs.map(r => {
     const it = r.it, e = L[r.id], o = r.o, p = priceOf(e, o), inh = !!(e.pi || {})[pk(o)], w = effWt(it, e, o), u = r.u, showW = needWt(it, e, o);
     const h = r.cat !== cat ? `<div class="sub-cat" style="--cc:${catColor(r.cat)}">${esc(r.cat)}</div>` : ""; cat = r.cat;
-    const stb = r.st === "no" ? `<div class="rv2"><button class="rv-btn" data-rvok="${r.id}" data-ro="${esc(o)}">✓到齊</button><button class="rv-nd" data-rvnd="${r.id}" data-ro="${esc(o)}">缺/少</button></div>` : r.st === "short" ? `<button class="rv-t ${rvCls(r)}" data-rvnd="${r.id}" data-ro="${esc(o)}" title="點一下修改">${rvLab(r)} ✎</button>` : `<button class="rv-t ${rvCls(r)}" data-rvx="${r.id}" data-ro="${esc(o)}" title="點一下取消">${rvLab(r)} ✕</button>`;
+    /* 實收：−／＋ 調數量，再按確認。數量跟叫的不一樣就不能按「到齊」，要按「確認實收」 */
+    const dk = `${r.id}|${pk(o)}`, dv = (S.rvDraft || {})[dk], base = r.r != null ? r.r : r.q, val = dv != null ? dv : base, pend = dv != null && dv !== base, diff = Math.round((val - r.q) * 100) / 100;
+    const at = `data-rid="${r.id}" data-ro="${esc(o)}"`;
+    const stb = pend || (r.r == null && val !== r.q) ? `<button class="rv-cf" data-rvcf ${at}>確認實收 ${fmt(val)}<small>${diff < 0 ? `少${fmt(-diff)}` : diff > 0 ? `多${fmt(diff)}` : "＝叫的數量"}</small></button>`
+      : r.r == null ? `<button class="rv-ok2" data-rvok="${r.id}" data-ro="${esc(o)}">✓ 到齊</button>`
+      : r.st === "short" ? `<button class="rv-t ${rvCls(r)}" data-rvnd="${r.id}" data-ro="${esc(o)}" title="點一下修改">${rvLab(r)}${r.why ? "・" + esc(r.why) : ""} ✎</button>` : `<button class="rv-t ${rvCls(r)}" data-rvx="${r.id}" data-ro="${esc(o)}" title="點一下取消">${rvLab(r)} ✕</button>`;
+    const qrow = `<div class="bk-q"><small>實收</small><button class="qb" data-rq="-1" ${at} aria-label="減一"${val <= 0 ? " disabled" : ""}>−</button><button class="qv${pend ? " pend" : ""}" data-rqn ${at}>${fmt(val)}<small>${esc(u)}</small></button><button class="qb" data-rq="1" ${at} aria-label="加一">＋</button>${stb}</div>`;
     return h + `<div class="bk card rv-${r.r === 0 ? "nd" : r.st}${p == null && r.r !== 0 ? " np" : ""}">
       <div class="bk-h"><span class="bn" data-go="${r.id}">${esc(r.n)}${r.lab ? `<span class="spec">${esc(r.lab)}</span>` : ""}</span><span class="bq">叫 ${fmt(r.q)}<small>${esc(u)}</small></span><span class="bs">${p == null ? `<span class="muted">—</span>` : money(p * gotQty(e, o))}</span></div>
-      <div class="bk-b">
-        <div class="bf">${stb}</div>
-        <label class="bf"><small>實收</small><input class="rin" id="r_${r.id}_${esc(pk(o))}" data-rid="${r.id}" data-ro="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${r.r == null ? "" : fmt(r.r)}" placeholder="${fmt(r.q)}"></label>
+      ${qrow}
+      <div class="bk-b two">
         <label class="bf"><small>單價/${esc(u || "件")}</small><input class="pin${inh ? " inh" : ""}" id="p_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="單價"></label>
         ${showW ? `<label class="bf"><small>每件重量KG</small><input class="win${w && w.src !== "today" ? " inh" : ""}" id="w_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${w ? fmt(w.w) : ""}" placeholder="每件KG"></label>` : unitKg(u) ? `<div class="bf"><small>重量</small><span class="wunit">1${esc(u)}＝${fmt(unitKg(u))}公斤</span></div>` : `<button class="bf addw" data-addw="${r.id}">＋每件重量</button>`}
       </div>
@@ -3013,24 +3056,45 @@ $("#vSum").addEventListener("keydown", e => {
   if (isP) savePrice(cur); else if (isW) saveWt(cur); else saveRv(cur);
   setTimeout(() => { const t = nxId && document.getElementById(nxId); if (t) t.focus() }, 0);
 });
-/* 方向鍵跳格：↑↓ 同一欄上下列；←→ 同一列的實收／單價／重量（游標在最前或最後、或整格選取時才跳） */
-$("#vSum").addEventListener("keydown", e => {
-  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
-  const t = e.target; if (!t.matches || !t.matches(".bk input")) return;
-  const tr = t.closest(".bk"), rows = [...document.querySelectorAll("#vSum .bk")], ri = rows.indexOf(tr);
-  const cols = r => [...r.querySelectorAll(".rin,.pin,.win")], ci = cols(tr).indexOf(t);
-  const all = t.selectionStart === 0 && t.selectionEnd === t.value.length;
-  let nx = null;
-  if (e.key === "ArrowUp" && rows[ri - 1]) nx = cols(rows[ri - 1])[ci];
-  else if (e.key === "ArrowDown" && rows[ri + 1]) nx = cols(rows[ri + 1])[ci];
-  else if (e.key === "ArrowLeft" && (all || t.selectionStart === 0)) nx = cols(tr)[ci - 1] || (rows[ri - 1] && cols(rows[ri - 1]).slice(-1)[0]);
-  else if (e.key === "ArrowRight" && (all || t.selectionEnd === t.value.length)) nx = cols(tr)[ci + 1] || (rows[ri + 1] && cols(rows[ri + 1])[0]);
-  if (!nx) return;
-  e.preventDefault();
-  const id = nx.id; t.blur();   /* 離開這格時會自動存檔 */
-  setTimeout(() => { const n = document.getElementById(id); if (n) n.focus() }, 0);
+/* ===== 全部輸入格：點進去整格反白，直接打就取代；方向鍵跳格（像 Excel） =====
+   ↑↓：上一列／下一列最靠近的那格；←→：游標在最前／最後、或整格反白時，跳到左右那格 */
+const NAV_SKIP = "#cq,#vCart input,[type=search],[type=date],[type=month],[type=checkbox],[type=radio],[type=file],[readonly],[disabled]";
+const navOk = el => el && el.matches && el.matches("input") && !el.matches(NAV_SKIP);
+let navJust = null;
+document.addEventListener("focusin", e => { const t = e.target; if (!navOk(t)) return; navJust = t; setTimeout(() => { if (document.activeElement === t) try { t.select() } catch {} }, 0); setTimeout(() => { if (navJust === t) navJust = null }, 600) });
+/* 滑鼠點進去時，放開滑鼠會把反白取消 → 擋掉這一次 */
+document.addEventListener("mouseup", e => { if (navJust && e.target === navJust) { e.preventDefault(); try { navJust.select() } catch {} } navJust = null }, true);
+function navTargets(t) {
+  const root = t.closest(".sheet,.bigedit,main") || document.body;
+  return [...root.querySelectorAll("input")].filter(x => navOk(x) && x.offsetParent !== null);
+}
+function navFind(t, key) {
+  const list = navTargets(t), r0 = t.getBoundingClientRect(), cx = r0.left + r0.width / 2, cy = r0.top + r0.height / 2;
+  const box = x => { const r = x.getBoundingClientRect(); return { x, cx: r.left + r.width / 2, cy: r.top + r.height / 2, top: r.top, bot: r.bottom, h: r.height } };
+  const all = list.filter(x => x !== t).map(box);
+  if (key === "ArrowUp" || key === "ArrowDown") {
+    const dn = key === "ArrowDown", c = all.filter(b => dn ? b.top >= r0.bottom - 4 : b.bot <= r0.top + 4);
+    if (!c.length) return null;
+    const rowY = dn ? Math.min(...c.map(b => b.top)) : Math.max(...c.map(b => b.bot));
+    const row = c.filter(b => dn ? b.top - rowY < 24 : rowY - b.bot < 24);
+    return row.sort((a, b) => Math.abs(a.cx - cx) - Math.abs(b.cx - cx))[0].x;
+  }
+  const rt = key === "ArrowRight", same = all.filter(b => Math.abs(b.cy - cy) < Math.max(12, r0.height / 2) && (rt ? b.cx > cx : b.cx < cx));
+  if (same.length) return same.sort((a, b) => Math.abs(a.cx - cx) - Math.abs(b.cx - cx))[0].x;
+  const i = list.indexOf(t); return list[i + (rt ? 1 : -1)] || null;   /* 這一列沒有了 → 下一列第一格／上一列最後一格 */
+}
+document.addEventListener("keydown", e => {
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key) || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+  const t = e.target; if (!navOk(t) || S.kp) return;
+  if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+    let ss = null, se = null; try { ss = t.selectionStart; se = t.selectionEnd } catch {}
+    const whole = ss == null || (ss === 0 && se === t.value.length);
+    if (!whole && !(e.key === "ArrowLeft" ? ss === 0 && se === 0 : ss === t.value.length)) return;   /* 游標在中間：照常左右移動 */
+  }
+  const nx = navFind(t, e.key); e.preventDefault(); if (!nx) return;
+  const id = nx.id; t.blur();   /* 離開這格會自動存檔，畫面可能重畫，用 id 找回新的那格 */
+  setTimeout(() => { const n = (id && document.getElementById(id)) || nx; if (n && document.contains(n)) { n.focus(); try { n.select() } catch {} } }, 0);
 });
-/* 點進價格／實收格時全選；畫面重畫後自動還原焦點時不要全選，免得打到一半被蓋掉 */
 $("#vSum").addEventListener("focusin", e => {
   if (S.refocus) return;
   if (e.target.matches(".pin,.win,.rin,#note")) {
@@ -3053,15 +3117,35 @@ $("#vSum").addEventListener("click", async e => {
   if (e.target.closest("#fillAll")) return fillSuggest(oItems());
   const aw = e.target.closest("[data-addw]"); if (aw) { (S.showWt ||= {})[aw.dataset.addw] = 1; renderSum(); setTimeout(() => { const w = document.querySelector(`#vSum .bk .win[data-pid="${aw.dataset.addw}"]`); if (w) w.focus() }, 30); return }
   const rok = e.target.closest("[data-rvok]");
-  if (rok) { const l = lines()[rok.dataset.rvok]; if (l) store.setRv(S.date, S.sup, rok.dataset.rvok, rok.dataset.ro, l.vs[rok.dataset.ro]); return }
+  if (rok) { const l = lines()[rok.dataset.rvok]; if (l) { if (S.rvDraft) delete S.rvDraft[`${rok.dataset.rvok}|${pk(rok.dataset.ro)}`]; store.setRv(S.date, S.sup, rok.dataset.rvok, rok.dataset.ro, l.vs[rok.dataset.ro]) } return }
+  const rq = e.target.closest("[data-rq],[data-rqn]");
+  if (rq) {
+    const id = rq.dataset.rid, o = rq.dataset.ro, r = rvRows().find(x => x.id === id && x.o === o); if (!r) return;
+    const dk = `${id}|${pk(o)}`, base = r.r != null ? r.r : r.q; S.rvDraft ||= {};
+    const cur = S.rvDraft[dk] != null ? S.rvDraft[dk] : base;
+    let nv;
+    if (rq.dataset.rq) nv = Math.max(0, Math.round((cur + +rq.dataset.rq) * 100) / 100);
+    else { const t = await askText(`${r.n}${r.lab ? " " + r.lab : ""} 實收幾${r.u || ""}？（叫 ${fmt(r.q)}）`, fmt(cur)); if (t === "" || t == null) return; nv = Math.round(+String(t).replace(/[,，]/g, "") * 100) / 100; if (isNaN(nv) || nv < 0) return toast("數量格式不對") }
+    if (nv === base) delete S.rvDraft[dk]; else S.rvDraft[dk] = nv;
+    renderSum(); return;
+  }
+  const rcf = e.target.closest("[data-rvcf]");
+  if (rcf) {
+    const id = rcf.dataset.rid, o = rcf.dataset.ro, r = rvRows().find(x => x.id === id && x.o === o); if (!r) return;
+    const dk = `${id}|${pk(o)}`, v = (S.rvDraft || {})[dk] != null ? S.rvDraft[dk] : r.q;
+    if (v < r.q) { openRvShort(id, o, v); return }   /* 少了 → 選原因（產地缺貨…） */
+    delete S.rvDraft[dk]; store.setRv(S.date, S.sup, id, o, v);
+    if (r.why) store.patchLines(S.date, S.sup, { [id]: { rr: { [pk(o)]: null } } });
+    return toast(v === r.q ? "到齊" : `實收 ${fmt(v)}${r.u}（多${fmt(v - r.q)}）`);
+  }
   const rnd = e.target.closest("[data-rvnd]");
   if (rnd) { openRvShort(rnd.dataset.rvnd, rnd.dataset.ro); return }
   const ndv = e.target.closest("[data-ndv]");
   if (ndv) { const v = ndv.dataset.ndv, rs = rvRows().filter(r => r.st === "no" && rvVend(r) === v); if (!rs.length) return; if (!confirm(`「${v}」今天都沒來？還沒核對的 ${rs.length} 項會標記沒到（原因：廠商沒送）`)) return; rs.forEach(r => { store.setRv(S.date, S.sup, r.id, r.o, 0); store.patchLines(S.date, S.sup, { [r.id]: { rr: { [pk(r.o)]: "廠商沒送" } } }) }); return toast(`${v}：${rs.length} 項標記沒到`) }
   const rvx = e.target.closest("[data-rvx]");
-  if (rvx) { store.setRv(S.date, S.sup, rvx.dataset.rvx, rvx.dataset.ro, null); if (rvWhy(rvx.dataset.rvx, rvx.dataset.ro)) store.patchLines(S.date, S.sup, { [rvx.dataset.rvx]: { rr: { [pk(rvx.dataset.ro)]: null } } }); return }
+  if (rvx) { if (S.rvDraft) delete S.rvDraft[`${rvx.dataset.rvx}|${pk(rvx.dataset.ro)}`]; store.setRv(S.date, S.sup, rvx.dataset.rvx, rvx.dataset.ro, null); if (rvWhy(rvx.dataset.rvx, rvx.dataset.ro)) store.patchLines(S.date, S.sup, { [rvx.dataset.rvx]: { rr: { [pk(rvx.dataset.ro)]: null } } }); return }
   if (e.target.closest("#rvNone")) { if (!confirm("取消全部的到貨核對？")) return; rvRows().filter(r => r.st !== "no").forEach(r => store.setRv(S.date, S.sup, r.id, r.o, null)); return toast("已取消到貨核對") }
-  if (e.target.closest("#rvAll")) { const rs = rvRows().filter(r => r.st === "no"); rs.forEach(r => store.setRv(S.date, S.sup, r.id, r.o, r.q)); return toast(`${rs.length} 項標記到齊`) }
+  if (e.target.closest("#rvAll")) { const dr = S.rvDraft || {}, all = rvRows().filter(r => r.st === "no"), rs = all.filter(r => dr[`${r.id}|${pk(r.o)}`] == null), skip = all.length - rs.length; rs.forEach(r => store.setRv(S.date, S.sup, r.id, r.o, r.q)); return toast(`${rs.length} 項標記到齊${skip ? `；${skip} 項數量有改，請按「確認實收」` : ""}`) }
   if (e.target.closest("#rvMsg")) { const t = rvText(); try { await navigator.clipboard.writeText(t) } catch { const ta = document.createElement("textarea"); ta.value = t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove() } return toast("已複製，貼到 LINE 傳給廠商") }
   if (e.target.closest("#fillLast")) {
     const last = S.last || {}; let n = 0;
