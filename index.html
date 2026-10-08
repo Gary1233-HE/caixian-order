@@ -254,6 +254,11 @@ table.pc-t td b{font-family:var(--mono);font-size:17px}
 .bk-q .rv-ok2{border:1.5px solid var(--ok);color:var(--ok);background:#fff}
 .bk-q .rv-cf{border:none;background:var(--low);color:#fff;line-height:1.1}.bk-q .rv-cf small{display:block;font-size:11px;font-weight:700;opacity:.9}
 .bk-b.two{grid-template-columns:1fr 1fr}
+#rvSheet .sp-b{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px}#rvSheet .sp-b .btn{width:100%;margin:0}
+.bk-sec{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:12px 0 8px;padding:9px 12px;border-radius:10px;font-size:15px}.bk-sec.o{background:#FFF4E5;color:var(--low)}.bk-sec.ok{background:var(--okbg);color:var(--ok)}.bk-sec.g{background:var(--bg);color:var(--muted)}
+.bk-f{display:flex;gap:6px;margin-left:auto}.bk-f button{border:1px solid #F2C58E;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:700;background:#fff;color:var(--low)}.bk-f button.on{background:var(--low);color:#fff;border-color:var(--low)}.bk-f button:disabled{opacity:.4}
+.bk-tg{margin-left:auto;font-size:13px;font-weight:700;color:var(--muted)}
+.pok{display:inline-block;margin:6px 6px 0 0;border:1.5px solid var(--ok);color:var(--ok);background:#fff;border-radius:8px;padding:4px 10px;font-size:13px;font-weight:900}
 .bk-b .rv2{display:flex;gap:4px}.bk-b .rv2 .rv-btn{flex:1.3;white-space:nowrap;padding:0;font-size:12.5px}.bk-b .rv2 .rv-nd{white-space:nowrap}.bk-b .rv-nd{flex:1;height:40px;border-radius:9px;border:1.5px solid #C9CED6;color:#5B6573;background:#fff;font-size:12px;font-weight:900;padding:0}
 .rv-t.nd{background:#E7EAEE;color:#3A4350}
 .rs-q,.rs-r{padding:12px 4px;border-bottom:1px solid var(--line)}.rs-q small,.rs-r small{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
@@ -2903,7 +2908,7 @@ function bookPanel(amt, canLast) {
   if (!st.ordered.length) return `<div class="panel"><h3>${esc(sup().name)} ${dateLabel(S.date)}</h3><div class="empty" style="padding:16px">還沒有叫貨品項。到「叫貨」點品項輸入數量</div></div>`;
   const rs = rvRows(), done = rs.filter(r => r.st !== "no").length, bad = rs.filter(r => r.st === "short" || r.st === "over");
   let cat = "";
-  const cards = rs.map(r => {
+  const cardOf = r => {
     const it = r.it, e = L[r.id], o = r.o, p = priceOf(e, o), inh = !!(e.pi || {})[pk(o)], w = effWt(it, e, o), u = r.u, showW = needWt(it, e, o);
     const h = r.cat !== cat ? `<div class="sub-cat" style="--cc:${catColor(r.cat)}">${esc(r.cat)}</div>` : ""; cat = r.cat;
     /* 實收：−／＋ 調數量，再按確認。數量跟叫的不一樣就不能按「到齊」，要按「確認實收」 */
@@ -2920,9 +2925,21 @@ function bookPanel(amt, canLast) {
         <label class="bf"><small>單價/${esc(u || "件")}</small><input class="pin${inh ? " inh" : ""}" id="p_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="單價"></label>
         ${showW ? `<label class="bf"><small>每件重量KG</small><input class="win${w && w.src !== "today" ? " inh" : ""}" id="w_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${w ? fmt(w.w) : ""}" placeholder="每件KG"></label>` : unitKg(u) ? `<div class="bf"><small>重量</small><span class="wunit">1${esc(u)}＝${fmt(unitKg(u))}公斤</span></div>` : `<button class="bf addw" data-addw="${r.id}">＋每件重量</button>`}
       </div>
-      ${priceWarn(r.id, o, p, inh)}${inh ? `<span class="pnote">灰色＝延用上次價格，有變再改</span>` : ""}${r.why && r.r != null && r.r !== r.q ? `<span class="rv-why">${esc(r.why)}</span>` : ""}${r.r === 0 ? `<span class="pnote">沒到貨，這項不算錢，也不用填價格</span>` : r.r != null && r.r !== r.q ? `<span class="pnote" style="color:var(--warn)">小計依實收 ${fmt(r.r)}</span>` : ""}${p != null && w ? `<span class="pnote cost">成本 <b>${fmt(Math.round(p / w.w * 10) / 10)}</b> 元/KG${w.src === "unit" ? `（1${esc(u)}＝${fmt(w.w)}公斤）` : `（共 ${fmt(Math.round(gotQty(e, o) * w.w * 10) / 10)}KG）`}</span>` : w && !p ? "" : ""}
+      ${priceWarn(r.id, o, p, inh)}${inh && gotQty(e, o) > 0 ? `<button class="pok" data-pok="${r.id}" data-ro="${esc(o)}">價格跟上次一樣 ✓</button><span class="pnote">灰色＝延用上次價格，確認或改掉</span>` : ""}${r.why && r.r != null && r.r !== r.q ? `<span class="rv-why">${esc(r.why)}</span>` : ""}${r.r === 0 ? `<span class="pnote">沒到貨，這項不算錢，也不用填價格</span>` : r.r != null && r.r !== r.q ? `<span class="pnote" style="color:var(--warn)">小計依實收 ${fmt(r.r)}</span>` : ""}${p != null && w ? `<span class="pnote cost">成本 <b>${fmt(Math.round(p / w.w * 10) / 10)}</b> 元/KG${w.src === "unit" ? `（1${esc(u)}＝${fmt(w.w)}公斤）` : `（共 ${fmt(Math.round(gotQty(e, o) * w.w * 10) / 10)}KG）`}</span>` : w && !p ? "" : ""}
     </div>`;
-  }).join("");
+  };
+  /* 未確認（數量還沒確認、價格沒填或還是延用上次的）放最上面；確認完的往下移 */
+  const dr = S.rvDraft || {};
+  const needQ = r => r.st === "no" || dr[`${r.id}|${pk(r.o)}`] != null;
+  const needP = r => { const e = L[r.id]; if (!(gotQty(e, r.o) > 0)) return false; return priceOf(e, r.o) == null || !!(e.pi || {})[pk(r.o)] };
+  const pend = rs.filter(r => needQ(r) || needP(r)), fin = rs.filter(r => !(needQ(r) || needP(r)));
+  const nQ = pend.filter(needQ).length, nP = pend.filter(needP).length;
+  if (S.bkF === "q" && !nQ || S.bkF === "p" && !nP) S.bkF = "";
+  const show = pend.filter(r => S.bkF === "q" ? needQ(r) : S.bkF === "p" ? needP(r) : true);
+  cat = ""; const pendHtml = show.map(cardOf).join("");
+  cat = ""; const finHtml = fin.map(cardOf).join("");
+  const cards = (pend.length ? `<div class="bk-sec o"><b>⚠ 未確認 ${pend.length} 項</b><div class="bk-f"><button data-bkf="" class="${!S.bkF ? "on" : ""}">全部 ${pend.length}</button><button data-bkf="q" class="${S.bkF === "q" ? "on" : ""}"${nQ ? "" : " disabled"}>數量 ${nQ}</button><button data-bkf="p" class="${S.bkF === "p" ? "on" : ""}"${nP ? "" : " disabled"}>價格 ${nP}</button></div></div>${pendHtml}` : `<div class="bk-sec ok"><b>✓ 數量和價格都確認好了</b></div>`)
+    + (fin.length ? `<div class="bk-sec g"><b>已確認 ${fin.length} 項</b><button class="bk-tg" data-bkfin>${S.bkFinOpen === false ? "展開 ▾" : "收起 ▴"}</button></div>${S.bkFinOpen === false ? "" : finHtml}` : "");
   return `<div class="panel bk-p"><h3>${esc(sup().name)} ${dateLabel(S.date)} <span class="c">${st.ordered.length} 項</span><span class="c ${done === rs.length ? "ok" : "o"}">到貨 ${done}/${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}</h3>
     <div class="amt"><div><small>叫貨金額${bad.length ? "（依實收）" : ""}</small><b>${money(amt.a)}</b></div>${amt.miss ? `<span class="c o">${amt.miss} 筆未填價格</span>` : `<span class="c ok">價格都填好了</span>`}</div>
     ${(() => { let kg = 0, am = 0, n = 0; rs.forEach(r => { const e = L[r.id], p = priceOf(e, r.o), w = effWt(r.it, e, r.o); if (p != null && w) { const q = gotQty(e, r.o); kg += q * w.w; am += q * p; n++ } }); return n ? `<p class="muted" style="margin:0 0 8px">有重量的 ${n} 項：共 <b>${fmt(Math.round(kg * 10) / 10)}</b> KG，平均 <b>${fmt(Math.round(am / kg * 10) / 10)}</b> 元/KG</p>` : "" })()}
@@ -3028,7 +3045,7 @@ function savePrice(inp) {
   const raw = inp.value.trim().replace(/[,$，]/g, "");
   const v = raw === "" ? null : +raw;
   if (raw !== "" && (isNaN(v) || v < 0)) { toast("價格格式不對"); inp.value = priceOf(e, o) == null ? "" : fmt(priceOf(e, o)); return }
-  if (v === priceOf(e, o)) return;
+  if (v === priceOf(e, o)) { if (inp.__enter && v != null && (e.pi || {})[pk(o)]) store.patchLines(S.date, S.sup, { [id]: { pi: { [pk(o)]: null } } }); return }   /* 延用的價格按 Enter＝確認沒變 */
   store.setPrice(S.date, S.sup, id, o, v);
   store.patchLines(S.date, S.sup, { [id]: { pi: { [pk(o)]: null } } });
   if (v != null) store.setLastPrice(S.sup, `${id}|${pk(o)}`, { p: v, d: S.date });
@@ -3053,7 +3070,7 @@ $("#vSum").addEventListener("keydown", e => {
   const tr = e.target.closest(".bk"), rows = [...document.querySelectorAll("#vSum .bk")], ri = rows.indexOf(tr);
   const nx = isR ? tr.querySelector(".pin") : (isP && tr.querySelector(".win")) ? tr.querySelector(".win") : (rows[ri + 1] && rows[ri + 1].querySelector(".pin")), nxId = nx && nx.id;
   const cur = e.target; cur.blur();
-  if (isP) savePrice(cur); else if (isW) saveWt(cur); else saveRv(cur);
+  if (isP) { cur.__enter = true; savePrice(cur); cur.__enter = false } else if (isW) saveWt(cur); else saveRv(cur);
   setTimeout(() => { const t = nxId && document.getElementById(nxId); if (t) t.focus() }, 0);
 });
 /* ===== 全部輸入格：點進去整格反白，直接打就取代；方向鍵跳格（像 Excel） =====
@@ -3118,6 +3135,10 @@ $("#vSum").addEventListener("click", async e => {
   const aw = e.target.closest("[data-addw]"); if (aw) { (S.showWt ||= {})[aw.dataset.addw] = 1; renderSum(); setTimeout(() => { const w = document.querySelector(`#vSum .bk .win[data-pid="${aw.dataset.addw}"]`); if (w) w.focus() }, 30); return }
   const rok = e.target.closest("[data-rvok]");
   if (rok) { const l = lines()[rok.dataset.rvok]; if (l) { if (S.rvDraft) delete S.rvDraft[`${rok.dataset.rvok}|${pk(rok.dataset.ro)}`]; store.setRv(S.date, S.sup, rok.dataset.rvok, rok.dataset.ro, l.vs[rok.dataset.ro]) } return }
+  const bf = e.target.closest("[data-bkf]"); if (bf) { S.bkF = bf.dataset.bkf; renderSum(); return }
+  if (e.target.closest("[data-bkfin]")) { S.bkFinOpen = S.bkFinOpen === false; renderSum(); return }
+  const pok = e.target.closest("[data-pok]");
+  if (pok) { const id = pok.dataset.pok, o = pok.dataset.ro, e2 = lines()[id], p = priceOf(e2, o); store.patchLines(S.date, S.sup, { [id]: { pi: { [pk(o)]: null } } }); if (p != null) store.setLastPrice(S.sup, `${id}|${pk(o)}`, { p, d: S.date }); return toast("價格已確認") }
   const rq = e.target.closest("[data-rq],[data-rqn]");
   if (rq) {
     const id = rq.dataset.rid, o = rq.dataset.ro, r = rvRows().find(x => x.id === id && x.o === o); if (!r) return;
