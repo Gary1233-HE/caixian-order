@@ -1850,7 +1850,11 @@ function rowHtml(it, e) {
   const okb = ordered && itemCk(it) ? `<span class="bdg okd">已訂</span>` : "";
   return `<button class="${cls}" data-id="${it.id}"><span class="nm"><b>${esc(it.n)}${spec}${okb}${nu}</b><span class="stk">${stockHtml(a)}</span></span><span class="val${multi ? " multi" : ""}">${val}</span></button>`;
 }
-$("#oq").addEventListener("input", e => { S.oq = e.target.value; renderOrd() });
+/* 叫貨搜尋：注音／拼音選字時不篩選，打字停一下才重畫清單，不會卡字 */
+let oqT = 0, oqIme = false;
+$("#oq").addEventListener("compositionstart", () => { oqIme = true });
+$("#oq").addEventListener("compositionend", e => { oqIme = false; S.oq = e.target.value; clearTimeout(oqT); oqT = setTimeout(renderOrd, 60) });
+$("#oq").addEventListener("input", e => { if (oqIme || e.isComposing) return; S.oq = e.target.value; clearTimeout(oqT); oqT = setTimeout(renderOrd, 200) });
 $("#ofl").addEventListener("click", e => { const b = e.target.closest("[data-of]"); if (!b) return; S.of = b.dataset.of; renderOrd() });
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; S.cat = b.dataset.cat; renderOrd(); window.scrollTo(0, 0) });
 $("#list").addEventListener("click", e => {
@@ -3359,7 +3363,12 @@ $("#niOk").onclick = async () => {
   if (dup) { closeNewItem(); S.oq = ""; S.of = "all"; S.cat = dup.c; setView("Ord"); toast(`清單裡已經有「${dup.n}」，直接叫貨`); setTimeout(() => openKp(dup.id), 200); return }
   const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), id = "t" + Date.now().toString(36);
   x.items.push({ id, c: cat, n: name, o: [], u, tmp: 1 });
-  await store.saveOrdCfg(cfg).catch(err);
+  $("#niOk").disabled = true; $("#niOk").textContent = "加入中…";
+  const prev = S.ocfg; S.ocfg = cfg; S.fcCache = {};   /* 先顯示在畫面上，不用等雲端回傳 */
+  let ok = true;
+  try { await store.saveOrdCfg(cfg) } catch (e) { ok = false; S.ocfg = prev; toast("新增失敗：" + ((e && (e.code || e.message)) || e) + "，請再試一次", 4000) }
+  $("#niOk").disabled = false; $("#niOk").textContent = "加入並開始叫貨";
+  if (!ok) { render(); return }
   const t0 = Date.now(); const go = () => { if (oById(id) || Date.now() - t0 > 4000) { closeNewItem(); S.oq = ""; if ($("#oq")) $("#oq").value = ""; S.of = "all"; S.cat = cat; setView("Ord"); toast(`已加入「${name}」（${cat}），輸入數量`); openKp(id) } else setTimeout(go, 150) }; go();
 };
 /* ===== 輸入視窗（取代 prompt；LINE 內建瀏覽器會擋 prompt，導致無法輸入）===== */
