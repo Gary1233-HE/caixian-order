@@ -1568,14 +1568,22 @@ function fixDGY() {
   else mark().then(() => { window.__dgyBusy = 0 }).catch(() => { window.__dgyBusy = 0 });
 }
 /* 一次性：地瓜葉的捆是 9 小把 → 點貨「地瓜葉捆」可以點捆或小把，小把用 9 折成捆 */
-/* 韭菜花規格：1.5kg → 小、3kg → 大（重量照樣算成本），只做一次；今天的叫貨單、上次價格一起改 */
+/* 韭菜花規格維持 1.5kg／3kg（只有採購單和傳給廠商的文字顯示成 小／大）；
+   如果之前已經被改成 小／大，改回來（只做一次），今天的叫貨單、上次價格一起改回 */
 function fixJCH() {
-  if (!S.ocfg || !S.ocfg.sups || S.ocfg.jch1 || window.__jchBusy) return;
-  const cfg = JSON.parse(JSON.stringify(S.ocfg)), rn = [], MAP = [[/^1\.5\s*(kg|公斤)$/i, "小", 1.5], [/^3\s*(kg|公斤)$/i, "大", 3]];
+  if (!S.ocfg || !S.ocfg.sups || S.ocfg.jch2 || window.__jchBusy) return;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), rn = [], BACK = { "小": "1.5kg", "大": "3kg" };
   cfg.sups.forEach(sp => sp.items.forEach(it => { if (!/^韭菜花/.test(it.n || "")) return;
-    (it.o || []).forEach((x, i) => { const m = MAP.find(([re]) => re.test(x)); if (!m || (it.o || []).includes(m[1])) return; it.o[i] = m[1]; it.ow ||= {}; it.ow[m[1]] = (it.ow[x] > 0 ? it.ow[x] : m[2]); delete it.ow[x]; rn.push({ sup: sp.id, id: it.id, from: x, to: m[1] }) }) }));
-  cfg.jch1 = 1; window.__jchBusy = 1;
+    (it.o || []).forEach((x, i) => { const to = BACK[x]; if (!to || (it.o || []).includes(to)) return; it.o[i] = to; if (it.ow && it.ow[x] > 0) { it.ow[to] = it.ow[x]; delete it.ow[x] } rn.push({ sup: sp.id, id: it.id, from: x, to }) }) }));
+  cfg.jch1 = 1; cfg.jch2 = 1; window.__jchBusy = 1;
   store.saveOrdCfg(cfg).then(() => { const t0 = Date.now(), go = () => { if (S.ord || Date.now() - t0 > 8000) { const mine = rn.filter(r => r.sup === S.sup); if (mine.length && S.ord) applySpecRenames(mine); window.__jchBusy = 0 } else setTimeout(go, 300) }; go() }).catch(e => { window.__jchBusy = 0; err(e) });
+}
+/* 採購單、傳給廠商的文字用的規格顯示名稱（其他地方照原本的規格名） */
+const SPEC_DISP = [[/^韭菜花/, [[/^1\.5\s*(kg|公斤)$/i, "小"], [/^3\s*(kg|公斤)$/i, "大"]]]];
+function specDisp(it, sp) { if (!sp || !it) return sp; const g = SPEC_DISP.find(([re]) => re.test(it.n || "")); if (!g) return sp; const m = g[1].find(([re]) => re.test(sp)); return m ? m[1] : sp }
+function partTextD(it, o, q) {
+  if (o && o.includes("·")) { const i = o.lastIndexOf("·"); return `${o.slice(i + 1)} ${partTextD(it, o.slice(0, i), q)}` }
+  return partText(it, o && !isUnitOpt(o) ? specDisp(it, o) : o, q);
 }
 function fixDGY2() {
   if (!S.ocfg || !S.ocfg.sups || S.ocfg.dgy2 || !S.ocfg.dgy1 || !invItems().length || window.__dgy2Busy || !inv.setUnits) return;
@@ -2274,7 +2282,7 @@ const msgHead = (d = S.date) => { const lv = carLeave(d); return msgHeadRaw().sp
 function addLeaveLine(h) { if (h.includes("{離開}")) return h; const ls = h.split("\n"), k = ls.findIndex(l => l.includes("{時間}")); ls.splice(k >= 0 ? k + 1 : 0, 0, "車離開時間：約{離開}"); return ls.join("\n") }
 function vendorText(v, list) {
   const head = msgHead(), note = noteVal().trim();
-  return [...(head ? [head, ""] : []), ...list.map(({ r, q }) => `${r.n}${r.lab ? " " + r.lab : ""}　${partText(r.it, r.lab ? "" : r.spec, q)}`), ...(note ? ["", `備註：${note}`] : [])].join("\n");
+  return [...(head ? [head, ""] : []), ...list.map(({ r, q }) => `${r.n}${r.lab ? " " + specDisp(r.it, r.lab) : ""}　${partTextD(r.it, r.lab ? "" : r.spec, q)}`), ...(note ? ["", `備註：${note}`] : [])].join("\n");
 }
 /* ===== 下訂頁：依廠商（像購物車）或依分類；搜尋、篩選；訂好的收起來；每列一行 ===== */
 function cartEntries(rs) { return rs.flatMap(r => r.allocs.map((a, ai) => ({ r, a, ai }))) }
@@ -3285,14 +3293,14 @@ function itemCells(it, e) {
   /* 分給兩家以上才印廠商名字（要分辨誰訂多少）；只有一家就不印 */
   if (ord && vendSet(it, e).size >= 2) {
     const per = new Map();
-    qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || ""; per.set(w, [...(per.get(w) || []), partText(it, spec, e.vs[k])]) });
+    qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || ""; per.set(w, [...(per.get(w) || []), partTextD(it, spec, e.vs[k])]) });
     return [...per].map(([w, ts]) => ({ h: w, v: ts.join(" ") }));
   }
   const sq = specQty(it, e), keys = Object.keys(sq).filter(k => sq[k] > 0);
   const bs = baseKeys(it);
-  if (bs.length === 1 && bs[0] === "") return [ord ? { v: keys.map(k => partText(it, k, sq[k])).join(" ") } : { h: u }, {}];
-  const cells = bs.map(b => { const q = sq[b]; return q > 0 ? (isUnitOpt(b) ? { v: fmt(q) + b } : { h: b, v: fmt(q) + u }) : { h: b } });
-  if (ord) keys.filter(k => !bs.includes(k)).forEach(k => cells.push({ v: partText(it, k, sq[k]) }));
+  if (bs.length === 1 && bs[0] === "") return [ord ? { v: keys.map(k => partTextD(it, k, sq[k])).join(" ") } : { h: u }, {}];
+  const cells = bs.map(b => { const q = sq[b]; return q > 0 ? (isUnitOpt(b) ? { v: fmt(q) + b } : { h: specDisp(it, b), v: fmt(q) + u }) : { h: specDisp(it, b) } });
+  if (ord) keys.filter(k => !bs.includes(k)).forEach(k => cells.push({ v: partTextD(it, k, sq[k]) }));
   return cells;
 }
 const cellText = c => (c.v ? (c.h ? c.h + " " : "") + c.v : c.h || "");
@@ -4038,7 +4046,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261010063718";
+  var BUILD_ID = "20261010064026";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4046,7 +4054,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261010063718") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261010064026") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
