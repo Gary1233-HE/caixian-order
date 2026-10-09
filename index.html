@@ -3997,5 +3997,27 @@ $("#lkList").onchange = e => {
 $("#lkList").addEventListener("click", e => { if (e.target.closest(".fx")) e.preventDefault() });
 $("#lkOk").onclick = closeSheets;
 </script>
+<!--UPD-->
+<div id="updBar" style="display:none;position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 8px);transform:translateX(-50%);z-index:200;background:#1F7A4C;color:#fff;border-radius:999px;padding:10px 16px;font-weight:900;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer;white-space:nowrap">🔄 有新版本，點一下更新</div>
+<script>
+/* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
+   切回這個頁面時，沒在輸入的話會自動更新 */
+(function () {
+  var BUILD_ID = "20261010052531";
+  var bar = document.getElementById("updBar"), newer = false;
+  function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
+  function go() { location.reload() }
+  bar.onclick = go;
+  function check() {
+    fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
+      var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261010052531") { newer = true; bar.style.display = "block" }
+    }).catch(function () {});
+  }
+  setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState !== "visible") return; if (newer && !busy()) go(); else check() });
+})();
+</script>
+<!--/UPD-->
 </body>
 </html>
