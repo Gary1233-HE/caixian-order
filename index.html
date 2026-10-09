@@ -1705,6 +1705,32 @@ function lastKeySpec(id, kk) {
   if (k.includes("·")) return k.slice(0, k.lastIndexOf("·"));
   return it ? splitKey(it, k).spec : k;
 }
+/* 近 10 天這個品項（這個規格）常常分給好幾家叫 → 照比例先分好
+   條件：近 10 天有叫的日子裡，至少 2 天、而且一半以上是分給 2 家以上；比例＝各家數量合計的比例 */
+function splitPlan(it, spec, Q) {
+  if (!(Q > 1)) return null;
+  const from = addDays(S.date, -10), days = [], tot = {};
+  ((S.hist && S.hist.ords) || []).forEach(o => {
+    if (o.sup !== S.sup || o.date >= S.date || o.date < from || !o.lines || !o.lines[it.id]) return;
+    const e = o.lines[it.id], per = {};
+    Object.entries(e.vs || {}).forEach(([k, q]) => { if (!(q > 0)) return; const sk = splitKey(it, k); if (sk.spec !== spec) return; const v = sk.vend || (e.vd && e.vd[pk(k)]) || ""; if (v) per[v] = (per[v] || 0) + q });
+    const vs = Object.keys(per); if (!vs.length) return;
+    days.push(vs.length);
+    if (vs.length > 1) vs.forEach(v => tot[v] = (tot[v] || 0) + per[v]);
+  });
+  const splitDays = days.filter(n => n > 1).length;
+  if (splitDays < 2 || splitDays * 2 < days.length) return null;
+  const vs = Object.keys(tot).sort((a, b) => tot[b] - tot[a]), sum = vs.reduce((n, v) => n + tot[v], 0);
+  /* 整數分配：先照比例取整數，剩下的給小數最大的；每家至少 1（數量夠的話） */
+  const raw = vs.map(v => ({ v, x: Q * tot[v] / sum })), whole = Number.isInteger(Q);
+  let al = raw.map(r => ({ v: r.v, q: whole ? Math.floor(r.x) : Math.round(r.x * 2) / 2, f: r.x - Math.floor(r.x) }));
+  let left = Math.round((Q - al.reduce((n, a) => n + a.q, 0)) * 100) / 100;
+  al.slice().sort((a, b) => b.f - a.f).forEach(a => { const step = whole ? 1 : 0.5; if (left >= step - 1e-9) { a.q += step; left = Math.round((left - step) * 100) / 100 } });
+  if (left > 0) al[0].q += left;
+  if (whole && Q >= al.length) al.forEach(a => { if (a.q < 1) { const big = al.reduce((m, x) => x.q > m.q ? x : m, al[0]); if (big.q > 1) { big.q -= 1; a.q += 1 } } });
+  al = al.filter(a => a.q > 0).map(({ v, q }) => ({ v, q }));
+  return al.length > 1 ? al : null;
+}
 function lastPriceFor(id, k, spec) {
   const last = S.last || {}, a = last[`${id}|${pk(k)}`]; if (a && a.p != null) return a.p;
   /* 同一個規格、別家廠商的最近價格 */
@@ -1726,7 +1752,7 @@ function autoFill() {
     const specs = [...new Set(qtyOpts(it, e).map(k => specKeyOf(it, k)))];
     specs.forEach(spec => {
       const ks = qtyOpts(it, e).filter(k => specKeyOf(it, k) === spec);
-      if (ks.length === 1 && !splitKey(it, ks[0]).vend && !(e.vd && e.vd[pk(ks[0])])) { const v = favVendorOf(it.id, spec); if (v) vendFix.push({ it, spec, v, q: e.vs[ks[0]] }) }
+      if (ks.length === 1 && !splitKey(it, ks[0]).vend && !(e.vd && e.vd[pk(ks[0])])) { const q = e.vs[ks[0]], sp = splitPlan(it, spec, q); if (sp) vendFix.push({ it, spec, al: sp, q }); else { const v = favVendorOf(it.id, spec); if (v) vendFix.push({ it, spec, al: [{ v, q }], q }) } }
     });
     /* 2) 沒填單價 → 帶入上次價格 */
     qtyOpts(it, e).forEach(k => {
@@ -1738,10 +1764,10 @@ function autoFill() {
       ((patch[it.id] ||= { p: {}, pi: {} }).p)[pk(k)] = p; patch[it.id].pi[pk(k)] = 1;
     });
   });
-  const sig = JSON.stringify([S.date, S.sup, patch, vendFix.map(x => [x.it.id, x.spec, x.v, x.q])]);   /* 日期和廠商也算進去，換天才會重新帶入 */
+  const sig = JSON.stringify([S.date, S.sup, patch, vendFix.map(x => [x.it.id, x.spec, x.al, x.q])]);   /* 日期和廠商也算進去，換天才會重新帶入 */
   if (sig === window.__autoSig || (!Object.keys(patch).length && !vendFix.length)) return;
   window.__autoSig = sig;
-  if (vendFix.length) { vendFix.forEach(f => { const r = cartItems().find(x => x.id === f.it.id && x.spec === f.spec); if (r) setAllocs(r, [{ v: f.v, q: f.q }]) }); scheduleAuto(); return }   /* 廠商先定，下一輪再依廠商帶價格 */
+  if (vendFix.length) { vendFix.forEach(f => { const r = cartItems().find(x => x.id === f.it.id && x.spec === f.spec); if (r) setAllocs(r, f.al) }); const nSp = vendFix.filter(f => f.al.length > 1); if (nSp.length) toast(`依近 10 天習慣，已自動分廠商：${nSp.slice(0, 3).map(f => f.it.n).join("、")}${nSp.length > 3 ? ` 等 ${nSp.length} 項` : ""}`, 3500); scheduleAuto(); return }   /* 廠商先定，下一輪再依廠商帶價格 */
   if (Object.keys(patch).length) store.patchLines(S.date, S.sup, patch);
 }
 function render() {
@@ -4003,7 +4029,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261010052531";
+  var BUILD_ID = "20261010063501";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4011,7 +4037,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261010052531") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261010063501") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
