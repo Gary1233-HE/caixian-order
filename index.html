@@ -603,6 +603,12 @@ select.in{appearance:auto}
 .fab .f-print{background:#2F6FD6}
 .fab .f-xlsx{background:#E07B00}
 .fab button:active{filter:brightness(.92)}
+.sumbar{position:sticky;top:var(--tabs-top,96px);z-index:16;display:flex;gap:8px;max-width:760px;margin:0 auto;padding:8px 12px 6px;background:var(--bg)}
+.sumbar input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:16px;background:#fff}
+.sumbar button{flex:none;width:44px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:900;color:var(--muted)}
+.totop{position:fixed;right:14px;bottom:calc(76px + var(--safe-b));z-index:40;width:48px;height:48px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(20,30,45,.28);opacity:0;pointer-events:none;transform:translateY(10px);transition:.2s}
+.totop svg{width:24px;height:24px}.totop.show{opacity:.92;pointer-events:auto;transform:none}
+@media (max-width:999px){ body.fab-on .totop{bottom:calc(140px + var(--safe-b))} }
 @media (min-width:1000px){
   .fab{right:max(16px, calc((100vw - 760px) / 2 - 230px));top:50%;transform:translateY(-50%);flex-direction:column;width:200px}
   .fab button{padding:16px 12px;justify-content:flex-start}
@@ -677,7 +683,9 @@ select.in{appearance:auto}
 <div id="status" class="hide" style="padding:0 12px;max-width:760px;margin:0 auto"></div>
 <div id="vOrd"><div class="obar"><input type="search" id="oq" placeholder="搜尋品項" autocomplete="off"><div class="ofl" id="ofl"><button data-of="all" class="on">全部</button><button data-of="sug">建議要叫</button><button data-of="ord">已叫</button></div><div class="obar-b"><button id="newItemBtn">＋ 清單沒有的品項</button><button id="noteBtn">📝 備註<i id="noteDot" class="nd hide"></i></button></div></div><div class="tabs" id="tabs"></div><main id="list"></main></div>
 <main id="vCart" class="hide"></main>
+<div id="sumBar" class="sumbar hide"><input type="search" id="sq" placeholder="搜尋到貨品項（品名、規格、廠商）" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search"><button id="sqX" class="hide" aria-label="清除搜尋">✕</button></div>
 <main id="vSum" class="hide"></main>
+<button id="toTop" class="totop" aria-label="回到最上方"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
 <main id="vPay" class="hide"></main>
 <main id="vHist" class="hide"></main>
 <main id="vSet" class="hide"></main>
@@ -2071,6 +2079,7 @@ function setView(v) {
   S.view = v; if (v === "Hist") S.histCache = null;
   if (v !== "Ord") document.documentElement.style.removeProperty("--catbg");
   ["Ord", "Cart", "Sum", "Pay", "Hist", "Set"].forEach(x => $("#v" + x).classList.toggle("hide", x !== v));
+  $("#sumBar").classList.toggle("hide", v !== "Sum");
   $("#fab").classList.toggle("hide", v !== "Sum"); document.body.classList.toggle("fab-on", v === "Sum");
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.v === v));
   window.scrollTo(0, 0); render();
@@ -2939,11 +2948,13 @@ function bookPanel(amt, canLast) {
   const pend = rs.filter(r => needQ(r) || needP(r)), fin = rs.filter(r => !(needQ(r) || needP(r)));
   const nQ = pend.filter(needQ).length, nP = pend.filter(needP).length;
   if (S.bkF === "q" && !nQ || S.bkF === "p" && !nP) S.bkF = "";
-  const show = pend.filter(r => S.bkF === "q" ? needQ(r) : S.bkF === "p" ? needP(r) : true);
-  cat = ""; const pendHtml = show.map(cardOf).join("");
-  cat = ""; const finHtml = fin.map(cardOf).join("");
+  const sq = norm(S.sq || ""), hit = r => !sq || norm(`${r.n} ${r.lab || ""} ${rvVend(r)}`).includes(sq);
+  const show = pend.filter(r => (S.bkF === "q" ? needQ(r) : S.bkF === "p" ? needP(r) : true) && hit(r));
+  const finS = fin.filter(hit);
+  cat = ""; const pendHtml = show.map(cardOf).join("") || (sq && pend.length ? `<div class="empty" style="padding:12px">未確認裡沒有「${esc(S.sq)}」</div>` : "");
+  cat = ""; const finHtml = finS.map(cardOf).join("") || (sq && fin.length ? `<div class="empty" style="padding:12px">已確認裡沒有「${esc(S.sq)}」</div>` : "");
   const cards = (pend.length ? `<div class="bk-sec o"><b>⚠ 未確認 ${pend.length} 項</b><div class="bk-f"><button data-bkf="" class="${!S.bkF ? "on" : ""}">全部 ${pend.length}</button><button data-bkf="q" class="${S.bkF === "q" ? "on" : ""}"${nQ ? "" : " disabled"}>數量 ${nQ}</button><button data-bkf="p" class="${S.bkF === "p" ? "on" : ""}"${nP ? "" : " disabled"}>價格 ${nP}</button></div></div>${pendHtml}` : `<div class="bk-sec ok"><b>✓ 數量和價格都確認好了</b></div>`)
-    + (fin.length ? `<div class="bk-sec g"><b>已確認 ${fin.length} 項</b><button class="bk-tg" data-bkfin>${S.bkFinOpen === false ? "展開 ▾" : "收起 ▴"}</button></div>${S.bkFinOpen === false ? "" : finHtml}` : "");
+    + (fin.length ? `<div class="bk-sec g"><b>已確認 ${sq ? `${finS.length}/` : ""}${fin.length} 項</b><button class="bk-tg" data-bkfin>${S.bkFinOpen === false && !sq ? "展開 ▾" : "收起 ▴"}</button></div>${S.bkFinOpen === false && !sq ? "" : finHtml}` : "");
   return `<div class="panel bk-p"><h3>${esc(sup().name)} ${dateLabel(S.date)} <span class="c">${st.ordered.length} 項</span><span class="c ${done === rs.length ? "ok" : "o"}">到貨 ${done}/${rs.length}</span>${bad.length ? `<span class="c bad">${bad.length} 項不符</span>` : ""}</h3>
     <div class="amt"><div><small>叫貨金額${bad.length ? "（依實收）" : ""}</small><b>${money(amt.a)}</b></div>${amt.miss ? `<span class="c o">${amt.miss} 筆未填價格</span>` : `<span class="c ok">價格都填好了</span>`}</div>
     ${(() => { let kg = 0, am = 0, n = 0; rs.forEach(r => { const e = L[r.id], p = priceOf(e, r.o), w = effWt(r.it, e, r.o); if (p != null && w) { const q = gotQty(e, r.o); kg += q * w.w; am += q * p; n++ } }); return n ? `<p class="muted" style="margin:0 0 8px">有重量的 ${n} 項：共 <b>${fmt(Math.round(kg * 10) / 10)}</b> KG，平均 <b>${fmt(Math.round(am / kg * 10) / 10)}</b> 元/KG</p>` : "" })()}
@@ -3077,6 +3088,16 @@ $("#vSum").addEventListener("keydown", e => {
   if (isP) { cur.__enter = true; savePrice(cur); cur.__enter = false } else if (isW) saveWt(cur); else saveRv(cur);
   setTimeout(() => { const t = nxId && document.getElementById(nxId); if (t) t.focus() }, 0);
 });
+/* ===== 到貨搜尋（輸入框不在重畫範圍內，注音選字完才篩選）＋ 回到最上方 ===== */
+let sqT = 0, sqIme = false;
+const sqApply = () => { $("#sqX").classList.toggle("hide", !S.sq); renderSum() };
+$("#sq").addEventListener("compositionstart", () => { sqIme = true });
+$("#sq").addEventListener("compositionend", e => { sqIme = false; S.sq = e.target.value; clearTimeout(sqT); sqT = setTimeout(sqApply, 60) });
+$("#sq").addEventListener("input", e => { if (sqIme || e.isComposing) return; S.sq = e.target.value; clearTimeout(sqT); sqT = setTimeout(sqApply, 200) });
+$("#sq").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.target.blur() } });
+$("#sqX").onclick = () => { $("#sq").value = ""; S.sq = ""; sqApply() };
+$("#toTop").onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+let tt0 = 0; window.addEventListener("scroll", () => { if (tt0) return; tt0 = requestAnimationFrame(() => { tt0 = 0; $("#toTop").classList.toggle("show", window.scrollY > 400) }) }, { passive: true });
 /* ===== 全部輸入格：點進去整格反白，直接打就取代；方向鍵跳格（像 Excel） =====
    ↑↓：上一列／下一列最靠近的那格；←→：游標在最前／最後、或整格反白時，跳到左右那格 */
 const NAV_SKIP = "#cq,#vCart input,[type=search],[type=date],[type=month],[type=checkbox],[type=radio],[type=file],[readonly],[disabled]";
