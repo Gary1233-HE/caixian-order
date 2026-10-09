@@ -1568,6 +1568,15 @@ function fixDGY() {
   else mark().then(() => { window.__dgyBusy = 0 }).catch(() => { window.__dgyBusy = 0 });
 }
 /* 一次性：地瓜葉的捆是 9 小把 → 點貨「地瓜葉捆」可以點捆或小把，小把用 9 折成捆 */
+/* 韭菜花規格：1.5kg → 小、3kg → 大（重量照樣算成本），只做一次；今天的叫貨單、上次價格一起改 */
+function fixJCH() {
+  if (!S.ocfg || !S.ocfg.sups || S.ocfg.jch1 || window.__jchBusy) return;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), rn = [], MAP = [[/^1\.5\s*(kg|公斤)$/i, "小", 1.5], [/^3\s*(kg|公斤)$/i, "大", 3]];
+  cfg.sups.forEach(sp => sp.items.forEach(it => { if (!/^韭菜花/.test(it.n || "")) return;
+    (it.o || []).forEach((x, i) => { const m = MAP.find(([re]) => re.test(x)); if (!m || (it.o || []).includes(m[1])) return; it.o[i] = m[1]; it.ow ||= {}; it.ow[m[1]] = (it.ow[x] > 0 ? it.ow[x] : m[2]); delete it.ow[x]; rn.push({ sup: sp.id, id: it.id, from: x, to: m[1] }) }) }));
+  cfg.jch1 = 1; window.__jchBusy = 1;
+  store.saveOrdCfg(cfg).then(() => { const t0 = Date.now(), go = () => { if (S.ord || Date.now() - t0 > 8000) { const mine = rn.filter(r => r.sup === S.sup); if (mine.length && S.ord) applySpecRenames(mine); window.__jchBusy = 0 } else setTimeout(go, 300) }; go() }).catch(e => { window.__jchBusy = 0; err(e) });
+}
 function fixDGY2() {
   if (!S.ocfg || !S.ocfg.sups || S.ocfg.dgy2 || !S.ocfg.dgy1 || !invItems().length || window.__dgy2Busy || !inv.setUnits) return;
   const k = invItems().find(i => i.n === "地瓜葉捆"); window.__dgy2Busy = 1;
@@ -1611,7 +1620,7 @@ function relink() {
   if (n) store.saveOrdCfg(cfg).then(() => toast(`點貨品項有更新，已自動連動 ${n} 項`)).catch(err);
 }
 store.watchOrdCfg(c => {
-  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2();
+  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2(); fixJCH();
   normWeights();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 9)) { migrate(); return }
@@ -4029,7 +4038,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261010063501";
+  var BUILD_ID = "20261010063718";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4037,7 +4046,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261010063501") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261010063718") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
