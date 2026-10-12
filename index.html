@@ -2684,7 +2684,7 @@ function utRows() {
   return oItems().map(it => {
     const invs = (it.inv || []).map(id => invById(id)).filter(Boolean);
     const links = invs.map(inv => { const ou = unitLabel(it, optFor(it, inv)), iu = iUnits(inv)[0] || "", fx = it.fx && +it.fx[inv.id] > 0 ? +it.fx[inv.id] : null; return { inv, ou, iu, fx, same: !!ou && ou === iu } });
-    const noU = needUnit(it), wOnly = (it.o || []).some(x => /^\s*\d+(\.\d+)?\s*(kg|KG|Kg|公斤)\s*$/.test(x));
+    const noU = needUnit(it), wOnly = false;   /* 規格只寫重量（1.5kg）也會直接拿來算成本，不用再提醒 */
     let lv = "ok", msg = "兩邊一致";
     if (noU) { lv = "bad"; msg = "叫貨沒有單位" }
     else if (!invs.length) { lv = "none"; msg = "沒有連動點貨" }
@@ -2706,7 +2706,7 @@ function renderUt() {
       <div class="ut-h"><b>${esc(it.n)}</b><small>${esc(it.c)}</small><span class="ut-st">${r.msg}</span></div>
       <div class="ut-g">
         <label class="ut-c"><small>叫貨單位</small><input class="in" data-utu="${it.id}" value="${esc(it.u || "")}" placeholder="例如 件"></label>
-        <label class="ut-c"><small>叫貨規格（用 / 分開）</small><input class="in" data-uto="${it.id}" value="${esc((it.o || []).map(x => x + (it.ow && it.ow[x] ? fmt(it.ow[x]) + "kg" : "")).join("/"))}" placeholder="沒有就空著"></label>
+        <label class="ut-c"><small>叫貨規格（用 / 分開）</small><input class="in" data-uto="${it.id}" value="${esc(specWithWt(it))}" placeholder="沒有就空著"></label>
         ${!(it.o || []).length ? `<label class="ut-c"><small>每件重量 KG</small><input class="in" data-utw="${it.id}" inputmode="decimal" value="${it.uw > 0 ? fmt(it.uw) : ""}" placeholder="例如 30"></label>` : ""}
       </div>
       ${r.links.map(l => `<div class="ut-k${l.same ? " same" : ""}">
@@ -3072,7 +3072,9 @@ function wtOf(e, o) { return e && e.wt && e.wt[pk(o)] != null ? e.wt[pk(o)] : nu
 function unitKg(u) { u = String(u || "").trim(); if (/^(台斤|斤)$/.test(u)) return 0.6; if (/^(公斤|kg|KG|Kg)$/.test(u)) return 1; return null }
 function splitWt(label) { const re = /\s*(\d+(?:\.\d+)?)\s*(kg|KG|Kg|公斤)\s*$/, m = String(label || "").match(re); return m ? { n: label.replace(re, "").trim(), w: +m[1] } : { n: String(label || "").trim(), w: null } }
 /* 規格重量（ow）優先；沒規格或那個規格沒設，就用品項的每件重量（uw） */
-function specWt(it, o) { const sp = splitKey(it, o).spec; return it.ow && it.ow[sp] > 0 ? it.ow[sp] : it.uw > 0 ? it.uw : null }
+/* 設定畫面顯示規格＋重量（例如 漂亮10kg）；規格本身已經是重量（1.5kg）就不要再接一次 */
+function specWithWt(it) { return (it.o || []).map(x => x + (it.ow && it.ow[x] && !/\d\s*(kg|公斤)$/i.test(x) ? fmt(it.ow[x]) + "kg" : "")).join("/") }
+function specWt(it, o) { const sp = splitKey(it, o).spec, m = /^\s*(\d+(?:\.\d+)?)\s*(kg|公斤)\s*$/i.exec(sp || ""); return it.ow && it.ow[sp] > 0 ? it.ow[sp] : m ? +m[1] : it.uw > 0 ? it.uw : null }
 function effWt(it, e, o) {
   const uk = unitKg(unitLabel(it, splitKey(it, o).spec)); if (uk) return { w: uk, src: "unit" };
   const w = wtOf(e, o); if (w != null) return { w, src: "today" };
@@ -3801,7 +3803,7 @@ function renderSet() {
     <div class="imp-cat"><span>從點貨帶入整類品項</span><select class="in" id="impCat">${((S.inv && S.inv.cats) || DEF_CATS).map(c => { const n = invItems().filter(i => i.c === c && !s.items.some(x => (x.inv || []).includes(i.id))).length; return `<option value="${esc(c)}"${c === "菇類" && /菇/.test(s.name) ? " selected" : ""}>${esc(c)}（還沒加的 ${n} 項）</option>` }).join("")}</select><button class="btn sm" id="impCatGo">帶入</button></div>`}
     ${d ? `<div class="ed-head"><span>品名 ／ 下排：連動點貨</span><span>規格</span><span>單位</span></div>` : ""}
     ${byCat.map(([c, its]) => `<div class="ed-cat" style="--cc:${catColor(c)}"><span class="sw"></span>${esc(c)} <span class="muted">${its.length}</span>${d ? `<button class="btn sm" data-add="${esc(c)}">＋ 新增</button>` : ""}</div>
-      ${d ? its.map(it => `<div class="ed-row" data-rid="${it.id}"><input class="n" value="${esc(it.n)}" data-f="n"><input class="u" value="${esc((it.o || []).map(x => x + (it.ow && it.ow[x] ? fmt(it.ow[x]) + "kg" : "")).join("/"))}" data-f="o" placeholder="—"><input class="u" value="${esc(it.u || "")}" data-f="u" placeholder="—"><div class="ac"><select class="cs" data-f="c" aria-label="分類">${cats.concat(cats.includes(it.c) ? [] : [it.c]).map(c => `<option${c === it.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select><button class="lk${(it.inv || []).length ? "" : " no"}" data-lk="${it.id}">🔗 ${esc(linkTxt(it))}</button><button data-mv="-1" aria-label="上移">↑</button><button data-mv="1" aria-label="下移">↓</button><button class="del" data-del="1" aria-label="刪除">✕</button></div></div>`).join("")
+      ${d ? its.map(it => `<div class="ed-row" data-rid="${it.id}"><input class="n" value="${esc(it.n)}" data-f="n"><input class="u" value="${esc(specWithWt(it))}" data-f="o" placeholder="—"><input class="u" value="${esc(it.u || "")}" data-f="u" placeholder="—"><div class="ac"><select class="cs" data-f="c" aria-label="分類">${cats.concat(cats.includes(it.c) ? [] : [it.c]).map(c => `<option${c === it.c ? " selected" : ""}>${esc(c)}</option>`).join("")}</select><button class="lk${(it.inv || []).length ? "" : " no"}" data-lk="${it.id}">🔗 ${esc(linkTxt(it))}</button><button data-mv="-1" aria-label="上移">↑</button><button data-mv="1" aria-label="下移">↓</button><button class="del" data-del="1" aria-label="刪除">✕</button></div></div>`).join("")
         : `<div class="muted" style="line-height:1.8">${its.map(it => `${esc(it.n)}${it.nv && ((sup().vend || {})[it.c] || []).length ? `<small>(不分)</small>` : ""}${(it.inv || []).length ? "" : `<span style="color:var(--low)">*</span>`}`).join("、") || "—"}</div>`}`).join("")}
     ${d ? `<div class="grid2" style="margin-top:16px;position:sticky;bottom:calc(70px + var(--safe-b))"><button class="btn" id="edCancel">取消</button><button class="btn okb" id="edSave">儲存</button></div>` : ""}
   </div>
@@ -4047,7 +4049,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261012091544";
+  var BUILD_ID = "20261012122138";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4055,7 +4057,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261012091544") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261012122138") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
