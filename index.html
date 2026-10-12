@@ -3293,8 +3293,9 @@ function itemCells(it, e) {
   /* 分給兩家以上才印廠商名字（要分辨誰訂多少）；只有一家就不印 */
   if (ord && vendSet(it, e).size >= 2) {
     const per = new Map();
-    qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || ""; per.set(w, [...(per.get(w) || []), partTextD(it, spec, e.vs[k])]) });
-    return [...per].map(([w, ts]) => ({ h: w, v: ts.join(" ") }));
+    /* 有印廠商就不印規格（同一家同時叫兩種規格才印規格分辨） */
+    qtyOpts(it, e).forEach(k => { const { spec, vend } = splitKey(it, k); const w = vend || ""; per.set(w, [...(per.get(w) || []), [spec, e.vs[k]]]) });
+    return [...per].map(([w, ps]) => ({ h: w, v: ps.map(([sp, q]) => w && ps.length === 1 ? `${fmt(q)}${unitLabel(it, sp)}` : partTextD(it, sp, q)).join(" ") }));
   }
   const sq = specQty(it, e), keys = Object.keys(sq).filter(k => sq[k] > 0);
   const bs = baseKeys(it);
@@ -4046,7 +4047,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261010064026";
+  var BUILD_ID = "20261012091544";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4054,7 +4055,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261010064026") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261012091544") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
