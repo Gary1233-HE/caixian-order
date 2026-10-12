@@ -585,6 +585,7 @@ select.in{appearance:auto}
 .ut-h{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.ut-h b{font-size:17px}.ut-h small{color:var(--muted)}.ut-st{margin-left:auto;font-size:12px;font-weight:900}
 .ut-r.bad .ut-st{color:var(--warn)}.ut-r.conv .ut-st{color:#2F6FD6}.ut-r.ok .ut-st{color:var(--ok)}.ut-r.none .ut-st{color:var(--muted)}
 .ut-g{display:grid;grid-template-columns:1fr 1.4fr;gap:8px;margin-top:8px}.ut-c{display:flex;flex-direction:column;gap:3px;min-width:0}.ut-c small{font-size:11px;color:var(--muted)}.ut-c input{padding:9px;font-size:15px;font-weight:700}
+.ut-sp{font-size:13px;font-weight:700;border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:#fff}.ut-del{float:right;font-size:12px;color:var(--warn);font-weight:700}.ut-add{margin-top:8px;font-size:14px}
 .ut-k{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)}.ut-kn{font-size:13px;font-weight:700}.ut-kn small{color:var(--muted);font-weight:500;margin-left:6px}
 .ut-ok{align-self:end;padding:9px;color:var(--ok);font-weight:900}
 .ut-b{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}.ut-b .btn{width:auto;padding:9px 12px}
@@ -1391,6 +1392,7 @@ function favSpec(it) {
 }
 function specFor(it, inv) {
   const ks = baseKeys(it); if (ks.length === 1) return ks[0];
+  if (it.isp && it.isp[inv.id] != null && ks.includes(it.isp[inv.id])) return it.isp[inv.id];   /* 手動指定：這個點貨品項對應哪個叫貨規格（例如 紅蘿蔔絲 → 紅K 加工） */
   const rest = inv.n.replace(it.n, "");
   const hit = ks.find(k => k && rest.includes(k)); if (hit) return hit;
   const fv = favSpec(it); if (fv) return fv;
@@ -1553,7 +1555,7 @@ setTimeout(() => {
   if (!S.ocfgLoaded && !ST.ord) { ST.ord = "等了 12 秒還沒有回應（資料庫可能還沒建立，或網路不通）"; showStatus() }
   if (!S.inv && !ST.inv && inv.mode === "fb") { ST.inv = "等了 12 秒還沒有回應"; showStatus() }
 }, 12000);
-inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2(); render() });
+inv.watchCfg(c => { S.inv = c || { cats: DEF_CATS, items: [] }; ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2(); fixCRK(); render() });
 $("#invSrc").textContent = "連線中…";
 /* 建立品項時讀不到點貨 → 讀到後自動補上連動 */
 /* 菇類帶入：名字有「菇」的廠商，如果還沒有任何菇類品項，就把點貨的菇類全部帶入（自動連動點貨）
@@ -1584,6 +1586,17 @@ function specDisp(it, sp) { if (!sp || !it) return sp; const g = SPEC_DISP.find(
 function partTextD(it, o, q) {
   if (o && o.includes("·")) { const i = o.lastIndexOf("·"); return `${o.slice(i + 1)} ${partTextD(it, o.slice(0, i), q)}` }
   return partText(it, o && !isUnitOpt(o) ? specDisp(it, o) : o, q);
+}
+/* 紅K：點貨的「紅蘿蔔絲」是加工品，沒了要叫原料「紅K 加工」；紅蘿蔔 → 漂亮（只做一次） */
+function fixCRK() {
+  if (!S.ocfg || !S.ocfg.sups || S.ocfg.crk1 || !invItems().length || window.__crkBusy) return;
+  const cfg = JSON.parse(JSON.stringify(S.ocfg)), silk = invItems().find(i => /^紅(蘿蔔|K|k)絲/.test(i.n)), raw = invItems().find(i => i.n === "紅蘿蔔");
+  if (!silk) return;
+  cfg.crk1 = 1;
+  cfg.sups.forEach(sp => sp.items.forEach(it => { if (!/^紅K$/.test(it.n) || !(it.o || []).includes("加工")) return;
+    if (silk && !(it.inv || []).includes(silk.id)) it.inv = [...(it.inv || []), silk.id];
+    it.isp ||= {}; if (silk) it.isp[silk.id] = "加工"; if (raw && (it.inv || []).includes(raw.id) && (it.o || []).includes("漂亮")) it.isp[raw.id] = "漂亮"; it.manual = 1 }));
+  window.__crkBusy = 1; store.saveOrdCfg(cfg).then(() => { window.__crkBusy = 0 }).catch(e => { window.__crkBusy = 0; err(e) });
 }
 function fixDGY2() {
   if (!S.ocfg || !S.ocfg.sups || S.ocfg.dgy2 || !S.ocfg.dgy1 || !invItems().length || window.__dgy2Busy || !inv.setUnits) return;
@@ -1628,7 +1641,7 @@ function relink() {
   if (n) store.saveOrdCfg(cfg).then(() => toast(`點貨品項有更新，已自動連動 ${n} 項`)).catch(err);
 }
 store.watchOrdCfg(c => {
-  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2(); fixJCH();
+  S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2(); fixJCH(); fixCRK();
   normWeights();
   if (S.ocfg && !askedMe) { askedMe = true; if (!S.me || !people().includes(S.me)) { S.me = ""; openPeople() } }
   if (S.ocfg && S.ocfg.sups && S.ocfg.sups.length && !(S.ocfg.ver >= 9)) { migrate(); return }
@@ -2710,7 +2723,7 @@ function renderUt() {
         ${!(it.o || []).length ? `<label class="ut-c"><small>每件重量 KG</small><input class="in" data-utw="${it.id}" inputmode="decimal" value="${it.uw > 0 ? fmt(it.uw) : ""}" placeholder="例如 30"></label>` : ""}
       </div>
       ${r.links.map(l => `<div class="ut-k${l.same ? " same" : ""}">
-        <div class="ut-kn">↔ 點貨<small>${esc(l.inv.c || "")}　對應規格：${esc(optFor(it, l.inv) || "（無）")}</small></div>
+        <div class="ut-kn">↔ 點貨<small>${esc(l.inv.c || "")}　對應規格：${baseKeys(it).length > 1 ? `<select class="ut-sp" data-utsp="${it.id}|${l.inv.id}">${baseKeys(it).map(k => `<option${k === optFor(it, l.inv) ? " selected" : ""}>${esc(k)}</option>`).join("")}</select>` : esc(optFor(it, l.inv) || "（無）")}</small><button class="ut-del" data-utdel="${it.id}|${l.inv.id}">取消連動</button></div>
         ${iUnits(l.inv).filter(Boolean).length > 1 ? `<div class="ut-ur">${iUnits(l.inv).slice(1).map(u => `<label>1${esc(iUnits(l.inv)[0])}＝<input class="in" data-utr="${l.inv.id}|${esc(u)}" inputmode="decimal" value="${l.inv.ur && l.inv.ur[u] ? fmt(l.inv.ur[u]) : ""}" placeholder="?">${esc(u)}</label>`).join("")}<small>點貨同時用多個單位時，填了會折算成「${esc(iUnits(l.inv)[0])}」來算庫存</small></div>` : ""}
         <div class="ut-g">
           <label class="ut-c"><small>點貨品名</small><input class="in" data-utn="${l.inv.id}" value="${esc(l.inv.n)}"></label>
@@ -2721,6 +2734,7 @@ function renderUt() {
         </div>
         ${!l.same && l.iu ? `<div class="ut-b"><button class="btn sm pri" data-uta="${it.id}|${l.inv.id}|o">叫貨${l.ou ? "改成" : "設成"}「${esc(l.iu)}」</button>${l.ou ? `<button class="btn sm" data-uta="${it.id}|${l.inv.id}|i">點貨改成「${esc(l.ou)}」</button>` : ""}</div>` : ""}
       </div>`).join("")}
+      <select class="in ut-add" data-utadd="${it.id}"><option value="">＋ 連動點貨品項（例如加工品要叫這個原料）…</option>${((S.inv && S.inv.cats) || DEF_CATS).map(c => { const xs = invItems().filter(i => i.c === c && !(it.inv || []).includes(i.id)); return xs.length ? `<optgroup label="${esc(c)}">${xs.map(i => `<option value="${i.id}">${esc(i.n)}</option>`).join("")}</optgroup>` : "" }).join("")}</select>
       ${r.wOnly ? `<div class="ut-note">規格只寫重量（例如 1.5kg），可以改成「名稱＋重量」，例如「小把1.5kg」，重量才會用在成本</div>` : ""}
     </div>` }).join("") : `<div class="empty">${UT.f === "bad" ? "沒有要整理的，兩邊都一致了 ✓" : "沒有符合的品項"}</div>`;
   const nb = all.filter(r => r.lv === "bad" && r.links.length && !needUnit(r.it) && !(r.it.o || []).some(isUnitOpt)).length;
@@ -2731,8 +2745,16 @@ async function utSaveOrd(fn, msg) { const cfg = JSON.parse(JSON.stringify(S.ocfg
 $("#utQ").addEventListener("input", e => { UT.q = e.target.value; renderUt() });
 $("#utF").addEventListener("click", e => { const b = e.target.closest("[data-utf]"); if (b) { UT.f = b.dataset.utf; renderUt() } });
 $("#utClose").onclick = closeUt;
+$("#utList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-utdel]"); if (!b) return;
+  const [id, iid] = b.dataset.utdel.split("|"), it = oById(id), inv = invById(iid);
+  if (!confirm(`取消「${it ? it.n : ""}」和點貨「${inv ? inv.n : ""}」的連動？`)) return;
+  await utSaveOrd(x => { const o = x.items.find(i => i.id === id); if (!o) return; o.inv = (o.inv || []).filter(z => z !== iid); if (o.isp) delete o.isp[iid]; o.manual = 1 }, "已取消連動"); renderUt();
+});
 $("#utList").addEventListener("change", async e => {
   const t = e.target, v = t.value.trim();
+  if (t.dataset.utsp) { const [id, iid] = t.dataset.utsp.split("|"); await utSaveOrd(x => { const o = x.items.find(i => i.id === id); if (!o) return; (o.isp ||= {})[iid] = v; o.manual = 1 }, `已設定：點貨「${(invById(iid) || {}).n || ""}」→ 叫貨規格「${v}」`); renderUt(); return }
+  if (t.dataset.utadd) { if (!v) return; const id = t.dataset.utadd; await utSaveOrd(x => { const o = x.items.find(i => i.id === id); if (!o) return; o.inv = [...new Set([...(o.inv || []), v])]; o.manual = 1 }, `已連動點貨「${(invById(v) || {}).n || ""}」，記得選對應規格和換算`); renderUt(); return }
   if (t.dataset.utu) { const id = t.dataset.utu; await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (it) it.u = v }, "已改叫貨單位"); renderUt(); return }
   if (t.dataset.uto != null && t.dataset.uto !== undefined && t.matches("[data-uto]")) {
     const id = t.dataset.uto, raw = v.split(/[\/、,，|]/).map(z => z.trim()).filter(Boolean);
@@ -4049,7 +4071,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261012122138";
+  var BUILD_ID = "20261012122751";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4057,7 +4079,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261012122138") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261012122751") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
