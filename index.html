@@ -2664,13 +2664,26 @@ function goNextUnfilled() {
   if (S.bkF) { S.bkF = ""; renderSum() }
   const cards = [...document.querySelectorAll("#vSum .bk[data-need]")];
   if (!cards.length) { toast("✓ 全部都填好了"); updNextBtn(); return }
-  const ae = document.activeElement, cur = ae && ae.closest ? ae.closest(".bk[data-need]") : null;
-  const topY = 140, nx = cur ? (cards[cards.indexOf(cur) + 1] || cards[0]) : (cards.find(c => c.getBoundingClientRect().top > topY + 4) || cards[0]);
+  /* 從上一次跳到的那張（或正在填的那張）往下找；按快捷鍵時焦點會在按鈕上，所以記住上一張 */
+  const ae = document.activeElement, curC = ae && ae.closest ? ae.closest(".bk") : null;
+  const curK = (curC && curC.dataset.ck) || S.bkLast;
+  const all = [...document.querySelectorAll("#vSum .bk[data-ck]")], ci = curK ? all.findIndex(c => c.dataset.ck === curK) : -1;
+  const nx = ci >= 0 ? (all.slice(ci + 1).find(c => c.dataset.need) || cards[0]) : cards[0];
+  S.bkLast = nx.dataset.ck;
   nx.classList.add("hl"); setTimeout(() => nx.classList.remove("hl"), 1200);
   const need = nx.dataset.need || "";
   const tgt = need.includes("p") && !need.includes("q") ? nx.querySelector(".pin") : (nx.querySelector(".rv-ok2,.rv-cf") || nx.querySelector(".pin"));
-  if (tgt) { tgt.focus({ preventScroll: true }); try { tgt.select && tgt.select() } catch {} }
-  nx.scrollIntoView({ block: "center", behavior: "smooth" });
+  bkScrollTo(nx);
+  if (tgt) { S.refocus = true; tgt.focus({ preventScroll: true }); S.refocus = false; try { tgt.select && tgt.select() } catch {} }
+}
+/* 把整張卡片（含品名）放到畫面中間；卡片太高就讓品名貼在上方搜尋列下面，不會被擋住 */
+function bkScrollTo(card) {
+  const bar = $("#sumBar"), top = bar && !bar.classList.contains("hide") ? bar.getBoundingClientRect().bottom : ($("#top") ? $("#top").getBoundingClientRect().bottom : 0);
+  const fab = $("#fab"), fr = fab && !fab.classList.contains("hide") ? fab.getBoundingClientRect() : null;
+  const bottom = fr && fr.top > window.innerHeight / 2 ? fr.top : (document.querySelector("nav.bn") || { getBoundingClientRect: () => ({ top: window.innerHeight }) }).getBoundingClientRect().top;
+  const r = card.getBoundingClientRect(), room = bottom - top - 16;
+  const want = r.height < room ? top + 8 + (room - r.height) / 2 : top + 10;
+  window.scrollTo({ top: window.scrollY + r.top - want, behavior: "smooth" });
 }
 function updNextBtn() { const b = $("#fabN"); if (!b) return; const n = document.querySelectorAll("#vSum .bk[data-need]").length; b.textContent = n || "✓"; b.parentElement.classList.toggle("done", !n) }
 /* 到貨改廠商：數量、價格、實收、重量一起搬到新廠商 */
@@ -3282,7 +3295,7 @@ $("#vSum").addEventListener("focusin", e => {
     const t = e.target, v0 = t.value;
     /* 畫面跟著輸入的格子移動：捲到畫面中間，不會被上方標題或下方按鈕擋住 */
     if (t.matches("input")) setTimeout(() => { if (t.value === v0) t.select() }, 0);
-    setTimeout(() => t.scrollIntoView({ block: "center", behavior: "smooth" }), 60);
+    setTimeout(() => { const c = t.closest(".bk"); if (!c) return t.scrollIntoView({ block: "center", behavior: "smooth" }); const bar = $("#sumBar").getBoundingClientRect().bottom, r = c.getBoundingClientRect(); if (r.top < bar + 4 || r.bottom > window.innerHeight - 90) bkScrollTo(c) }, 60);
   }
 });
 $("#vSum").addEventListener("input", e => {
@@ -3303,7 +3316,7 @@ $("#vSum").addEventListener("click", async e => {
   const bvd = e.target.closest("[data-bvd]"); if (bvd) { openVendFix(bvd.dataset.bvd, bvd.dataset.ro); return }
   const bx = e.target.closest("[data-bkx]");
   if (bx && !e.target.closest("input")) { S.bkOpen ||= {}; const k = bx.dataset.bkx, open = !S.bkOpen[k]; S.bkOpen[k] = open; renderSum();
-    if (open) setTimeout(() => { const c = document.querySelector(`#vSum .bk[data-ck="${CSS.escape(k)}"]`); const i = c && c.querySelector(".pin"); if (i) { i.focus(); i.select() } }, 30); return }
+    if (open) setTimeout(() => { const c = document.querySelector(`#vSum .bk[data-ck="${CSS.escape(k)}"]`); if (!c) return; bkScrollTo(c); const i = c.querySelector(".pin"); if (i) { S.refocus = true; i.focus({ preventScroll: true }); S.refocus = false; i.select() } }, 30); return }
   if (e.target.closest("[data-bkfin]")) { S.bkFinOpen = S.bkFinOpen === false; renderSum(); return }
   const pok = e.target.closest("[data-pok]");
   if (pok) { const id = pok.dataset.pok, o = pok.dataset.ro, e2 = lines()[id], p = priceOf(e2, o); store.patchLines(S.date, S.sup, { [id]: { pi: { [pk(o)]: null } } }); if (p != null) store.setLastPrice(S.sup, `${id}|${pk(o)}`, { p, d: S.date }); return toast("價格已確認") }
@@ -4148,7 +4161,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261013183735";
+  var BUILD_ID = "20261013184409";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4156,7 +4169,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261013183735") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261013184409") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
