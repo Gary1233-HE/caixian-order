@@ -2451,7 +2451,8 @@ $("#vCart").addEventListener("click", async e => {
   const vl = t.closest("[data-vline]");
   if (vl) { const g = byVendorCart().find(x => x[0] === vl.dataset.vline); if (!g) return; const [v, list] = g, txt = vendorText(v, list);
     /* 打開 LINE 分享，文字已經填好，選廠商的聊天室就能傳；同時也複製一份，萬一沒帶到可以直接貼上 */
-    window.open("https://line.me/R/share?text=" + encodeURIComponent(txt), "_blank");
+    /* 直接叫出 LINE App（line://），不開新分頁，傳完回來還是這個畫面 */
+    const lk = document.createElement("a"); lk.href = "line://msg/text/" + encodeURIComponent(txt); lk.rel = "noopener"; document.body.appendChild(lk); lk.click(); lk.remove();
     try { await navigator.clipboard.writeText(txt) } catch {}
     store.setVcopy(S.date, S.sup, v, { by: S.me, t: Date.now(), q: txt }); return toast(`已打開 LINE，選「${v}」的聊天室傳送`) }
   const vc = t.closest("[data-vcopy]");
@@ -4190,7 +4191,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261015093813";
+  var BUILD_ID = "20261015094713";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4198,7 +4199,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261015093813") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261015094713") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
