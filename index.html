@@ -2666,7 +2666,7 @@ $("#rvSheet").addEventListener("click", async e => {
 });
 /* 到貨：這一列還要確認數量／價格嗎 */
 function needQRow(r) { return r.st === "no" || ((S.rvDraft || {})[`${r.id}|${pk(r.o)}`] != null) }
-function needPRow(r) { const e = lines()[r.id]; if (!e || !(gotQty(e, r.o) > 0)) return false; return priceOf(e, r.o) == null || !!(e.pi || {})[pk(r.o)] }
+function needPRow(r) { const e = lines()[r.id]; if (!e || !(gotQty(e, r.o) > 0)) return false; return priceOf(e, r.o) == null }   /* 帶入上次的價格（灰色）就算有填，不用再填一次 */
 /* 快捷鍵：跳到下一個還沒填好的品項，有價格要填就直接打開價格格可以輸入 */
 function goNextUnfilled() {
   if (S.view !== "Sum") setView("Sum");
@@ -2676,8 +2676,11 @@ function goNextUnfilled() {
   /* 從上一次跳到的那張（或正在填的那張）往下找；按快捷鍵時焦點會在按鈕上，所以記住上一張 */
   const ae = document.activeElement, curC = ae && ae.closest ? ae.closest(".bk") : null;
   const curK = (curC && curC.dataset.ck) || S.bkLast;
-  const all = [...document.querySelectorAll("#vSum .bk[data-ck]")], ci = curK ? all.findIndex(c => c.dataset.ck === curK) : -1;
-  const nx = ci >= 0 ? (all.slice(ci + 1).find(c => c.dataset.need) || cards[0]) : cards[0];
+  /* 用「原本的順序」往下找：填好的卡片會移到下面，不能用現在的位置判斷 */
+  const all = [...document.querySelectorAll("#vSum .bk[data-ck], #vSum .bk.mini[data-bkx]")].map(c => c.dataset.ck || c.dataset.bkx);
+  const seq = (S.bkSeq || []).filter(k => all.includes(k)); if (!seq.length) all.forEach(k => seq.push(k)); else all.forEach(k => { if (!seq.includes(k)) seq.push(k) }); S.bkSeq = seq;
+  const byK = k => cards.find(c => c.dataset.ck === k), ci = curK ? seq.indexOf(curK) : -1;
+  const nx = (ci >= 0 ? seq.slice(ci + 1).map(byK).find(Boolean) : null) || cards[0];
   S.bkLast = nx.dataset.ck;
   nx.classList.add("hl"); setTimeout(() => nx.classList.remove("hl"), 1200);
   const need = nx.dataset.need || "";
@@ -3101,7 +3104,7 @@ function bookPanel(amt, canLast) {
         <label class="bf"><small>單價/${esc(u || "件")}</small><input class="pin${inh ? " inh" : ""}" id="p_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="單價"></label>
         ${showW ? `<label class="bf"><small>每件重量KG</small><input class="win${w && w.src !== "today" ? " inh" : ""}" id="w_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${w ? fmt(w.w) : ""}" placeholder="每件KG"></label>` : unitKg(u) ? `<div class="bf"><small>重量</small><span class="wunit">1${esc(u)}＝${fmt(unitKg(u))}公斤</span></div>` : `<button class="bf addw" data-addw="${r.id}">＋每件重量</button>`}
       </div>
-      ${priceWarn(r.id, o, p, inh)}${inh && gotQty(e, o) > 0 ? `<button class="pok" data-pok="${r.id}" data-ro="${esc(o)}">價格跟上次一樣 ✓</button><span class="pnote">灰色＝延用上次價格，確認或改掉</span>` : ""}${r.why && r.r != null && r.r !== r.q ? `<span class="rv-why">${esc(r.why)}</span>` : ""}${r.r === 0 ? `<span class="pnote">沒到貨，這項不算錢，也不用填價格</span>` : r.r != null && r.r !== r.q ? `<span class="pnote" style="color:var(--warn)">小計依實收 ${fmt(r.r)}</span>` : ""}${p != null && w ? `<span class="pnote cost">成本 <b>${fmt(Math.round(p / w.w * 10) / 10)}</b> 元/KG${w.src === "unit" ? `（1${esc(u)}＝${fmt(w.w)}公斤）` : `（共 ${fmt(Math.round(gotQty(e, o) * w.w * 10) / 10)}KG）`}</span>` : w && !p ? "" : ""}
+      ${priceWarn(r.id, o, p, inh)}${inh && gotQty(e, o) > 0 ? `<span class="pnote">灰色＝延用上次價格，有變再改</span>` : ""}${r.why && r.r != null && r.r !== r.q ? `<span class="rv-why">${esc(r.why)}</span>` : ""}${r.r === 0 ? `<span class="pnote">沒到貨，這項不算錢，也不用填價格</span>` : r.r != null && r.r !== r.q ? `<span class="pnote" style="color:var(--warn)">小計依實收 ${fmt(r.r)}</span>` : ""}${p != null && w ? `<span class="pnote cost">成本 <b>${fmt(Math.round(p / w.w * 10) / 10)}</b> 元/KG${w.src === "unit" ? `（1${esc(u)}＝${fmt(w.w)}公斤）` : `（共 ${fmt(Math.round(gotQty(e, o) * w.w * 10) / 10)}KG）`}</span>` : w && !p ? "" : ""}
     </div>`;
   };
   /* 未確認（數量還沒確認、價格沒填或還是延用上次的）放最上面；確認完的往下移 */
@@ -3155,8 +3158,22 @@ function stockPanel() {
         ${r.need > 0 ? `<div class="sneed">補 ${fmt(r.need)}</div>` : `<div class="sneed"></div>`}</div>`).join("")}</div>` }).join("") : `<div class="empty" style="padding:14px">${f === "need" ? "沒有需要補貨的品項" : "沒有符合的品項"}</div>`}
   </div>`;
 }
+/* 重畫到貨頁時畫面不跳：記住正在填的那張卡片（或畫面最上面那張）的位置，重畫後放回同一個位置 */
+function sumAnchor() {
+  if (S.view !== "Sum") return null;
+  const ae = document.activeElement, c0 = ae && ae.closest ? ae.closest("#vSum .bk[data-ck]") : null;
+  const bar = $("#sumBar") ? $("#sumBar").getBoundingClientRect().bottom : 0;
+  const c = c0 || (S.bkLast && document.querySelector(`#vSum .bk[data-ck="${CSS.escape(S.bkLast)}"]`)) || [...document.querySelectorAll("#vSum .bk[data-ck]")].find(x => x.getBoundingClientRect().bottom > bar);
+  if (!c) return null; const r = c.getBoundingClientRect(); if (r.bottom < 0 || r.top > window.innerHeight) return null;
+  return { ck: c.dataset.ck, top: r.top };
+}
+function sumRestore(a) {
+  if (!a) return; const c = document.querySelector(`#vSum .bk[data-ck="${CSS.escape(a.ck)}"]`); if (!c) return;
+  const d = c.getBoundingClientRect().top - a.top; if (Math.abs(d) > 1) window.scrollBy({ top: d, behavior: "instant" });
+}
 function renderSum() {
   if (!S.payOrders && !S.payLoading) loadPayData();
+  const anc = sumAnchor();
   const ae = document.activeElement, keep = ae && ae.id && $("#vSum").contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName) ? { id: ae.id, v: ae.value, a: ae.selectionStart, b: ae.selectionEnd } : null;
   const last = S.last || {};
   const amt = orderAmt(L0(), oById);
@@ -3179,7 +3196,8 @@ function renderSum() {
   ${other.length ? `<div class="panel"><h3>其他低於安全量 <span class="c">${other.length}</span></h3>
     <p class="muted" style="margin:0 0 8px">這些點貨品項沒有連動到「${esc(sup().name)}」，可能要跟別家叫</p>
     <div class="chips">${other.map(i => `<span class="chip">${esc(i.n)} 補${fmt(iNeed(i, c[i.id]))}${esc(iUnits(i)[0])}</span>`).join("")}</div></div>` : ""}`;
-  if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; S.refocus = true; t.focus(); S.refocus = false; try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
+  if (keep) { const t = document.getElementById(keep.id); if (t) { t.value = keep.v; S.refocus = true; t.focus({ preventScroll: true }); S.refocus = false; try { t.setSelectionRange(keep.a, keep.b) } catch {} } }
+  sumRestore(anc);
 }
 const L0 = () => lines();
 const st0 = () => ordStats();
@@ -4172,7 +4190,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261015093254";
+  var BUILD_ID = "20261015093813";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4180,7 +4198,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261015093254") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261015093813") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
