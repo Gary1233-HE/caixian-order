@@ -3110,7 +3110,9 @@ function bookPanel(amt, canLast) {
   };
   /* 未確認（數量還沒確認、價格沒填或還是延用上次的）放最上面；確認完的往下移 */
   const needQ = needQRow, needP = needPRow;
-  const pend = rs.filter(r => needQ(r) || needP(r)), fin = rs.filter(r => !(needQ(r) || needP(r)));
+  /* 正在填的那一項先不要搬走（填完價格還要填重量），換到別項時才移到「已確認」 */
+  const hold = r => S.bkHold && S.bkHold === `${r.id}|${pk(r.o)}`;
+  const pend = rs.filter(r => needQ(r) || needP(r) || hold(r)), fin = rs.filter(r => !(needQ(r) || needP(r) || hold(r)));
   const nQ = pend.filter(needQ).length, nP = pend.filter(needP).length;
   if (S.bkF === "q" && !nQ || S.bkF === "p" && !nP) S.bkF = "";
   const sq = norm(S.sq || ""), hit = r => !sq || norm(`${r.n} ${r.lab || ""} ${rvVend(r)}`).includes(sq);
@@ -3160,17 +3162,22 @@ function stockPanel() {
   </div>`;
 }
 /* 重畫到貨頁時畫面不跳：記住正在填的那張卡片（或畫面最上面那張）的位置，重畫後放回同一個位置 */
+const ckOf = c => c.dataset.ck || c.dataset.bkx;
 function sumAnchor() {
   if (S.view !== "Sum") return null;
-  const ae = document.activeElement, c0 = ae && ae.closest ? ae.closest("#vSum .bk[data-ck]") : null;
+  const ae = document.activeElement, c0 = ae && ae.closest && /INPUT/.test(ae.tagName) ? ae.closest("#vSum .bk[data-ck]") : null;
+  if (c0) { const r = c0.getBoundingClientRect(); return [{ ck: ckOf(c0), top: r.top, mini: false }] }
+  /* 畫面上看得到的卡片都記下來；重畫後用第一張「還在原本區塊」的卡片對齊 */
   const bar = $("#sumBar") ? $("#sumBar").getBoundingClientRect().bottom : 0;
-  const c = c0 || (S.bkLast && document.querySelector(`#vSum .bk[data-ck="${CSS.escape(S.bkLast)}"]`)) || [...document.querySelectorAll("#vSum .bk[data-ck]")].find(x => x.getBoundingClientRect().bottom > bar);
-  if (!c) return null; const r = c.getBoundingClientRect(); if (r.bottom < 0 || r.top > window.innerHeight) return null;
-  return { ck: c.dataset.ck, top: r.top };
+  return [...document.querySelectorAll("#vSum .bk[data-ck], #vSum .bk.mini[data-bkx]")].map(c => ({ c, r: c.getBoundingClientRect() })).filter(x => x.r.bottom > bar && x.r.top < window.innerHeight).map(x => ({ ck: ckOf(x.c), top: x.r.top, mini: x.c.classList.contains("mini") }));
 }
-function sumRestore(a) {
-  if (!a) return; const c = document.querySelector(`#vSum .bk[data-ck="${CSS.escape(a.ck)}"]`); if (!c) return;
-  const d = c.getBoundingClientRect().top - a.top; if (Math.abs(d) > 1) window.scrollBy({ top: d, behavior: "instant" });
+function sumRestore(list) {
+  if (!list || !list.length) return;
+  for (const a of list) {
+    const c = [...document.querySelectorAll("#vSum .bk[data-ck], #vSum .bk.mini[data-bkx]")].find(x => ckOf(x) === a.ck);
+    if (!c || c.classList.contains("mini") !== a.mini) continue;   /* 這張被搬走或縮起來了，換下一張對齊 */
+    const d = c.getBoundingClientRect().top - a.top; if (Math.abs(d) > 1) window.scrollBy({ top: d, behavior: "instant" }); return;
+  }
 }
 function renderSum() {
   if (!S.payOrders && !S.payLoading) loadPayData();
@@ -3320,12 +3327,14 @@ document.addEventListener("keydown", e => {
   setTimeout(() => { const n = (id && document.getElementById(id)) || nx; if (n && document.contains(n)) { n.focus(); try { n.select() } catch {} } }, 0);
 });
 $("#vSum").addEventListener("focusin", e => {
+  { const c = e.target.closest && e.target.closest(".bk[data-ck]"); if (c && e.target.matches("input")) { const k = c.dataset.ck; if (S.bkHold && S.bkHold !== k) { S.bkHold = k; setTimeout(renderSum, 0) } else S.bkHold = k } }
   if (S.refocus) return;
   if (e.target.matches(".pin,.win,.rin,#note")) {
-    const t = e.target, v0 = t.value;
+    let t = e.target; const v0 = t.value;
     /* 畫面跟著輸入的格子移動：捲到畫面中間，不會被上方標題或下方按鈕擋住 */
     if (t.matches("input")) setTimeout(() => { if (t.value === v0) t.select() }, 0);
-    setTimeout(() => { const c = t.closest(".bk"); if (!c) return t.scrollIntoView({ block: "center", behavior: "smooth" }); const bar = $("#sumBar").getBoundingClientRect().bottom, r = c.getBoundingClientRect(); if (r.top < bar + 4 || r.bottom > window.innerHeight - 90) bkScrollTo(c) }, 60);
+    setTimeout(() => { if (!document.contains(t)) { const n = t.id && document.getElementById(t.id); if (!n) return; t = n }   /* 畫面重畫過，用新的那格判斷 */
+      const c = t.closest(".bk"); if (!c) return t.scrollIntoView({ block: "center", behavior: "smooth" }); const bar = $("#sumBar").getBoundingClientRect().bottom, r = t.getBoundingClientRect(), nb = (document.querySelector("nav.bn") || document.body).getBoundingClientRect().top, fr = $("#fab").getBoundingClientRect(), low = fr.top > window.innerHeight / 2 && fr.left < window.innerWidth / 2 ? Math.min(nb, fr.top) : nb; if (r.top < bar + 4 || r.bottom > low - 4) bkScrollTo(c) }, 60);   /* 只有輸入格被擋住才移動畫面 */
   }
 });
 $("#vSum").addEventListener("input", e => {
@@ -4191,7 +4200,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261015094713";
+  var BUILD_ID = "20261015201052";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4199,7 +4208,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261015094713") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261015201052") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
