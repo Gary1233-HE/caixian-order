@@ -2695,7 +2695,7 @@ function bkScrollTo(card) {
   window.scrollTo({ top: window.scrollY + r.top - want, behavior: "smooth" });
 }
 function updNextBtn() { const b = $("#fabN"); if (!b) return; const n = document.querySelectorAll("#vSum .bk[data-need]").length; b.textContent = n || "✓"; b.parentElement.classList.toggle("done", !n) }
-/* 到貨改廠商：數量、價格、實收、重量一起搬到新廠商 */
+/* 改廠商：只把數量搬到新廠商，價格用新廠商自己的 */
 const VD = { id: "", o: "" };
 function openVendFix(id, o) {
   const it = oById(id), e = lines()[id]; if (!it || !e) return;
@@ -2713,7 +2713,9 @@ function changeVend(id, o, nv) {
   const sk = splitKey(it, o), nk = vkey(sk.spec, nv); if (nk === o) return closeVendFix();
   const ne = JSON.parse(JSON.stringify(e)), op = pk(o), np = pk(nk);
   ne.vs[nk] = (ne.vs[nk] || 0) + (ne.vs[o] || 0); delete ne.vs[o];
-  ["p", "rv", "wt", "pi", "rr"].forEach(f => { if (!ne[f] || ne[f][op] == null) return; if (f === "rv" && ne[f][np] != null) ne[f][np] += ne[f][op]; else if (ne[f][np] == null) ne[f][np] = ne[f][op]; delete ne[f][op]; if (!Object.keys(ne[f]).length) delete ne[f] });
+  /* 只搬數量（叫貨數量、實收）；價格、重量不搬，新廠商會自動帶它自己上次的價格 */
+  ["rv", "rr"].forEach(f => { if (!ne[f] || ne[f][op] == null) return; if (f === "rv" && ne[f][np] != null) ne[f][np] += ne[f][op]; else if (ne[f][np] == null) ne[f][np] = ne[f][op]; delete ne[f][op]; if (!Object.keys(ne[f]).length) delete ne[f] });
+  ["p", "wt", "pi"].forEach(f => { if (!ne[f]) return; delete ne[f][op]; if (!Object.keys(ne[f]).length) delete ne[f] });
   if (ne.vd) { delete ne.vd[op]; if (!Object.keys(ne.vd).length) delete ne.vd }
   store.setLine(S.date, S.sup, id, ne);
   if (!vendList().includes(nv)) { const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup); x.vendList = [...(x.vendList || []), nv]; store.saveOrdCfg(cfg).catch(err) }
@@ -4170,7 +4172,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261015092455";
+  var BUILD_ID = "20261015093254";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4178,7 +4180,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261015092455") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261015093254") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
