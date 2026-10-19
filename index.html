@@ -3603,17 +3603,19 @@ $("#niOk").onclick = async () => {
   const name = $("#niName").value.trim(), u = $("#niUnit").value.trim(), cat = $("#niCat").value || "臨時品項";
   if (!name) { toast("先打品名"); $("#niName").focus(); return }
   if (!u) { toast("先選或輸入單位"); $("#niUnit").focus(); return }
-  const dup = oItems().find(i => norm(i.n) === norm(name));
+  let dup = oItems().find(i => norm(i.n) === norm(name)), nm = name;
+  /* 同名但單位不同（例如 芥藍菜 是件，這次要叫捆）→ 另外新增「芥藍菜捆」，不要跳回原本那項 */
+  if (dup && norm(unitLabel(dup, "")) !== norm(u) && !(dup.o || []).some(o => isUnitOpt(o) && norm(o) === norm(u))) { nm = name + u; dup = oItems().find(i => norm(i.n) === norm(nm)) }
   if (dup) { closeNewItem(); S.oq = ""; S.of = "all"; S.cat = dup.c; setView("Ord"); toast(`清單裡已經有「${dup.n}」，直接叫貨`); setTimeout(() => openKp(dup.id), 200); return }
   const cfg = JSON.parse(JSON.stringify(S.ocfg)), x = cfg.sups.find(q => q.id === S.sup), id = "t" + Date.now().toString(36);
-  x.items.push({ id, c: cat, n: name, o: [], u, tmp: 1 });
+  x.items.push({ id, c: cat, n: nm, o: [], u, tmp: 1 });
   $("#niOk").disabled = true; $("#niOk").textContent = "加入中…";
   const prev = S.ocfg; S.ocfg = cfg; S.fcCache = {};   /* 先顯示在畫面上，不用等雲端回傳 */
   let ok = true;
   try { await store.saveOrdCfg(cfg) } catch (e) { ok = false; S.ocfg = prev; toast("新增失敗：" + ((e && (e.code || e.message)) || e) + "，請再試一次", 4000) }
   $("#niOk").disabled = false; $("#niOk").textContent = "加入並開始叫貨";
   if (!ok) { render(); return }
-  const t0 = Date.now(); const go = () => { if (oById(id) || Date.now() - t0 > 4000) { closeNewItem(); S.oq = ""; if ($("#oq")) $("#oq").value = ""; S.of = "all"; S.cat = cat; setView("Ord"); toast(`已加入「${name}」（${cat}），輸入數量`); openKp(id) } else setTimeout(go, 150) }; go();
+  const t0 = Date.now(); const go = () => { if (oById(id) || Date.now() - t0 > 4000) { closeNewItem(); S.oq = ""; if ($("#oq")) $("#oq").value = ""; S.of = "all"; S.cat = cat; setView("Ord"); toast(`已加入「${nm}」（${cat}），輸入數量`); openKp(id) } else setTimeout(go, 150) }; go();
 };
 /* ===== 輸入視窗（取代 prompt；LINE 內建瀏覽器會擋 prompt，導致無法輸入）===== */
 function askText(label, def = "") {
@@ -4226,7 +4228,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261019202407";
+  var BUILD_ID = "20261020065411";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4234,7 +4236,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261019202407") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261020065411") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
