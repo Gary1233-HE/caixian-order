@@ -2361,7 +2361,7 @@ function crowHtml(en, mode) {
       <div class="r2q"><span>數量</span><button class="qb" data-qd="-1" data-qid="${esc(id)}" aria-label="減一">−</button><button class="qv" data-qn="${esc(id)}">${fmt(a.q)}<small>${esc(r.u || "")}</small></button><button class="qb" data-qd="1" data-qid="${esc(id)}" aria-label="加一">＋</button><button class="qdel" data-qdel="${esc(id)}">刪除</button></div>
       <div class="al">
         <input class="vin${a.inh ? " inh" : ""}" id="vd_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" value="${esc(a.v)}" placeholder="點一下，選廠商" autocomplete="off" aria-label="${esc(r.n)} 廠商" readonly>
-        ${unitKg(r.u) ? `<span class="apw aw"><small>1${esc(r.u)}＝${fmt(unitKg(r.u))}公斤</small></span>` : `<span class="apw aw"><input class="awin${a.winh ? " inh" : ""}" id="wt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.w == null ? "" : fmt(a.w)}" placeholder="每件KG" aria-label="${esc(r.n)} 每件重量"><small>KG/${esc(r.u || "件")}</small></span>`}
+        ${unitKg(r.u) ? `<span class="apw aw"><small>1${esc(r.u)}＝${fmt(unitKg(r.u))}公斤</small></span>` : packTxt(oById(r.id), a.k, r.u) && !(oById(r.id) || {}).pc && a.w == null ? `<span class="apw aw"><small>${esc(packTxt(oById(r.id), a.k, r.u))}</small></span>` : `<span class="apw aw"><input class="awin${a.winh ? " inh" : ""}" id="wt_${esc(r.key)}_${ai}" data-ri="${esc(r.key)}" data-ai="${ai}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${a.w == null ? "" : fmt(a.w)}" placeholder="每件KG" aria-label="${esc(r.n)} 每件重量"><small>KG/${esc(r.u || "件")}</small></span>`}
       </div>${a.inh ? `<div class="al-note">延用上次的廠商</div>` : ""}
       ${multi ? `<div class="al-note">這項分給 ${r.allocs.length} 家：${r.allocs.map(x => `${esc(x.v || "未指定")} ${fmt(x.q)}${esc(r.u || "")}`).join("、")}</div>` : ""}
       <div class="r2a"><button class="btn sp" data-split="${esc(r.key)}">${multi ? "調整分給哪幾家" : "分給多家廠商"}…</button><button class="btn" data-go="${r.id}">鍵盤改</button></div>
@@ -2829,7 +2829,7 @@ function renderUt() {
       <div class="ut-g">
         <label class="ut-c"><small>叫貨單位</small><input class="in" data-utu="${it.id}" value="${esc(it.u || "")}" placeholder="例如 件"></label>
         <label class="ut-c"><small>叫貨規格（用 / 分開）</small><input class="in" data-uto="${it.id}" value="${esc(specWithWt(it))}" placeholder="沒有就空著"></label>
-        ${!(it.o || []).length ? `<label class="ut-c"><small>每件重量 KG</small><input class="in" data-utw="${it.id}" inputmode="decimal" value="${it.uw > 0 ? fmt(it.uw) : ""}" placeholder="例如 30"></label>` : ""}
+        ${!(it.o || []).length ? `<label class="ut-c"><small>每件內容（重量或包數）</small><input class="in" data-utw="${it.id}" value="${it.pk && it.pk.n > 0 ? fmt(it.pk.n) + it.pk.u : it.uw > 0 ? fmt(it.uw) + "kg" : packOf(it) ? fmt(packOf(it).n) + packOf(it).u : ""}" placeholder="例如 30kg 或 12包"></label>` : ""}
       </div>
       ${r.links.map(l => `<div class="ut-k${l.same ? " same" : ""}">
         <div class="ut-kn">↔ 點貨<small>${esc(l.inv.c || "")}　對應規格：${baseKeys(it).length > 1 ? `<select class="ut-sp" data-utsp="${it.id}|${l.inv.id}">${baseKeys(it).map(k => `<option${k === optFor(it, l.inv) ? " selected" : ""}>${esc(k)}</option>`).join("")}</select>` : esc(optFor(it, l.inv) || "（無）")}</small><button class="ut-del" data-utdel="${it.id}|${l.inv.id}">取消連動</button></div>
@@ -2872,7 +2872,8 @@ $("#utList").addEventListener("change", async e => {
   if (t.dataset.utr) { const [iid, u] = t.dataset.utr.split("|"), ii = invById(iid), n = +v; if (!ii) return; const ur = { ...(ii.ur || {}) }; if (n > 0) ur[u] = n; else delete ur[u]; await invApi.setUnits([{ id: iid, ur }]).then(() => toast(n > 0 ? `已設：1${iUnits(ii)[0]}＝${n}${u}` : "已清除")).catch(err); setTimeout(renderUt, 300); return }
   if (t.dataset.utn) { const ii = invById(t.dataset.utn); if (!v || !ii || v === ii.n) { renderUt(); return } if (!confirm(`點貨品名「${ii.n}」改成「${v}」？\n點貨 App 也會跟著改名，點過的數字不受影響。`)) { renderUt(); return } await invApi.setUnits([{ id: ii.id, n: v }]).then(() => toast("已改點貨品名")).catch(err); setTimeout(renderUt, 300); return }
   if (t.dataset.uti) { const ii = invById(t.dataset.uti); if (!v) { toast("點貨單位不能空白"); renderUt(); return } if (!ii || !confirm(`點貨「${ii.n}」的單位改成「${v}」？\n以前點貨記的數字不會換算。`)) { renderUt(); return } await invApi.setUnits([{ id: t.dataset.uti, u: v }]).then(() => toast("已改點貨單位")).catch(err); setTimeout(renderUt, 300); return }
-  if (t.dataset.utw) { const id = t.dataset.utw, w = parseKg(v); if (w.err) { toast(w.err); renderUt(); return } await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; if (w.kg > 0) it.uw = w.kg; else delete it.uw }, w.kg > 0 ? `已設每件重量 ${w.kg}KG` : "已清除每件重量"); renderUt(); return }
+  if (t.dataset.utw && parsePack(v)) { const id = t.dataset.utw, k = parsePack(v); await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; it.pk = k; delete it.uw; (it.inv || []).forEach(iid => { const ii = invById(iid); if (ii && iUnits(ii)[0] === k.u) it.fx = { ...(it.fx || {}), [iid]: k.n } }) }, `已設 1${(oById(id) || {}).u || "件"}＝${fmt(k.n)}${k.u}`); renderUt(); return }
+  if (t.dataset.utw) { const id = t.dataset.utw, w = parseKg(v); if (w.err) { toast(w.err); renderUt(); return } await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; if (w.kg > 0) it.uw = w.kg; else delete it.uw; delete it.pk }, w.kg > 0 ? `已設每件重量 ${w.kg}KG` : "已清除每件重量"); renderUt(); return }
   if (t.dataset.utx) { const [id, iid] = t.dataset.utx.split("|"), n = +v; await utSaveOrd(x => { const it = x.items.find(i => i.id === id); if (!it) return; it.fx = { ...(it.fx || {}) }; if (n > 0) it.fx[iid] = n; else delete it.fx[iid] }, n > 0 ? "已設換算" : "已清除換算"); renderUt(); return }
 });
 $("#utList").addEventListener("click", async e => {
@@ -2889,8 +2890,8 @@ $("#utAll").onclick = async () => {
 };
 $("#utXlsx").onclick = () => {
   if (!window.XLSX) return toast("Excel 元件還沒載入，稍後再試");
-  const rows = [["叫貨廠商", "分類", "叫貨品項", "叫貨單位", "叫貨規格", "規格重量KG", "每件重量KG", "點貨品項", "點貨單位", "換算（1叫貨單位＝?點貨單位）", "加工", "狀態（匯出當時）", "叫貨ID", "點貨ID"]];
-  utRows().forEach(r => { const it = r.it, base = [sup().name, it.c, it.n, it.u || "", (it.o || []).join("/"), it.ow ? Object.entries(it.ow).map(([k, v]) => `${k}=${v}`).join("、") : "", it.uw > 0 ? it.uw : ""]; const pc = it.pc ? (it.pc.outs || []).map(o => o.n).join("、") : "";
+  const rows = [["叫貨廠商", "分類", "叫貨品項", "叫貨單位", "叫貨規格", "規格重量KG", "每件重量KG（或包數，例如 12包）", "點貨品項", "點貨單位", "換算（1叫貨單位＝?點貨單位）", "加工", "狀態（匯出當時）", "叫貨ID", "點貨ID"]];
+  utRows().forEach(r => { const it = r.it, base = [sup().name, it.c, it.n, it.u || "", (it.o || []).join("/"), it.ow ? Object.entries(it.ow).map(([k, v]) => `${k}=${v}`).join("、") : "", it.pk && it.pk.n > 0 ? `${it.pk.n}${it.pk.u}` : it.uw > 0 ? it.uw : ""]; const pc = it.pc ? (it.pc.outs || []).map(o => o.n).join("、") : "";
     if (!r.links.length) rows.push([...base, "", "", "", pc, r.msg, it.id, ""]); else r.links.forEach(l => rows.push([...base, l.inv.n, l.inv.u || "", l.fx ?? "", pc, r.msg, it.id, l.inv.id])) });
   const wb = XLSX.utils.book_new(), ws = XLSX.utils.aoa_to_sheet(rows); ws["!cols"] = [8, 8, 12, 8, 14, 14, 10, 12, 8, 14, 12, 16, 9, 9].map(w => ({ wch: w }));
   XLSX.utils.book_append_sheet(wb, ws, "單位規格總表"); XLSX.writeFile(wb, `單位規格總表_${sup().name}_${today().replace(/-/g, "")}.xlsx`);
@@ -2948,7 +2949,8 @@ async function utImport(file) {
         if (wcell && Object.keys(ow).length && before !== JSON.stringify(ow)) { chg.push(`${lab}：規格重量 → ${Object.entries(ow).map(([k, v]) => `${k} ${v}KG`).join("、")}`); it.ow = ow }
         else if (!wcell && it.ow && Object.keys(it.ow).length) { chg.push(`${lab}：清除規格重量`); delete it.ow }
       }
-      if (C.uw >= 0 && str(cell(r, "uw"))) { const w = parseKg(cell(r, "uw")); if (w.err) warn.push(`${lab}：每件重量 ${w.err}`); else if (+it.uw !== w.kg) { chg.push(`${lab}：每件重量 ${it.uw || "（無）"} → ${w.kg}KG`); it.uw = w.kg; if (w.note) warn.push(`${lab}：${w.note}`) } }
+      if (C.uw >= 0 && parsePack(str(cell(r, "uw")))) { const k = parsePack(str(cell(r, "uw"))); if (!it.pk || it.pk.n !== k.n || it.pk.u !== k.u) { chg.push(`${lab}：每件內容 → 1${it.u || "件"}＝${k.n}${k.u}`); it.pk = k; delete it.uw } }
+      else if (C.uw >= 0 && str(cell(r, "uw"))) { const w = parseKg(cell(r, "uw")); if (w.err) warn.push(`${lab}：每件重量 ${w.err}`); else if (+it.uw !== w.kg) { chg.push(`${lab}：每件重量 ${it.uw || "（無）"} → ${w.kg}KG`); it.uw = w.kg; if (w.note) warn.push(`${lab}：${w.note}`) } }
     }
     /* 點貨那一邊 */
     const iname = C.in >= 0 ? str(cell(r, "in")) : ""; if (!iname) return;
@@ -3115,7 +3117,7 @@ function bookPanel(amt, canLast) {
       ${qrow}
       <div class="bk-b two">
         <label class="bf"><small>單價/${esc(u || "件")}</small><input class="pin${inh ? " inh" : ""}" id="p_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${p == null ? "" : fmt(p)}" placeholder="單價"></label>
-        ${showW ? `<label class="bf"><small>每件重量KG</small><input class="win${w && w.src !== "today" ? " inh" : ""}" id="w_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${w ? fmt(w.w) : ""}" placeholder="每件KG"></label>` : unitKg(u) ? `<div class="bf"><small>重量</small><span class="wunit">1${esc(u)}＝${fmt(unitKg(u))}公斤</span></div>` : `<button class="bf addw" data-addw="${r.id}">＋每件重量</button>`}
+        ${showW ? `<label class="bf"><small>每件重量KG</small><input class="win${w && w.src !== "today" ? " inh" : ""}" id="w_${r.id}_${esc(pk(o))}" data-pid="${r.id}" data-po="${esc(o)}" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="${w ? fmt(w.w) : ""}" placeholder="每件KG"></label>` : unitKg(u) ? `<div class="bf"><small>重量</small><span class="wunit">1${esc(u)}＝${fmt(unitKg(u))}公斤</span></div>` : packTxt(it, o, u) ? `<div class="bf"><small>每件內容</small><span class="wunit">${esc(packTxt(it, o, u))}${p != null && packOf(it, o).n > 0 ? `・每${esc(packOf(it, o).u)} $${fmt(Math.round(p / packOf(it, o).n * 10) / 10)}` : ""}</span></div>` : `<button class="bf addw" data-addw="${r.id}">＋每件重量</button>`}
       </div>
       ${priceWarn(r.id, o, p, inh)}${inh && gotQty(e, o) > 0 ? `<span class="pnote">灰色＝延用上次價格，有變再改</span>` : ""}${r.why && r.r != null && r.r !== r.q ? `<span class="rv-why">${esc(r.why)}</span>` : ""}${r.r === 0 ? `<span class="pnote">沒到貨，這項不算錢，也不用填價格</span>` : r.r != null && r.r !== r.q ? `<span class="pnote" style="color:var(--warn)">小計依實收 ${fmt(r.r)}</span>` : ""}${p != null && w ? `<span class="pnote cost">成本 <b>${fmt(Math.round(p / w.w * 10) / 10)}</b> 元/KG${w.src === "unit" ? `（1${esc(u)}＝${fmt(w.w)}公斤）` : `（共 ${fmt(Math.round(gotQty(e, o) * w.w * 10) / 10)}KG）`}</span>` : w && !p ? "" : ""}
     </div>`;
@@ -3226,6 +3228,18 @@ function wtOf(e, o) { return e && e.wt && e.wt[pk(o)] != null ? e.wt[pk(o)] : nu
 /* 規格後面寫重量（例如「漂亮10kg」）＝規格名「漂亮」＋單件重量 10KG，存在品項的 ow */
 /* 單位本身就是重量：斤（台斤）＝0.6 公斤、公斤＝1。這種品項不用填每件重量，成本直接算 */
 function unitKg(u) { u = String(u || "").trim(); if (/^(台斤|斤)$/.test(u)) return 0.6; if (/^(公斤|kg|KG|Kg)$/.test(u)) return 1; return null }
+/* 每件內容不是重量（例如 1件＝12包）：品項自己設的 pk，或從點貨換算（點貨單位是包、袋…）推出來 */
+const PACK_U = /^(包|袋|盒|把|顆|粒|條|罐|瓶|捆|束|入|片|個|籃|桶|支|串|顆|粒|卷|塊|朵|份|斗|簍|打)$/;
+function parsePack(v) { const m = String(v ?? "").trim().replace(/\s+/g, "").match(/^(\d+(?:\.\d+)?)([^\d.]{1,2})$/); return m && !unitKg(m[2]) && !/^(kg|g|公克|克)$/i.test(m[2]) ? { n: +m[1], u: m[2] } : null }
+function packOf(it, o) {
+  if (!it) return null; const u = unitLabel(it, splitKey(it, o || "").spec); if (unitKg(u)) return null;
+  if (it.pk && it.pk.n > 0) return it.pk;
+  const sp = splitKey(it, o || "").spec || "";
+  for (const id of it.inv || []) { const inv = invById(id); if (!inv) continue; const f = it.fx && +it.fx[id], iu = iUnits(inv)[0] || "";
+    if (!(f > 0) || !iu || iu === u || unitKg(iu) || !PACK_U.test(iu)) continue; const os = optFor(it, inv) || ""; if (sp && os && os !== sp) continue; return { n: f, u: iu } }
+  return null;
+}
+const packTxt = (it, o, u) => { const k = packOf(it, o); return k ? `1${u || unitLabel(it, splitKey(it, o || "").spec) || "件"}＝${fmt(k.n)}${k.u}` : "" };
 function splitWt(label) { const re = /\s*(\d+(?:\.\d+)?)\s*(kg|KG|Kg|公斤)\s*$/, m = String(label || "").match(re); return m ? { n: label.replace(re, "").trim(), w: +m[1] } : { n: String(label || "").trim(), w: null } }
 /* 規格重量（ow）優先；沒規格或那個規格沒設，就用品項的每件重量（uw） */
 /* 設定畫面顯示規格＋重量（例如 漂亮10kg）；規格本身已經是重量（1.5kg）就不要再接一次 */
@@ -4212,7 +4226,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261019202048";
+  var BUILD_ID = "20261019202407";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4220,7 +4234,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261019202048") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261019202407") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
