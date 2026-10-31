@@ -10,7 +10,19 @@
 <title>採鮮叫貨</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js">
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js">
+<!-- 加速：Excel 工具改成背景下載，不擋畫面；還沒下載完就按匯出會提示 -->
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+window.addEventListener("error", function (e) {
+  if (!/XLSX is not defined/.test(String(e && e.message))) return;
+  var t = document.createElement("div");
+  t.textContent = "Excel 工具還在下載，請過幾秒再按一次";
+  t.style.cssText = "position:fixed;left:16px;right:16px;bottom:24px;z-index:99999;padding:12px;border-radius:10px;background:#222;color:#fff;text-align:center;font-size:15px";
+  document.body.appendChild(t); setTimeout(function () { t.remove() }, 2500);
+});
+</script>
 <style>
 :root{
   --bg:#E6E9EE; --paper:#FFFFFF; --ink:#1F3148; --muted:#687384; --line:#D1D6DE;
@@ -1009,6 +1021,7 @@ if (!DEMO) {
   try {
     A = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
     F = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+    window.fastDb = app => { try { return F.initializeFirestore(app, { localCache: F.persistentLocalCache({ tabManager: F.persistentMultipleTabManager() }) }) } catch (e) { console.warn("cache", e); return F.getFirestore(app) } };
   } catch (e) { console.error(e) }
 }
 
@@ -1106,7 +1119,7 @@ let priceDb = null;
 const priceApi = (() => {
   const REF = ["price_board", "current"], PEND = ["price_board", "cost_pending"];
   if (F) {
-    const db = () => priceDb ||= F.getFirestore(A.initializeApp(PRICE_CONFIG, "price"));
+    const db = () => priceDb ||= window.fastDb(A.initializeApp(PRICE_CONFIG, "price"));
     return {
       mode: "fb",
       get: async () => { const x = await F.getDoc(F.doc(db(), ...REF)); return x.exists() ? x.data() : null },
@@ -1126,7 +1139,7 @@ const priceApi = (() => {
 /* ---- 點貨（唯讀） ---- */
 let inv;
 if (F) {
-  const db = F.getFirestore(A.initializeApp(INV_CONFIG, "inventory"));
+  const db = window.fastDb(A.initializeApp(INV_CONFIG, "inventory"));
   inv = {
     mode: "fb",
     watchCfg: cb => F.onSnapshot(F.doc(db, "config", "inventory"), x => { ST.inv = ""; showStatus(); cb(x.exists() ? x.data() : null) }, e => { fail("inv")(e); cb(null) }),
@@ -1181,7 +1194,7 @@ const encLines = o => { const r = {}; Object.entries(o).forEach(([k, v]) => { r[
 const safe = fn => { try { const p = fn(); return p && p.catch ? p.catch(err) : p } catch (e) { err(e); return Promise.resolve() } };
 let store;
 if (ORDER_FB && F) {
-  const db = F.getFirestore(A.initializeApp(ORDER_CONFIG));
+  const db = window.fastDb(A.initializeApp(ORDER_CONFIG));
   const oref = (d, s) => F.doc(db, "orders", `${d}_${s}`);
   const merge = (d, s, o) => safe(() => F.setDoc(oref(d, s), { date: d, sup: s, updatedAt: Date.now(), ...o }, { merge: true }));
   store = {
@@ -1538,7 +1551,15 @@ const invStale = () => !S.invDay || S.invDay.date !== S.date;
 const altOf = it => (it.alt || []).map(id => oById(id)).filter(Boolean);
 function coveredBy(it) { if (hasQty(lines()[it.id])) return null; return altOf(it).find(a => hasQty(lines()[a.id])) || null }
 const altName = a => `${a.n}${a.u ? "（" + a.u + "）" : ""}`;
+/* 加速：同一份資料下，每個品項的建議量只算一次（資料有變才重算） */
+var AZ = { k: [], m: new Map() };
 function analyze(it) {
+  const k = [S.ord, S.invDay, S.inv, S.hist, S.ocfg, S.date, S.sup];
+  if (k.some((v, i) => v !== AZ.k[i])) AZ = { k, m: new Map() };
+  let r = AZ.m.get(it.id); if (!r) { r = analyzeRaw(it); AZ.m.set(it.id, r) }
+  return r;
+}
+function analyzeRaw(it) {
   const c = invCounts(), rows = [], sug = {}, stale = invStale();
   (it.inv || []).forEach(id => {
     const inv = invById(id); if (!inv) return;
@@ -1732,7 +1753,7 @@ function openOrder() {
   S.unsub.forEach(f => typeof f === "function" && f()); S.unsub = [];
   S.ord = null; S.invDay = null; S.prev = null;
   const d = S.date, s = S.sup;
-  S.unsub.push(store.watchOrder(d, s, x => { if (S.date === d && S.sup === s) { S.ord = x; render() } }));
+  S.unsub.push(store.watchOrder(d, s, x => { if (S.date === d && S.sup === s) { S.ord = x; renderSoon() } }));
   S.unsub.push(store.watchPrices(s, x => { if (S.sup === s) { S.last = x || {}; if (S.view === "Sum") renderSum() } }));
   S.unsub.push(inv.watchDay(d, x => { if (S.date === d) { S.invDay = x; render() } }));
   store.prevOrder(d, s).then(p => { if (S.date === d && S.sup === s) { S.prev = p; render() } }).catch(err);
@@ -1840,7 +1861,10 @@ function autoFill() {
   if (vendFix.length) { vendFix.forEach(f => { const r = cartItems().find(x => x.id === f.it.id && x.spec === f.spec); if (r) setAllocs(r, f.al) }); const nSp = vendFix.filter(f => f.al.length > 1); if (nSp.length) toast(`依近 10 天習慣，已自動分廠商：${nSp.slice(0, 3).map(f => f.it.n).join("、")}${nSp.length > 3 ? ` 等 ${nSp.length} 項` : ""}`, 3500); scheduleAuto(); return }   /* 廠商先定，下一輪再依廠商帶價格 */
   if (Object.keys(patch).length) store.patchLines(S.date, S.sup, patch);
 }
+var renderQ = 0;
+function renderSoon() { if (renderQ) return; renderQ = requestAnimationFrame(() => { renderQ = 0; render() }) }
 function render() {
+  if (renderQ) { cancelAnimationFrame(renderQ); renderQ = 0 }
   if (!S.ocfg || !sup()) return;
   scheduleAuto();
   if (!S.cat || !catsOf().includes(S.cat)) S.cat = catsOf()[0];
@@ -3670,7 +3694,7 @@ function loadPayData() {
   S.payLoading = true;
   store.listRange(payStart(), "2999-12-31").then(os => { S.payOrders = os; S.payLoading = false; if (S.view === "Pay" || S.view === "Sum") render() }).catch(e => { S.payLoading = false; err(e) });
 }
-store.watchPays(x => { S.pays = x || []; if (S.view === "Pay" || S.view === "Sum") render() });
+store.watchPays(x => { S.pays = x || []; if (S.view === "Pay" || S.view === "Sum") renderSoon() });
 /* 帳本：每個付款對象的每一天應付、已沖銷、未付 */
 function ledger() {
   const st = payStart();
