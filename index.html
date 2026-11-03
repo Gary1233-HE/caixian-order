@@ -1699,7 +1699,31 @@ function relink() {
     const add = byName["做好高麗"] && byName["做好高麗"][0];
     if (add) { x.items.filter(it => it.c === "葉菜類" && (it.n === "硬種" || it.n === "高麗" || it.n === "高麗菜")).forEach(it => { if (!(it.inv || []).includes(add.id)) { it.inv = [...(it.inv || []), add.id]; n++ } }); cfg.fix7 = 1; n++ }
   }
+  n += fixDeadLinks(cfg);
   if (n) store.saveOrdCfg(cfg).then(() => toast(`點貨品項有更新，已自動連動 ${n} 項`)).catch(err);
+}
+/* 點貨清單重新編號／合併後，叫貨連到的點貨 ID 不見了 → 用編號對照和品名找回來（所有廠商、包含手動設定的），換算 fx、對應規格 isp 一起搬 */
+function fixDeadLinks(cfg) {
+  const all = invItems(), has = id => !!invById(id), nn = z => norm(z).replace(/[()（）]/g, "");
+  const rel = (a, b) => { a = nn(a); b = nn(b); return !!a && !!b && (a === b || a.startsWith(b) || b.startsWith(a)) };
+  const byOff = id => { let m = /^i(\d+)$/.exec(id); if (m && +m[1] > 144) { const t = "i" + String(+m[1] - 144).padStart(3, "0"); return has(t) ? t : null }
+    m = /^mmupflaky(\d+)$/.exec(id); if (m) { const t = "mmvsf7llo" + m[1]; return has(t) ? t : null } return null };
+  let n = 0;
+  cfg.sups.forEach(sp => sp.items.forEach(it => {
+    const inv = it.inv || []; if (!inv.length && !it.fx && !it.isp) return;
+    const map = {}, out = [];
+    inv.forEach(id => { if (has(id)) { out.push(id); return }
+      let t = byOff(id); const ti = t && invById(t);
+      if (ti && !(/^i/.test(id) ? rel(ti.n, it.n) || ti.c === it.c : true)) t = null;
+      if (!t) { const c = all.filter(i => rel(i.n, it.n)); t = (c.find(i => nn(i.n) === nn(it.n)) || c.find(i => i.c === it.c) || c[0] || {}).id || null }
+      if (t) { map[id] = t; if (!out.includes(t)) out.push(t) } });
+    const ch = out.length !== inv.length || out.some((x, i) => x !== inv[i]);
+    if (ch) { it.inv = out; n++ }
+    ["fx", "isp"].forEach(k => { const o = it[k]; if (!o) return; let c2 = false; const r = {};
+      Object.entries(o).forEach(([id, v]) => { if (has(id)) { if (out.includes(id) || k === "fx") r[id] = v; return } const t = map[id] || byOff(id); c2 = true; if (t && out.includes(t) && r[t] == null && o[t] == null) r[t] = v });
+      if (c2) { it[k] = r; n++ } });
+  }));
+  return n;
 }
 store.watchOrdCfg(c => {
   S.ocfg = c; S.ocfgLoaded = true; S.fcCache = {}; vendCache = new WeakMap(); ensureSeed(); relink(); seedMushroom(); fixDGY(); fixDGY2(); fixJCH(); fixCRK(); fixOKRA(); fixKONJ();
@@ -4265,7 +4289,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261020102534";
+  var BUILD_ID = "20261104073822";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4273,7 +4297,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261020102534") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261104073822") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
