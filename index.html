@@ -1710,13 +1710,15 @@ function fixDeadLinks(cfg) {
     m = /^mmupflaky(\d+)$/.exec(id); if (m) { const t = "mmvsf7llo" + m[1]; return has(t) ? t : null } return null };
   let n = 0;
   cfg.sups.forEach(sp => sp.items.forEach(it => {
-    const inv = it.inv || []; if (!inv.length && !it.fx && !it.isp) return;
+    const inv = it.inv || [];
     const map = {}, out = [];
     inv.forEach(id => { if (has(id)) { out.push(id); return }
       let t = byOff(id); const ti = t && invById(t);
       if (ti && !(/^i/.test(id) ? rel(ti.n, it.n) || ti.c === it.c : true)) t = null;
       if (!t) { const c = all.filter(i => rel(i.n, it.n)); t = (c.find(i => nn(i.n) === nn(it.n)) || c.find(i => i.c === it.c) || c[0] || {}).id || null }
       if (t) { map[id] = t; if (!out.includes(t)) out.push(t) } });
+    /* 沒有連動的叫貨品項：點貨有完全同名、同單位的，自動連上（例如點貨新增了去皮洋蔥） */
+    if (!out.length && !inv.length && !it.nl) { const m = all.filter(i => nn(i.n) === nn(it.n) && (iUnits(i)[0] || "") === (it.u || "")); if (m.length === 1) out.push(m[0].id) }
     const ch = out.length !== inv.length || out.some((x, i) => x !== inv[i]);
     if (ch) { it.inv = out; n++ }
     ["fx", "isp"].forEach(k => { const o = it[k]; if (!o) return; let c2 = false; const r = {};
@@ -2912,7 +2914,7 @@ $("#utList").addEventListener("click", async e => {
   const b = e.target.closest("[data-utdel]"); if (!b) return;
   const [id, iid] = b.dataset.utdel.split("|"), it = oById(id), inv = invById(iid);
   if (!confirm(`取消「${it ? it.n : ""}」和點貨「${inv ? inv.n : ""}」的連動？`)) return;
-  await utSaveOrd(x => { const o = x.items.find(i => i.id === id); if (!o) return; o.inv = (o.inv || []).filter(z => z !== iid); if (o.isp) delete o.isp[iid]; o.manual = 1 }, "已取消連動"); renderUt();
+  await utSaveOrd(x => { const o = x.items.find(i => i.id === id); if (!o) return; o.inv = (o.inv || []).filter(z => z !== iid); if (o.isp) delete o.isp[iid]; o.manual = 1; if (!o.inv.length) o.nl = 1 }, "已取消連動"); renderUt();
 });
 $("#utList").addEventListener("change", async e => {
   const t = e.target, v = t.value.trim();
@@ -4270,7 +4272,7 @@ $("#lkList").onchange = e => {
   const fx = e.target.closest("[data-fx]");
   if (fx) { const v = +fx.value; it.fx = { ...(it.fx || {}) }; if (v > 0) it.fx[fx.dataset.fx] = v; else delete it.fx[fx.dataset.fx]; return }
   const cb = e.target.closest("[data-inv]"); if (!cb) return;
-  const set = new Set(it.inv || []); cb.checked ? set.add(cb.dataset.inv) : set.delete(cb.dataset.inv); it.inv = [...set]; it.manual = 1;
+  const set = new Set(it.inv || []); cb.checked ? set.add(cb.dataset.inv) : set.delete(cb.dataset.inv); it.inv = [...set]; it.manual = 1; if (it.inv.length) delete it.nl; else it.nl = 1;
   const y = $("#lkList").scrollTop; renderLink(); $("#lkList").scrollTop = y;
 };
 $("#lkList").addEventListener("click", e => { if (e.target.closest(".fx")) e.preventDefault() });
@@ -4289,7 +4291,7 @@ $("#lkOk").onclick = closeSheets;
 /* 自動檢查新版本：網站更新後，畫面上方出現「有新版本」，點一下就換成新版；
    切回這個頁面時，沒在輸入的話會自動更新 */
 (function () {
-  var BUILD_ID = "20261104073822";
+  var BUILD_ID = "20261104092246";
   var bar = document.getElementById("updBar"), newer = false;
   function busy() { var a = document.activeElement; return a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) }
   function go() { location.reload() }
@@ -4297,7 +4299,7 @@ $("#lkOk").onclick = closeSheets;
   function check() {
     fetch(location.pathname + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : "" }).then(function (t) {
       var m = t && t.match(/var BUILD_ID = "([^"]+)"/);
-      if (m && m[1] !== BUILD_ID && m[1] !== "20261104073822") { newer = true; bar.style.display = "block" }
+      if (m && m[1] !== BUILD_ID && m[1] !== "20261104092246") { newer = true; bar.style.display = "block" }
     }).catch(function () {});
   }
   setTimeout(check, 4000); setInterval(check, 3 * 60 * 1000);
